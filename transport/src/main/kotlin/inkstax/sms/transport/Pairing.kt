@@ -108,8 +108,14 @@ fun pairingOfferFromQrPayload(rawPayload: String?): PairingOffer? {
     // Plain HTTP names an endpoint only on this device itself
     // (see isLoopbackAuthority in PairingExchange.kt): anywhere
     // else it would put the token on a network path unprotected,
-    // so it reads back as no offer.
-    if (scheme == "http" && !isLoopbackAuthority("$hostPart$portPart")) {
+    // so it reads back as no offer. The check reads the raw
+    // authority, not the parts above: a scanned authority with a
+    // colon but no port (127.0.0.1:) parses to port -1, and the
+    // parts would silently drop the colon and rewrite the
+    // endpoint into its default-port spelling — the raw spelling
+    // is refused whole instead, as the credential reader refuses
+    // it.
+    if (scheme == "http" && !isLoopbackAuthority(uri.rawAuthority.orEmpty())) {
         return null
     }
     return PairingOffer(endpointBase = "$scheme://$hostPart$portPart", token = token)

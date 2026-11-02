@@ -204,6 +204,9 @@ class PairingTest {
         assertNull(pairingOfferFromQrPayload("http://localhost.evil.example/companion/start?t=tok"))
         assertNull(pairingOfferFromQrPayload("http://127.0.0.1.evil.example/companion/start?t=tok"))
         assertNull(pairingOfferFromQrPayload("http://127.0.0.1:notaport/companion/start?t=tok"))
+        assertNull(pairingOfferFromQrPayload("http://127.0.0.1:/companion/start?t=tok"))
+        assertNull(pairingOfferFromQrPayload("http://localhost:/companion/start?t=tok"))
+        assertNull(pairingOfferFromQrPayload("http://[::1]:/companion/start?t=tok"))
     }
 
     @Test
