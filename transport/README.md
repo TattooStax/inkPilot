@@ -1,4 +1,4 @@
-# :transport — the bridge seam (SMS-1, SMS-2, SMS-3, SMS-4, SMS-5, SMS-6, SMS-7, SMS-8, SMS-9, SMS-10, SMS-11), SMS-12, SMS-14, SMS-15, SMS-18, SMS-19, SMS-20, SMS-21, SMS-22, SMS-26, SMS-27, SMS-28, SMS-29, SMS-33
+# :transport — the bridge seam (SMS-1, SMS-2, SMS-3, SMS-4, SMS-5, SMS-6, SMS-7, SMS-8, SMS-9, SMS-10, SMS-11), SMS-12, SMS-14, SMS-15, SMS-18, SMS-19, SMS-20, SMS-21, SMS-22, SMS-26, SMS-27, SMS-28, SMS-29, SMS-33, SMS-37
 
 Pure Kotlin/JVM module holding the InkStax SMS layer's one
 bridge seam. SMS-1 extracted the outbound side; SMS-2 adds the
@@ -902,3 +902,18 @@ SMS-33 records the inbound drain credential-guard closure,
 which ran in flight under that number before this item took
 it; the drain work carries no SMS-33 code tags, so the tag
 above names this slice alone.)
+
+## Upstream touchpoint registry (SMS-37, ≤5, tagged in code)
+
+One tagged touchpoint — AndroidManifest.xml (SMS-37-TOUCHPOINT
+1/1): the <application> element names this track's network
+security config, which permits cleartext only to the loopback
+hosts (localhost, 127.0.0.1) the :transport endpoint rule admits
+for the local binding. The platform default for this target
+refuses cleartext anywhere, loopback included, so without the
+exception a loopback offer could never complete its exchange or
+a heartbeat on device. The config it names is a new file
+(app/src/main/res/xml/network_security_config.xml). Everything
+else in this slice is :transport definitions and their tests,
+plus the app-side binding comments that describe those
+definitions.
