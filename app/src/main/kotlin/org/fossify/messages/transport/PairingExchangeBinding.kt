@@ -51,8 +51,10 @@ sealed interface PairingExchangeBindingResult {
  * to the app-side credential storage, which verifies it on read-back
  * before it counts as stored.
  *
- * The offer's endpoint is HTTPS (the pairing reader accepts no other
- * scheme), so the token and the minted secret travel only over TLS.
+ * The offer's endpoint is HTTPS — or loopback HTTP on this device
+ * itself, the local binding's case, where the traffic never leaves
+ * the phone — so the token and the minted secret travel only over
+ * TLS or not over a network at all.
  * Neither value is logged or persisted here — the token is spent by
  * this call, and the secret is persisted only by the credential
  * storage, never by the exchange itself.

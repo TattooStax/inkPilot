@@ -17,7 +17,7 @@ import java.net.URISyntaxException
  * storage here — a binding supplies the scanned text, timestamps,
  * and exchange outcomes, and acts on the states.
  *
- * The QR encodes an HTTPS URL on the brain's own endpoint:
+ * The QR encodes a URL on the brain's own endpoint:
  * `https://<endpoint>/companion/start?t=<token>`. The same QR is
  * presented twice (camera first, in-app scanner second) because
  * deep-link parameters do not survive an install — the user
@@ -61,7 +61,8 @@ data class PairingOffer(
 /**
  * Reads a scanned QR payload as a [PairingOffer], or returns null
  * when it is not one. Only the exact issued shape counts: an HTTPS
- * URL with a host, the pairing path, no embedded user info, no
+ * URL with a host — or an HTTP URL on a loopback authority, the
+ * local binding's same-device case — the pairing path, no embedded user info, no
  * fragment, and a single token parameter. The token value is
  * percent-decoded before it is validated or returned — the offer
  * carries the token itself, never its encoded spelling, and an
@@ -83,7 +84,8 @@ fun pairingOfferFromQrPayload(rawPayload: String?): PairingOffer? {
     } catch (e: URISyntaxException) {
         return null
     }
-    if (!uri.scheme.equals("https", ignoreCase = true) || uri.host.isNullOrBlank()) {
+    val scheme = uri.scheme?.lowercase() ?: return null
+    if ((scheme != "https" && scheme != "http") || uri.host.isNullOrBlank()) {
         return null
     }
     if (uri.userInfo != null || uri.rawFragment != null || uri.path != PAIRING_PATH) {
@@ -103,7 +105,14 @@ fun pairingOfferFromQrPayload(rawPayload: String?): PairingOffer? {
     }
     val hostPart = if (uri.host.contains(':') && !uri.host.startsWith('[')) "[${uri.host}]" else uri.host
     val portPart = if (uri.port >= 0) ":${uri.port}" else ""
-    return PairingOffer(endpointBase = "https://$hostPart$portPart", token = token)
+    // Plain HTTP names an endpoint only on this device itself
+    // (see isLoopbackAuthority in PairingExchange.kt): anywhere
+    // else it would put the token on a network path unprotected,
+    // so it reads back as no offer.
+    if (scheme == "http" && !isLoopbackAuthority("$hostPart$portPart")) {
+        return null
+    }
+    return PairingOffer(endpointBase = "$scheme://$hostPart$portPart", token = token)
 }
 
 /**

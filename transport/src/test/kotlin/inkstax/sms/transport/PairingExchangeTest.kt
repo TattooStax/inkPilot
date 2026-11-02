@@ -109,6 +109,26 @@ class PairingExchangeTest {
     }
 
     @Test
+    fun `a loopback http credential reads back and is usable for its own endpoint`() {
+        val loopback = "http://127.0.0.1:38117"
+        assertEquals(
+            DeviceCredential(loopback, "device-1", "secret-abc"),
+            deviceCredentialFromStored(loopback, "device-1", "secret-abc", "device-1")
+        )
+        assertTrue(isCredentialUsableFor(DeviceCredential(loopback, "device-1", "secret-abc"), loopback))
+        assertEquals(
+            DeviceCredential(loopback, "device-1", "secret-abc"),
+            exchangedCredentialFor(PairingOffer(loopback, "tok"), loopback, "device-1", "secret-abc")
+        )
+    }
+
+    @Test
+    fun `a non-loopback http credential is no credential`() {
+        assertNull(deviceCredentialFromStored("http://brain.example", "device-1", "secret-abc", "device-1"))
+        assertNull(deviceCredentialFromStored("http://localhost.evil.example", "device-1", "secret-abc", "device-1"))
+    }
+
+    @Test
     fun `disconnect unpairs a paired phone and changes nothing otherwise`() {
         assertEquals(PairingState.UNPAIRED, pairingStateAfterDisconnect(PairingState.PAIRED))
         assertEquals(PairingState.UNPAIRED, pairingStateAfterDisconnect(PairingState.UNPAIRED))
