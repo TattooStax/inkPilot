@@ -191,6 +191,25 @@ class PairingTest {
     }
 
     @Test
+    fun `a loopback http offer reads back as an offer for the local binding`() {
+        val offer = pairingOfferFromQrPayload("http://127.0.0.1:38117/companion/start?t=tok")
+        assertEquals(PairingOffer("http://127.0.0.1:38117", "tok"), offer)
+        assertEquals("http://localhost:38117", pairingOfferFromQrPayload("http://localhost:38117/companion/start?t=tok")?.endpointBase)
+        assertEquals("http://[::1]:38117", pairingOfferFromQrPayload("http://[::1]:38117/companion/start?t=tok")?.endpointBase)
+    }
+
+    @Test
+    fun `an http offer for anywhere but this device is no offer`() {
+        assertNull(pairingOfferFromQrPayload("http://192.168.40.1:38117/companion/start?t=tok"))
+        assertNull(pairingOfferFromQrPayload("http://localhost.evil.example/companion/start?t=tok"))
+        assertNull(pairingOfferFromQrPayload("http://127.0.0.1.evil.example/companion/start?t=tok"))
+        assertNull(pairingOfferFromQrPayload("http://127.0.0.1:notaport/companion/start?t=tok"))
+        assertNull(pairingOfferFromQrPayload("http://127.0.0.1:/companion/start?t=tok"))
+        assertNull(pairingOfferFromQrPayload("http://localhost:/companion/start?t=tok"))
+        assertNull(pairingOfferFromQrPayload("http://[::1]:/companion/start?t=tok"))
+    }
+
+    @Test
     fun `paired is terminal and a second scan replaces nothing`() {
         assertEquals(PairingState.PAIRED, pairingStateAfter(PairingState.PAIRED, PairingEvent.OFFER_SCANNED))
         assertEquals(PairingState.PAIRED, pairingStateAfter(PairingState.PAIRED, PairingEvent.TOKEN_LAPSED))

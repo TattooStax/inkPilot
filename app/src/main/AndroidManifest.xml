@@ -34,8 +34,13 @@
 
     <uses-feature android:name="android.hardware.telephony" />
 
+    <!-- SMS-37-TOUCHPOINT 1/1: the local binding talks plain HTTP
+         to a loopback endpoint on this device, so the application
+         names this track's network security config, which scopes
+         the cleartext exception to loopback hosts only -->
     <application
         android:name=".App"
+        android:networkSecurityConfig="@xml/network_security_config"
         android:allowBackup="true"
         android:appCategory="productivity"
         android:icon="@mipmap/ic_launcher"

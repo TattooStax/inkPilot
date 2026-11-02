@@ -33,11 +33,13 @@ sealed interface HeartbeatBindingResult {
  * [heartbeatRequestFor] builds from the stored credential, and
  * the answer is read the one way [heartbeatOutcomeFor] reads it.
  *
- * The credential's endpoint is HTTPS (the pairing reader accepts
- * no other scheme for an offer, and a credential is minted only
- * for a scanned offer's endpoint), so the secret travels only
- * over TLS, and only in the authorization value the wire shape
- * defines — never in the body, never logged here.
+ * The credential's endpoint is HTTPS — or loopback HTTP on this
+ * device itself, the local binding's case (the pairing reader
+ * accepts no other endpoints, and a credential is minted only for
+ * a scanned offer's endpoint) — so the secret travels only over
+ * TLS or not over a network at all, and only in the authorization
+ * value the wire shape defines — never in the body, never logged
+ * here.
  *
  * A negative [sentAtMillis] is a caller error and throws: an
  * argument fault must never be reported as a missing or broken

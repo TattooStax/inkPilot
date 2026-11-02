@@ -53,7 +53,15 @@ data class DeviceCredential(
  * Whether a candidate endpoint base is one a credential may belong
  * to: an HTTPS URL with a host and nothing else — no path, query,
  * fragment, or embedded user info. Endpoint bases in this seam are
- * origins, as Pairing.kt returns them from a scanned offer.
+ * origins, as Pairing.kt returns them from a scanned offer. Plain
+ * HTTP is admitted for a loopback authority only: the local
+ * binding pairs a companion and a core on the same device, where
+ * the traffic never leaves the device and no TLS endpoint exists
+ * to name — an HTTP name for anywhere else would put the
+ * credential on a network path unprotected, so it stays refused.
+ * The core's endpoint rule admits exactly the same shapes, so a
+ * credential's endpoint means the same thing on both sides of
+ * the seam.
  */
 private fun isEndpointBase(candidate: String?): Boolean {
     val value = candidate.orEmpty()
@@ -65,12 +73,60 @@ private fun isEndpointBase(candidate: String?): Boolean {
     } catch (e: java.net.URISyntaxException) {
         return false
     }
-    return uri.scheme.equals("https", ignoreCase = true) &&
-        !uri.host.isNullOrBlank() &&
-        uri.userInfo == null &&
-        uri.rawQuery == null &&
-        uri.rawFragment == null &&
-        (uri.path.isNullOrEmpty() || uri.path == "/")
+    if (uri.host.isNullOrBlank() ||
+        uri.userInfo != null ||
+        uri.rawQuery != null ||
+        uri.rawFragment != null ||
+        !(uri.path.isNullOrEmpty() || uri.path == "/")
+    ) {
+        return false
+    }
+    return if (uri.scheme.equals("https", ignoreCase = true)) {
+        true
+    } else if (uri.scheme.equals("http", ignoreCase = true)) {
+        isLoopbackAuthority(uri.rawAuthority.orEmpty())
+    } else {
+        false
+    }
+}
+
+/**
+ * Whether an authority names this device itself: a loopback host
+ * (127.0.0.1, localhost, or [::1]) with an optional all-digit
+ * port. A name that merely starts like one
+ * (localhost.evil.example) names somewhere else, and a port that
+ * is not a port makes the whole authority another name than the
+ * one the offer scanned, so both are refused whole.
+ */
+internal fun isLoopbackAuthority(authority: String): Boolean {
+    val host: String
+    val port: String?
+    if (authority.startsWith("[")) {
+        val close = authority.indexOf(']')
+        if (close < 0) {
+            return false
+        }
+        host = authority.substring(1, close)
+        val tail = authority.substring(close + 1)
+        port = when {
+            tail.isEmpty() -> null
+            tail.startsWith(":") -> tail.substring(1)
+            else -> return false
+        }
+    } else {
+        val split = authority.indexOf(':')
+        if (split >= 0) {
+            host = authority.substring(0, split)
+            port = authority.substring(split + 1)
+        } else {
+            host = authority
+            port = null
+        }
+    }
+    if (port != null && (port.isEmpty() || !port.all { it in '0'..'9' })) {
+        return false
+    }
+    return host.equals("localhost", ignoreCase = true) || host == "127.0.0.1" || host == "::1"
 }
 
 /**
@@ -159,7 +215,7 @@ fun pairingEventForExchangeFailure(failure: PairingExchangeFailure): PairingEven
 /**
  * Reads a stored credential back as this device's credential, or
  * null when it does not count. The stored fields must form a
- * usable credential (an HTTPS endpoint origin and opaque device
+ * usable credential (a usable endpoint origin and opaque device
  * id and secret), and the on-device token must name the same
  * device id — a credential restored from backup without its token,
  * or with another device's token, reads back as no credential and

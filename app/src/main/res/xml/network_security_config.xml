@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SMS-37: the local binding's endpoint is plain HTTP on this
+     device itself (see isLoopbackAuthority in :transport). The
+     platform default for this target refuses cleartext anywhere,
+     loopback included, so the exception is scoped to the two
+     loopback host names the seam admits: localhost and 127.0.0.1.
+     Cleartext to any other host stays refused. -->
+<network-security-config>
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="false">localhost</domain>
+        <domain includeSubdomains="false">127.0.0.1</domain>
+    </domain-config>
+</network-security-config>
