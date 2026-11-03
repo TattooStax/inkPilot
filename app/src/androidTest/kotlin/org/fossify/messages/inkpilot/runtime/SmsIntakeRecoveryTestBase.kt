@@ -40,7 +40,11 @@ abstract class SmsIntakeRecoveryTestBase {
         }
         databaseName = "intake-recovery-test-${UUID.randomUUID()}.db"
         repository = StudioRepository(context, databaseName)
-        since = System.currentTimeMillis()
+        // Automatic startup recovery scans only post-install inbox history. Keep this
+        // isolated scan fixture earlier so it cannot populate the real studio database.
+        @Suppress("DEPRECATION")
+        val installedAt = context.packageManager.getPackageInfo(context.packageName, 0).firstInstallTime
+        since = (installedAt - 10_000).coerceAtLeast(1)
     }
 
     @After

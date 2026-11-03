@@ -93,3 +93,5 @@ wait "$worker_pid"
 adb exec-out run-as "$package" cat files/device-test-evidence/worker-wakeup.json > "$evidence/worker-wakeup.json"
 run_tests native-send class org.fossify.messages.inkpilot.smoke.NativeSendSmokeTest
 adb exec-out run-as "$package" cat files/device-test-evidence/native-send.json > "$evidence/native-send.json"
+run_tests batch-failure class org.fossify.messages.inkpilot.smoke.BatchFailureSmokeTest
+adb exec-out run-as "$package" cat files/device-test-evidence/batch-failure.json > "$evidence/batch-failure.json"

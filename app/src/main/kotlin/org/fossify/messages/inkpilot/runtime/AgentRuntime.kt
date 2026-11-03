@@ -50,6 +50,7 @@ object AgentRuntime {
                 return@synchronized 0
             }
             var created = 0
+            var needsAttention = false
             val native = LlamaDraftModel(weights)
             for (request in repository.pendingRequests(limit = 3)) {
                 if (cancellation() || !repository.isDraftingEnabled()) break
@@ -63,9 +64,10 @@ object AgentRuntime {
                 when (result) {
                     is DraftOutcome.Held -> if (result.disposition == DraftDisposition.CREATED) created++
                     is DraftOutcome.Failed -> {
+                        needsAttention = true
                         repository.recordDraftAttempt(request.eventId, request.expectedRevision, "Model or source read failed")
                         settings.recordStatus("Drafting failed. Check the model and try again.")
-                        return@synchronized created
+                        continue
                     }
                     is DraftOutcome.PersistenceUnconfirmed -> {
                         settings.recordStatus("Draft storage needs reconciliation. Nothing was sent.")
@@ -75,13 +77,15 @@ object AgentRuntime {
                         settings.recordStatus("Draft stopped: ${result.reason.name.lowercase().replace('_', ' ')}.")
                         if (result.reason == DraftStopReason.CANCELLED) break
                         if (result.reason !in listOf(DraftStopReason.SOURCE_CHANGED, DraftStopReason.STAFF_PAUSED)) {
+                            needsAttention = true
                             repository.recordDraftAttempt(request.eventId, request.expectedRevision, result.reason.name)
                         }
                     }
                 }
             }
             if (created > 0) {
-                settings.recordStatus("$created draft(s) ready for staff review.")
+                settings.recordStatus(if (needsAttention) "Drafts are ready for review. Some messages could not be drafted; check the model and memory, then retry."
+                    else "$created draft(s) ready for staff review.")
                 DraftNotifications.show(context, created)
             }
             if (!cancellation() && repository.pendingRequests(limit = 1).isNotEmpty()) runPending(context)

@@ -39,11 +39,23 @@ jobs:
           packages: platform-tools
           log-accepted-android-sdk-licenses: false
       - uses: gradle/actions/setup-gradle@v4
+      - name: Restore exact native emulator build
+        id: native-cache
+        uses: actions/cache/restore@v4
+        with:
+          path: local-inference/.cxx
+          key: native-${{ runner.os }}-x86_64-${{ hashFiles('local-inference/src/main/cpp/**', 'local-inference/build.gradle.kts', 'build.gradle.kts', 'settings.gradle.kts', 'gradle.properties', 'gradle/**', '.github/workflows/inkpilot-device.yml') }}
       - name: Build app and device tests before starting emulator
         run: >-
           ./gradlew :app:assembleFossDebug :app:assembleFossDebugAndroidTest
           --console=plain --no-daemon --max-workers=2
           -Dorg.gradle.jvmargs=-Xmx3g -PinkpilotAbi=x86_64
+      - name: Save successful native emulator build
+        if: steps.native-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: local-inference/.cxx
+          key: ${{ steps.native-cache.outputs.cache-primary-key }}
       - name: Download checksum-pinned local model
         run: scripts/inkpilot-device-model.sh "$RUNNER_TEMP/inkpilot-model.gguf"
       - name: Enable emulator acceleration
