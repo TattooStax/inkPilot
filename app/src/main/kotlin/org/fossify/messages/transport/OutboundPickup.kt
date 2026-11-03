@@ -17,7 +17,12 @@ import inkstax.sms.transport.OutboundPickupOutcome
  * so a disconnect and re-pair landing mid-run can never hand
  * one pairing's work to the other's endpoint or send it under
  * the other's identity: the next run reads the new pairing for
- * itself. A run with no usable credential picks nothing up —
+ * itself — and before each send the run checks the stored
+ * credential still is the captured one, so a disconnect that
+ * lands while a pickup is in flight stops the run before the
+ * returned work is sent: work taken under a pairing the owner
+ * has since ended is never sent under it, and stays queued at
+ * the brain under that pairing. A run with no usable credential picks nothing up —
  * outbound work exists only under a pairing, and an unpaired
  * or local-mode phone behaves exactly as it does without this
  * caller.
@@ -70,7 +75,7 @@ internal fun Context.pickUpAndSendOutboundWork(): Int {
             is OutboundPickupBindingResult.Completed -> result.outcome
         }
         val work = (outcome as? OutboundPickupOutcome.WorkAvailable)?.work
-        if (work == null || !seenSourceIds.add(work.sourceId)) {
+        if (work == null || storedDeviceCredential() != credential || !seenSourceIds.add(work.sourceId)) {
             running = false
         } else {
             when (sendOutboundWork(credential, work)) {
