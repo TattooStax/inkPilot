@@ -34,6 +34,10 @@ class App : FossifyApp() {
             rescheduleAllScheduledMessages()
             runCatching { org.fossify.messages.inkpilot.runtime.AgentRuntime.reconcileHistory(this) }
             runCatching { org.fossify.messages.inkpilot.runtime.AgentRuntime.runPending(this) }
+                .onFailure {
+                    org.fossify.messages.inkpilot.runtime.AgentSettings(this)
+                        .recordStatus("Local message recovery needs another try. Open Agent and retry.")
+                }
         }
     }
 

@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Test ratchet enforcement
-        run: python3 -m unittest discover -s scripts -p 'test_file_size_ratchet.py' -v
+      - name: Test repository checks
+        run: python3 -m unittest discover -s scripts -p 'test_*.py' -v
       - name: Check file-size ratchet
         run: scripts/check-file-size-ratchet.sh

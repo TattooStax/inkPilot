@@ -122,7 +122,7 @@ class StudioHomeActivity : AppCompatActivity() {
     private fun openAgent(value: String) { screen = value; render() }
 
     private fun setupSms() {
-        if (Telephony.Sms.getDefaultSmsPackage(this) != packageName) {
+        if (!org.fossify.messages.helpers.SmsRole.isHeld(this)) {
             val intent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 val role = getSystemService(RoleManager::class.java)
                 if (!role.isRoleAvailable(RoleManager.ROLE_SMS)) {

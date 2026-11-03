@@ -1,5 +1,6 @@
 package org.fossify.messages.inkpilot.smoke
 
+import android.app.role.RoleManager
 import android.provider.Telephony
 import androidx.test.core.app.ActivityScenario
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -24,7 +25,9 @@ class WorkerWakeupSmokeTest {
         val message = requireNotNull(InstrumentationRegistry.getArguments().getString("workerMessage"))
         val evidence = File(context.filesDir, "device-test-evidence").apply { mkdirs() }
         assertTrue("The real enabled setting must survive prior app restarts", AgentSettings(context).enabled)
-        assertEquals(context.packageName, Telephony.Sms.getDefaultSmsPackage(context))
+        val roles = context.getSystemService(RoleManager::class.java)
+        assertTrue(roles.isRoleAvailable(RoleManager.ROLE_SMS))
+        assertTrue("inkPilot must hold the real SMS role", roles.isRoleHeld(RoleManager.ROLE_SMS))
         StudioRepository(context).use { repository ->
             assertTrue(repository.contacts().none { it.number == "+12025550124" })
             ActivityScenario.launch(StudioHomeActivity::class.java).use {

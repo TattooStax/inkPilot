@@ -1,5 +1,6 @@
 package org.fossify.messages.inkpilot.smoke
 
+import android.app.role.RoleManager
 import android.content.Context
 import android.provider.Telephony
 import androidx.test.core.app.ActivityScenario
@@ -29,7 +30,7 @@ class LocalLoopSmokeTest {
 
     @Test
     fun prepareForSyntheticSms() {
-        assertEquals(context.packageName, Telephony.Sms.getDefaultSmsPackage(context))
+        assertSmsRoleHeld()
         AgentSettings(context).apply {
             enabled = false
             soul = "You help tattoo studio staff. Keep replies brief. Never invent prices or appointments."
@@ -43,7 +44,7 @@ class LocalLoopSmokeTest {
 
     @Test
     fun incomingSmsCreatesLocalHeldDraft() {
-        assertEquals(context.packageName, Telephony.Sms.getDefaultSmsPackage(context))
+        assertSmsRoleHeld()
         assertTrue("The checksum-pinned GGUF must be installed", File(context.filesDir, "models/active.gguf").isFile)
         StudioRepository(context).use { repository ->
             val source = SmokeViews.await("native SMS intake") {
@@ -124,4 +125,10 @@ class LocalLoopSmokeTest {
     private fun outgoingMessages(): Int = context.contentResolver.query(
         Telephony.Sms.CONTENT_URI, arrayOf("_id"), "type IN (2, 4, 5, 6)", null, null,
     ).use { requireNotNull(it).count }
+
+    private fun assertSmsRoleHeld() {
+        val roles = context.getSystemService(RoleManager::class.java)
+        assertTrue("Android must offer the SMS role", roles.isRoleAvailable(RoleManager.ROLE_SMS))
+        assertTrue("inkPilot must hold the real SMS role", roles.isRoleHeld(RoleManager.ROLE_SMS))
+    }
 }

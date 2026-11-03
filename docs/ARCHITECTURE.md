@@ -56,6 +56,11 @@ Native-provider updates have a persistent reconciliation queue separate
 from sending. Failed draft attempts are recorded per event/revision so
 one unprocessable message cannot starve later contacts; staff can retry.
 
+Startup and retry recover post-install inbox rows that reached the native
+SMS provider but missed studio intake. Recovery is bounded, idempotent,
+works while drafting is disabled, and advances its durable checkpoint
+only after local records commit. It neither infers nor sends.
+
 ## Optional OpenFang integration
 
 When the standalone loop works, add an adapter at the edge. Reuse

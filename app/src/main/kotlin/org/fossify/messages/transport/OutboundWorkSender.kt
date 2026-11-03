@@ -4,7 +4,6 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
-import android.provider.Telephony
 import android.telephony.PhoneNumberUtils
 import android.telephony.SubscriptionManager
 import inkstax.sms.transport.DeviceCredential
@@ -89,7 +88,7 @@ internal fun Context.sendOutboundWork(
     credential: DeviceCredential,
     work: OutboundWork
 ): OutboundWorkSendResult {
-    if (Telephony.Sms.getDefaultSmsPackage(this) != packageName) {
+    if (!org.fossify.messages.helpers.SmsRole.isHeld(this)) {
         return OutboundWorkSendResult.NotDefaultSmsApp
     }
     val destination = PhoneNumberUtils.stripSeparators(work.recipient)

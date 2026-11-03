@@ -11,7 +11,8 @@ Android API 35 x86_64. It:
 
 1. Exercises production SQLite storage, including concurrent/replayed
    writes, pause/revision barriers, multipart receipts, gallery originals,
-   and staff/shared-room conflicts.
+   and staff/shared-room conflicts. Actual native inbox rows also verify
+   intake recovery, invalid-row progress and storage-failure retention.
 2. Installs the checksum-pinned official LFM3-1.7B QAD Q4_0 GGUF, then
    disables Wi-Fi and mobile data. The APK has no inference-server path.
 3. Injects a synthetic incoming SMS through the emulator modem, checks its

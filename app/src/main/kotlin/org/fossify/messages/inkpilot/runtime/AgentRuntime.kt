@@ -2,7 +2,6 @@ package org.fossify.messages.inkpilot.runtime
 
 import android.content.Context
 import android.net.Uri
-import android.provider.Telephony
 import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
@@ -28,6 +27,7 @@ object AgentRuntime {
     fun reconcileHistory(context: Context) = SmsProviderHistory.reconcile(context)
 
     fun runPending(context: Context) {
+        SmsIntakeRecovery.recover(context)
         if (!AgentSettings(context).enabled) return
         WorkManager.getInstance(context).enqueueUniqueWork(
             "inkpilot-local-drafts", ExistingWorkPolicy.APPEND_OR_REPLACE,
@@ -40,7 +40,7 @@ object AgentRuntime {
         val settings = AgentSettings(context)
         StudioRepository(context).use { repository ->
             if (!repository.isDraftingEnabled()) return@synchronized 0
-            if (Telephony.Sms.getDefaultSmsPackage(context) != context.packageName) {
+            if (!org.fossify.messages.helpers.SmsRole.isHeld(context)) {
                 settings.recordStatus("Make inkPilot the default SMS app before drafting.")
                 return@synchronized 0
             }

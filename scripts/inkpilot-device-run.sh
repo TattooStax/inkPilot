@@ -14,6 +14,11 @@ mkdir -p "$evidence"
 collect() {
   adb logcat -d -t 2000 > "$evidence/logcat.txt" 2>&1 || true
   adb shell dumpsys package "$package" > "$evidence/package.txt" 2>&1 || true
+  adb shell cmd role get-role-holders --user 0 android.app.role.SMS > "$evidence/sms-role.txt" 2>&1 || true
+  adb shell appops get "$package" > "$evidence/appops.txt" 2>&1 || true
+  adb exec-out screencap -p > "$evidence/last-screen.png" 2>/dev/null || true
+  adb shell uiautomator dump /sdcard/inkpilot-test-ui.xml >/dev/null 2>&1 || true
+  adb pull /sdcard/inkpilot-test-ui.xml "$evidence/last-ui.xml" >/dev/null 2>&1 || true
 }
 trap collect EXIT
 
@@ -39,6 +44,7 @@ done
 
 run_tests sqlite package org.fossify.messages.inkpilot.data
 run_tests studio package org.fossify.messages.inkpilot.studio
+run_tests recovery package org.fossify.messages.inkpilot.runtime
 run_tests app-lock package org.fossify.messages.inkpilot.ui
 run_tests prepare class "$smoke#prepareForSyntheticSms"
 

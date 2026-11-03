@@ -28,6 +28,10 @@
         tools:node="remove" />
 
     <queries>
+        <!-- Android 11+ default-SMS detection needs visibility of SMS handlers. -->
+        <intent>
+            <action android:name="android.provider.Telephony.SMS_DELIVER" />
+        </intent>
         <package android:name="org.fossify.contacts.debug" />
         <package android:name="org.fossify.contacts" />
     </queries>

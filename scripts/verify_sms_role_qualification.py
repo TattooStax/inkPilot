@@ -20,6 +20,9 @@ aapt2) must contain every required value in full, confirming the
 surface survived packaging into the artifact that would be
 installed.
 
+The manifest must also declare the SMS_DELIVER package visibility
+required by getDefaultSmsPackage on Android 11 and newer.
+
 Exit code 0 means every requirement is present; 1 lists each
 requirement that is missing.
 """
@@ -121,7 +124,8 @@ def any_filter(component, predicate):
 
 def check_manifest(path):
     """Return the list of unmet requirement descriptions."""
-    application = ET.parse(path).getroot().find("application")
+    manifest = ET.parse(path).getroot()
+    application = manifest.find("application")
     if application is None:
         return ["manifest has no <application> element"]
     # A disabled application disables every component inside it,
@@ -133,6 +137,16 @@ def check_manifest(path):
         return [el for el in application.findall(kind) if usable(el)]
 
     unmet = []
+
+    # This query is separate from receiving SMS: without it Android 11+
+    # can hide the package discovery used by Telephony.Sms.getDefaultSmsPackage.
+    # https://developer.android.com/reference/android/provider/Telephony.Sms#getDefaultSmsPackage(android.content.Context)
+    if not any(
+        any(action.get(ANDROID + "name") == SMS_DELIVER for action in query.findall("action"))
+        and not query.findall("data") and not query.findall("category")
+        for query in manifest.findall("queries/intent")
+    ):
+        unmet.append("no SMS_DELIVER package-visibility query for default-SMS detection")
 
     # The user must be able to compose a message to a number through
     # the platform's standard send-to intent, which is untyped and

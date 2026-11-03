@@ -50,7 +50,7 @@ internal object SmsProviderHistory {
     }
 
     fun reconcile(context: Context) {
-        if (Telephony.Sms.getDefaultSmsPackage(context) != context.packageName) return
+        if (!org.fossify.messages.helpers.SmsRole.isHeld(context)) return
         StudioRepository(context).use { repository ->
             repository.pendingProviderUpdates().forEach { finish(context, it, it.status) }
         }

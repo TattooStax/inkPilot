@@ -47,7 +47,7 @@ fun Activity.launchDefaultSmsRoleSetup(requestCode: Int, onAlreadyDefault: () ->
         apiLevel = Build.VERSION.SDK_INT,
         roleAvailable = roleAvailable,
         roleHeld = roleHeld,
-        isDefaultSmsPackage = Telephony.Sms.getDefaultSmsPackage(this) == packageName
+        isDefaultSmsPackage = org.fossify.messages.helpers.SmsRole.isHeld(this)
     )
     when (step) {
         DefaultSmsRoleStep.ALREADY_DEFAULT -> onAlreadyDefault()
@@ -73,16 +73,9 @@ fun Activity.launchDefaultSmsRoleSetup(requestCode: Int, onAlreadyDefault: () ->
 /**
  * Whether this app holds the default SMS role now, read from the
  * platform rather than from any screen's result code. The role
- * system's answer counts where it exists; the default-package
- * answer is the witness everywhere else and the fallback where
- * the role is unavailable.
+ * system's answer is authoritative on Android 10 and newer;
+ * default-package discovery is used only on earlier Android versions.
  */
 fun Activity.isDefaultSmsApp(): Boolean {
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-        val roleManager = getSystemService(RoleManager::class.java)
-        if (roleManager != null && roleManager.isRoleAvailable(RoleManager.ROLE_SMS)) {
-            return roleManager.isRoleHeld(RoleManager.ROLE_SMS)
-        }
-    }
-    return Telephony.Sms.getDefaultSmsPackage(this) == packageName
+    return org.fossify.messages.helpers.SmsRole.isHeld(this)
 }

@@ -853,7 +853,7 @@ fun Context.removeAllArchivedConversations(callback: (() -> Unit)? = null) {
         // Same default-role gate as deleteConversation below: without
         // the role every delete in the loop would be refused, so do not
         // report the archive as emptied.
-        if (Sms.getDefaultSmsPackage(this@removeAllArchivedConversations) != packageName) {
+        if (!org.fossify.messages.helpers.SmsRole.isHeld(this@removeAllArchivedConversations)) {
             toast(R.string.delete_conversation_requires_default_messenger)
             return@ensureBackgroundThread
         }
@@ -877,7 +877,7 @@ fun Context.deleteConversation(threadId: Long) {
     // (conversation list, thread, archived, recycle bin) shares the
     // path, and direct the user to the app that can actually delete it
     // instead of presenting a cache-only removal as a deletion.
-    if (Sms.getDefaultSmsPackage(this) != packageName) {
+    if (!org.fossify.messages.helpers.SmsRole.isHeld(this)) {
         toast(R.string.delete_conversation_requires_default_messenger)
         return
     }

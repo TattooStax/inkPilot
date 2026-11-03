@@ -4,7 +4,6 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
-import android.provider.Telephony
 import android.telephony.PhoneNumberUtils
 import android.widget.Toast.LENGTH_LONG
 import inkstax.sms.transport.MessageTransport
@@ -43,7 +42,7 @@ class LocalMessageTransport(private val context: Context) : MessageTransport {
         // "personal" still owns the provider, so its sends keep the
         // persisting path until the user actually switches the default
         // messenger — otherwise sent messages would vanish from history.
-        val isDefaultSmsApp = Telephony.Sms.getDefaultSmsPackage(context) == context.packageName
+        val isDefaultSmsApp = org.fossify.messages.helpers.SmsRole.isHeld(context)
         if (context.storedRolePosture() == RolePosture.PERMISSIONS_ONLY && !isDefaultSmsApp) {
             return sendSmsWithoutProviderRow(message)
         }

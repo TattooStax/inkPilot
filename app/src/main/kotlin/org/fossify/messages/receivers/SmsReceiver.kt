@@ -167,6 +167,10 @@ class SmsReceiver : BroadcastReceiver() {
         LocalInboundSink().onInbound(inbound)
         // A failure in local drafting must never interrupt native SMS delivery.
         runCatching { org.fossify.messages.inkpilot.runtime.AgentSmsIntake.record(context, inbound, senderName) }
+            .onFailure {
+                org.fossify.messages.inkpilot.runtime.AgentSettings(context)
+                    .recordStatus("A message could not enter local drafting. Open Agent and retry.")
+            }
         // SMS-25-TOUCHPOINT 1/4: a paired phone holds the arrival here, on this
         // receiver's background thread, and hands its delivery drain to
         // lifecycle-managed work, so the broadcast never waits on the network.

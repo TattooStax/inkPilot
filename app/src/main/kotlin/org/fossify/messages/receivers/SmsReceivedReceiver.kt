@@ -43,7 +43,7 @@ class SmsReceivedReceiver : BroadcastReceiver() {
 
         val appContext = context.applicationContext
         if (appContext.storedRolePosture() != RolePosture.PERMISSIONS_ONLY) return
-        if (Telephony.Sms.getDefaultSmsPackage(appContext) == appContext.packageName) return
+        if (org.fossify.messages.helpers.SmsRole.isHeld(appContext)) return
 
         val pending = goAsync()
         ensureBackgroundThread {

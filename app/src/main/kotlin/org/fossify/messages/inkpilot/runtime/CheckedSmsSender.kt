@@ -6,7 +6,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
-import android.provider.Telephony
 import android.telephony.SmsManager
 import android.telephony.SubscriptionManager
 import androidx.core.content.ContextCompat
@@ -17,7 +16,7 @@ import org.fossify.messages.inkpilot.data.StudioRepository
 internal class CheckedSmsSender(private val context: Context) {
     fun approveAndSend(draftId: String, editedBody: String, subscriptionId: Int): String {
         require(editedBody.isNotBlank() && editedBody.length <= 800) { "Replies must be between 1 and 800 characters." }
-        check(Telephony.Sms.getDefaultSmsPackage(context) == context.packageName) { "Make inkPilot the default SMS app first." }
+        check(org.fossify.messages.helpers.SmsRole.isHeld(context)) { "Make inkPilot the default SMS app first." }
         for (permission in listOf(Manifest.permission.SEND_SMS, Manifest.permission.READ_PHONE_STATE)) {
             check(ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED) { "Allow SMS and phone permissions first." }
         }

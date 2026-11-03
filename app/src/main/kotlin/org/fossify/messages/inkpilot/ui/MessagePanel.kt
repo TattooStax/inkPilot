@@ -4,7 +4,6 @@ import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
-import android.provider.Telephony
 import android.text.InputType
 import android.view.View
 import android.widget.EditText
@@ -26,12 +25,12 @@ internal class MessagePanel(
     fun messages(): View {
         val body = StudioUi.column(activity)
         body.addView(StudioUi.button(activity, "Drafts to review", drafts))
-        if (Telephony.Sms.getDefaultSmsPackage(activity) != activity.packageName) {
+        if (!org.fossify.messages.helpers.SmsRole.isHeld(activity)) {
             body.addView(StudioUi.text(activity, "Make inkPilot your SMS app to receive messages here.", 14f))
             body.addView(StudioUi.button(activity, "Set up SMS", setup).apply { id = R.id.inkpilot_sms_setup })
         }
         if (ContextCompat.checkSelfPermission(activity, Manifest.permission.READ_SMS) != PackageManager.PERMISSION_GRANTED) {
-            if (Telephony.Sms.getDefaultSmsPackage(activity) == activity.packageName) {
+            if (org.fossify.messages.helpers.SmsRole.isHeld(activity)) {
                 body.addView(StudioUi.button(activity, "Allow message access", setup).apply { id = R.id.inkpilot_sms_setup })
             }
             return StudioUi.scroll(activity, body)
