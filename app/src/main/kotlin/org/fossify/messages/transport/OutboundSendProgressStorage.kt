@@ -8,24 +8,10 @@ import inkstax.sms.transport.TransportOutcome
 
 private const val OUTBOUND_SEND_PROGRESS_PREFS = "outbound_send_progress"
 private const val PART_PENDING = 'P'
-private const val PART_SENT = 'S'
-private const val PART_FAILED = 'F'
-private const val VERDICT_SENT = 'S'
-private const val VERDICT_FAILED = 'F'
-
-/**
- * One completed send's retained verdict: the pairing that
- * sent the work, the work's source id, and the verdict the
- * parts reached, recovered from a done progress entry so it
- * can be filed after an interruption.
- */
-data class CompletedOutboundVerdict(
-    val endpointBase: String,
-    val deviceId: String,
-    val sourceId: String,
-    val event: OutboundAckEvent,
-    val errorCode: Int?
-)
+internal const val PART_SENT = 'S'
+internal const val PART_FAILED = 'F'
+internal const val VERDICT_SENT = 'S'
+internal const val VERDICT_FAILED = 'F'
 
 /** What one part's report does to a send's progress. */
 sealed interface OutboundSendProgressUpdate {
@@ -34,14 +20,22 @@ sealed interface OutboundSendProgressUpdate {
 
     /**
      * Every part has now reported, so the send's one verdict is
-     * reached: [event] is the verdict, and [errorCode] is the
-     * first reported failure's sending error code on a failure.
+     * reached: [event] is the verdict, [errorCode] is the
+     * first reported failure's sending error code on a
+     * failure, and [reportedAtMillis] is when the phone
+     * reached the verdict — the completion time stored with
+     * it, so a verdict filed later through recovery still
+     * reports the time it was reached, never the recovery's.
      * The verdict stays stored in the progress entry until the
      * caller clears it after the verdict is settled, and a
      * repeat part report returns this same update again — the
      * re-drive that lets a retained verdict be filed later.
      */
-    data class Completed(val event: OutboundAckEvent, val errorCode: Int?) : OutboundSendProgressUpdate
+    data class Completed(
+        val event: OutboundAckEvent,
+        val errorCode: Int?,
+        val reportedAtMillis: Long
+    ) : OutboundSendProgressUpdate
 
     /**
      * No progress names this send — it never opened, already
@@ -89,7 +83,7 @@ sealed interface OutboundSendProgressUpdate {
  * could otherwise still report.
  */
 
-private fun progressKeyStem(endpointBase: String, deviceId: String, sourceId: String): String {
+internal fun progressKeyStem(endpointBase: String, deviceId: String, sourceId: String): String {
     val identity = "$endpointBase\n$deviceId\n$sourceId"
     return Base64.encodeToString(
         identity.toByteArray(Charsets.UTF_8),
@@ -97,7 +91,7 @@ private fun progressKeyStem(endpointBase: String, deviceId: String, sourceId: St
     )
 }
 
-private fun Context.progressPrefs() = getSharedPreferences(OUTBOUND_SEND_PROGRESS_PREFS, Context.MODE_PRIVATE)
+internal fun Context.progressPrefs() = getSharedPreferences(OUTBOUND_SEND_PROGRESS_PREFS, Context.MODE_PRIVATE)
 
 /**
  * Opens a send's progress: [partCount] parts, none reported.
@@ -123,6 +117,7 @@ internal fun Context.beginOutboundSendProgress(
         .remove("${stem}_error")
         .remove("${stem}_done")
         .remove("${stem}_event")
+        .remove("${stem}_reported_at")
         .commit()
     if (!committed) {
         return false
@@ -145,42 +140,17 @@ internal fun Context.beginOutboundSendProgress(
  * that died between completion and filing — and that no
  * later part report can be relied on to re-drive, because
  * at completion every part has already reported. A done
- * entry whose stored identity or event is damaged names
+ * event whose stored identity or event is damaged names
  * no verdict and is skipped, never guessed at; a failure
  * whose error code was lost is recovered under the
  * unknown-error code, the same rule a code-less failure
- * report folds under.
+ * report folds under. The verdict carries the time stored
+ * with its completion — the time the phone reached it —
+ * so a recovered report names when the send was decided,
+ * not when the recovery happened to run; an entry written
+ * before verdict times were stored recovers under the
+ * read time, the only time it can still name.
  */
-internal fun Context.storedCompletedOutboundVerdicts(): List<CompletedOutboundVerdict> {
-    val prefs = progressPrefs()
-    val doneStems = prefs.all.keys
-        .filter { it.endsWith("_done") && prefs.getBoolean(it, false) }
-        .map { it.removeSuffix("_done") }
-    return doneStems.mapNotNull { stem -> completedVerdict(prefs, stem) }
-}
-
-/** One done entry read back as its verdict, or null when its stored identity or event names none. */
-private fun completedVerdict(prefs: SharedPreferences, stem: String): CompletedOutboundVerdict? {
-    val endpointBase = prefs.getString("${stem}_endpoint", null)?.takeIf { it.isNotBlank() } ?: return null
-    val deviceId = prefs.getString("${stem}_device", null)?.takeIf { it.isNotBlank() } ?: return null
-    val sourceId = prefs.getString("${stem}_source", null)?.takeIf { it.isNotBlank() } ?: return null
-    val event = when (prefs.getString("${stem}_event", null)) {
-        VERDICT_SENT.toString() -> OutboundAckEvent.PHONE_ACKED_SENT
-        VERDICT_FAILED.toString() -> OutboundAckEvent.PHONE_REPORTED_FAILURE
-        else -> return null
-    }
-    val errorCode = if (event == OutboundAckEvent.PHONE_REPORTED_FAILURE) {
-        if (prefs.contains("${stem}_error")) {
-            prefs.getInt("${stem}_error", TransportOutcome.UNKNOWN_ERROR)
-        } else {
-            TransportOutcome.UNKNOWN_ERROR
-        }
-    } else {
-        null
-    }
-    return CompletedOutboundVerdict(endpointBase, deviceId, sourceId, event, errorCode)
-}
-
 /**
  * Folds one part's report into a send's progress. A failure
  * report carries its sending error code; one without a code
@@ -212,7 +182,8 @@ internal fun Context.recordOutboundSendPart(
     if (doneEvent != null) {
         return OutboundSendProgressUpdate.Completed(
             doneEvent,
-            if (doneEvent == OutboundAckEvent.PHONE_REPORTED_FAILURE) entry.storedError else null
+            if (doneEvent == OutboundAckEvent.PHONE_REPORTED_FAILURE) entry.storedError else null,
+            entry.reportedAtMillis ?: System.currentTimeMillis()
         )
     }
     if (entry.alreadyReported) {
@@ -243,7 +214,8 @@ private data class ProgressEntry(
     val storedError: Int?,
     val alreadyReported: Boolean,
     val stillPending: Boolean,
-    val doneEvent: OutboundAckEvent?
+    val doneEvent: OutboundAckEvent?,
+    val reportedAtMillis: Long?
 )
 
 /**
@@ -268,12 +240,18 @@ private fun progressEntry(prefs: SharedPreferences, stem: String, partIndex: Int
     } else {
         null
     }
+    val reportedAtMillis = if (prefs.contains("${stem}_reported_at")) {
+        prefs.getLong("${stem}_reported_at", 0L)
+    } else {
+        null
+    }
     return ProgressEntry(
         mask = mask,
         storedError = storedError,
         alreadyReported = mask[partIndex] != PART_PENDING,
         stillPending = PART_PENDING in mask,
-        doneEvent = doneEvent
+        doneEvent = doneEvent,
+        reportedAtMillis = reportedAtMillis
     )
 }
 
@@ -320,10 +298,12 @@ private fun completeProgress(
 ): OutboundSendProgressUpdate {
     val failed = PART_FAILED in newMask
     val eventChar = if (failed) VERDICT_FAILED else VERDICT_SENT
+    val reportedAtMillis = System.currentTimeMillis()
     val editor = prefs.edit()
         .putString("${stem}_mask", newMask)
         .putBoolean("${stem}_done", true)
         .putString("${stem}_event", eventChar.toString())
+        .putLong("${stem}_reported_at", reportedAtMillis)
     if (failed && firstError != null) {
         editor.putInt("${stem}_error", firstError)
     } else if (!failed) {
@@ -334,14 +314,15 @@ private fun completeProgress(
     }
     val verified = prefs.getString("${stem}_mask", null) == newMask &&
         prefs.getBoolean("${stem}_done", false) &&
-        prefs.getString("${stem}_event", null) == eventChar.toString()
+        prefs.getString("${stem}_event", null) == eventChar.toString() &&
+        prefs.getLong("${stem}_reported_at", 0L) == reportedAtMillis
     if (!verified) {
         return OutboundSendProgressUpdate.Unknown
     }
     return if (failed) {
-        OutboundSendProgressUpdate.Completed(OutboundAckEvent.PHONE_REPORTED_FAILURE, firstError)
+        OutboundSendProgressUpdate.Completed(OutboundAckEvent.PHONE_REPORTED_FAILURE, firstError, reportedAtMillis)
     } else {
-        OutboundSendProgressUpdate.Completed(OutboundAckEvent.PHONE_ACKED_SENT, null)
+        OutboundSendProgressUpdate.Completed(OutboundAckEvent.PHONE_ACKED_SENT, null, reportedAtMillis)
     }
 }
 
@@ -357,5 +338,6 @@ internal fun Context.clearOutboundSendProgress(endpointBase: String, deviceId: S
         .remove("${stem}_error")
         .remove("${stem}_done")
         .remove("${stem}_event")
+        .remove("${stem}_reported_at")
         .commit()
 }

@@ -91,7 +91,7 @@ class OutboundSendResultReceiver : BroadcastReceiver() {
                 sourceId = sourceId,
                 event = update.event,
                 errorCode = update.errorCode,
-                reportedAtMillis = System.currentTimeMillis()
+                reportedAtMillis = update.reportedAtMillis
             )
             if (settled) {
                 synchronized(OutboundSendProgressGuard.lock) {

@@ -76,7 +76,7 @@ internal fun Context.fileRetainedOutboundVerdicts() {
             sourceId = verdict.sourceId,
             event = verdict.event,
             errorCode = verdict.errorCode,
-            reportedAtMillis = System.currentTimeMillis()
+            reportedAtMillis = verdict.reportedAtMillis
         )
         if (settled) {
             synchronized(OutboundSendProgressGuard.lock) {

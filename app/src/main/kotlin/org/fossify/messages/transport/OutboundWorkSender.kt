@@ -117,27 +117,46 @@ fun Context.sendOutboundWork(work: OutboundWork): OutboundWorkSendResult {
  * radio: no asynchronous result follows, so the verdict is
  * reached here, under the pairing the send was attempted
  * under, with the sending error code the wire report requires
- * a failure to carry. Any progress the attempt opened is
- * cleared first, so a late part report — there should be
- * none — has nothing to fold into. The send outcome reports
- * the failure whether or not the verdict could be held.
+ * a failure to carry. The verdict is first retained as a
+ * completed progress entry, replacing any progress the
+ * attempt opened, and is cleared only once the filing
+ * settles — a hold that could not be persisted would
+ * otherwise lose a verdict no callback can ever re-drive,
+ * and the drain's recovery files a retained one on its next
+ * run. When the retention itself cannot be stored, the
+ * filing is still attempted directly, as before. The send
+ * outcome reports the failure whether or not the verdict
+ * could be held.
  */
 private fun Context.synchronousFailure(
     credential: DeviceCredential,
     work: OutboundWork,
     errorCode: Int
 ): OutboundWorkSendResult {
-    synchronized(OutboundSendProgressGuard.lock) {
-        clearOutboundSendProgress(credential.endpointBase, credential.deviceId, work.sourceId)
+    val reportedAtMillis = System.currentTimeMillis()
+    val retained = synchronized(OutboundSendProgressGuard.lock) {
+        storeCompletedOutboundVerdict(
+            endpointBase = credential.endpointBase,
+            deviceId = credential.deviceId,
+            sourceId = work.sourceId,
+            event = OutboundAckEvent.PHONE_REPORTED_FAILURE,
+            errorCode = errorCode,
+            reportedAtMillis = reportedAtMillis
+        )
     }
-    fileOutboundVerdict(
+    val settled = fileOutboundVerdict(
         endpointBase = credential.endpointBase,
         deviceId = credential.deviceId,
         sourceId = work.sourceId,
         event = OutboundAckEvent.PHONE_REPORTED_FAILURE,
         errorCode = errorCode,
-        reportedAtMillis = System.currentTimeMillis()
+        reportedAtMillis = reportedAtMillis
     )
+    if (retained && settled) {
+        synchronized(OutboundSendProgressGuard.lock) {
+            clearOutboundSendProgress(credential.endpointBase, credential.deviceId, work.sourceId)
+        }
+    }
     return OutboundWorkSendResult.Failed(errorCode)
 }
 
