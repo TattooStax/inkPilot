@@ -141,9 +141,16 @@ inbound side with its local binding first.
   Extra string fields are ignored. The phone's verdict on a
   picked-up send is reported through the outbound ack wire
   (SMS-19), never through this one. Pure definitions only in
-  this module: the binding that performs the POST, sends
-  through the platform SMS API, and wires the verdict into
-  the ack holder lands in later SMS-38 slices.
+  this module: the binding that performs the POST lives
+  app-side (SMS-38 step 2, `OutboundPickupBinding.kt` in the
+  app-side `org.fossify.messages.transport` package — it
+  performs the pickup with the stored credential, reads the
+  body only on an OK status and only up to a bounded size,
+  and keeps the no-usable-credential outcome distinct from
+  every wire outcome, because a broken pairing must not read
+  as a link that merely went quiet). Sending a picked-up work
+  item through the platform SMS API and wiring its verdict
+  into the ack holder land in later SMS-38 slices.
 - `PendingReportQueue.kt` — the pending outbound report queue
   definitions (SMS-26): the one queue shape every binding holds
   outbound ack reports that have not landed yet in — a plain
@@ -939,3 +946,24 @@ a heartbeat on device. The config it names is a new file
 else in this slice is :transport definitions and their tests,
 plus the app-side binding comments that describe those
 definitions.
+
+## Upstream touchpoint registry (SMS-38 step 2, ≤5, tagged in code)
+
+None — zero upstream files are modified in this slice.
+Everything in this slice is one new file
+(`OutboundPickupBinding.kt` in the app-side
+`org.fossify.messages.transport` package) plus this README.
+The binding performs the outbound pickup SMS-38 step 1
+defines with the credential SMS-7 stores: a credential the
+seam does not accept for its own endpoint picks up nothing
+at all and reports its own outcome, distinct from every
+wire failure. The pickup answer is the first companion
+answer that carries a body the phone acts on, so the body
+is read only on an OK status and only up to a bounded size
+— every other outcome is decided by the status alone, and
+an unreadable or oversized body reads as malformed, never
+as partial work to send anyway. SMS-38 step 2 wires no
+caller and sends nothing: the caller that picks up, sends
+through the platform SMS API under the default-SMS role,
+and wires the verdict into the ack holder lands in the
+later SMS-38 slices.
