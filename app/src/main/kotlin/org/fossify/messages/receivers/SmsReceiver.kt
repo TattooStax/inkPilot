@@ -165,6 +165,8 @@ class SmsReceiver : BroadcastReceiver() {
         // SMS-2-TOUCHPOINT 1/2: inbound SMS passes through the :transport seam's local
         // binding after local persistence, so later bindings share this entry point.
         LocalInboundSink().onInbound(inbound)
+        // A failure in local drafting must never interrupt native SMS delivery.
+        runCatching { org.fossify.messages.inkpilot.runtime.AgentSmsIntake.record(context, inbound, senderName) }
         // SMS-25-TOUCHPOINT 1/4: a paired phone holds the arrival here, on this
         // receiver's background thread, and hands its delivery drain to
         // lifecycle-managed work, so the broadcast never waits on the network.

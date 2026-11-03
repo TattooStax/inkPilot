@@ -19,3 +19,4 @@ include(":app")
 include(":transport")
 // Standalone business workflow; no Android or optional integration dependencies.
 include(":agent-core")
+include(":local-inference")

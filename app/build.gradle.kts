@@ -38,6 +38,8 @@ android {
         targetSdk = project.libs.versions.app.build.targetSDK.get().toInt()
         versionName = project.property("VERSION_NAME").toString()
         versionCode = project.property("VERSION_CODE").toString().toInt()
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        ndk { abiFilters += (providers.gradleProperty("inkpilotAbi").orNull?.split(",") ?: listOf("arm64-v8a", "x86_64")) }
         ksp {
             arg("room.schemaLocation", "$projectDir/schemas")
         }
@@ -144,6 +146,7 @@ dependencies {
     // SMS-1-TOUCHPOINT 3/5: the app binds the :transport seam locally (see transport/README.md)
     implementation(project(":transport"))
     implementation(project(":agent-core"))
+    implementation(project(":local-inference"))
     implementation(libs.fossify.commons)
     implementation(libs.eventbus)
     implementation(libs.indicator.fast.scroll)
@@ -162,4 +165,7 @@ dependencies {
     implementation(libs.bundles.room)
     ksp(libs.androidx.room.compiler)
     detektPlugins(libs.compose.detekt)
+    androidTestImplementation("androidx.test:runner:1.7.0")
+    androidTestImplementation("androidx.test.ext:junit:1.3.0")
+    androidTestImplementation("androidx.test:core:1.7.0")
 }

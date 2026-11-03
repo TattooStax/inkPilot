@@ -1,0 +1,73 @@
+name: inkPilot device proof
+
+on:
+  push:
+    paths:
+      - 'app/**'
+      - 'agent-core/**'
+      - 'transport/**'
+      - 'local-inference/**'
+      - 'gradle/**'
+      - '*gradle*'
+      - 'scripts/inkpilot-device-*'
+      - '.github/workflows/inkpilot-device.yml'
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: inkpilot-device-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  local-loop:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      CMAKE_BUILD_PARALLEL_LEVEL: '2'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
+          log-accepted-android-sdk-licenses: false
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Build app and device tests before starting emulator
+        run: >-
+          ./gradlew :app:assembleFossDebug :app:assembleFossDebugAndroidTest
+          --console=plain --no-daemon --max-workers=2
+          -Dorg.gradle.jvmargs=-Xmx3g -PinkpilotAbi=x86_64
+      - name: Download checksum-pinned local model
+        run: scripts/inkpilot-device-model.sh "$RUNNER_TEMP/inkpilot-model.gguf"
+      - name: Enable emulator acceleration
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Run real local SMS draft loop on Android
+        uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2
+        with:
+          api-level: 35
+          arch: x86_64
+          target: google_apis
+          ram-size: 4096M
+          heap-size: 512M
+          disable-animations: true
+          emulator-options: -no-window -no-snapshot -noaudio -no-boot-anim -gpu swiftshader_indirect -camera-back none
+          script: scripts/inkpilot-device-run.sh "$RUNNER_TEMP/inkpilot-model.gguf"
+      - name: Upload device proof and test APK
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: inkPilot-device-proof
+          path: |
+            app/build/device-test-evidence/
+            app/build/outputs/apk/androidTest/foss/debug/*.apk
+          if-no-files-found: warn

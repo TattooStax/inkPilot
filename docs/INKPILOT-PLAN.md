@@ -2,9 +2,11 @@
 
 Direction of record for inkPilot. The build phase is authorized.
 The repository preserves `TattooStax/inkstax-sms` history from
-`137ad28390e0a543bf47789fdf508b99993ec5df`. The first code slice adds
-standalone app identity and a reusable held-draft coordinator;
-Android storage, model integration, and the redesign remain open.
+`137ad28390e0a543bf47789fdf508b99993ec5df`. Implementation now includes
+standalone identity, the reusable core, SQLite business storage,
+LFM3 JNI inference, a five-tab native UI and checked staff-approved
+SMS sending. The emulator pipeline verifies the integrated local loop;
+physical-carrier and hardware acceptance remain separate evidence gates.
 
 inkPilot is the working name for a separate, entirely local Android
 tattoo-studio assistant.
@@ -139,19 +141,23 @@ file before adding to one that is near its baseline or the cap.
 
 1. **Foundation (first slice):** separate installation identity,
    pure Kotlin held-draft coordinator and ports, behavioral tests,
-   build CI, and ratchet enforcement. The coordinator is not yet
-   connected to inbound SMS or production persistence/inference.
+   build CI, and ratchet enforcement. Implemented.
 2. **One local draft loop:** persist contact, memory and draft state
    in the Android host; connect SMS intake; implement LFM inference;
    prove a held draft survives process death and never auto-sends.
+   Implemented with actual SQLite/JNI adapters and a real-model emulator gate.
 3. **Checked sending:** staff approval, revision recheck, explicit
-   business SIM, native provider rows, delivery receipts and replay
-   protection. Prove the complete milestone on physical devices.
+   business SIM, native provider rows, carrier acceptance receipts and
+   replay protection. Implemented; physical recipient delivery is still
+   a manual hardware gate and is never inferred from carrier acceptance.
 4. **Studio workflow:** five-tab shell, contact editing, albums,
    artist calendar and simple memory administration, built in small
-   independently verified changes.
+   independently verified changes. Basic CRUD is implemented; hours,
+   time off, reminders, appointment editing and image record links remain.
 5. **Optional integrations:** OpenFang adapter after the standalone
    loop passes; voice only after proving an audio-access path.
 
 Do not describe a contract or a passing unit test as device proof.
 Keep the source `TattooStax/inkstax-sms` repository unchanged.
+See `DEVICE-ACCEPTANCE.md` for the distinction between automated proof
+and the remaining real-phone acceptance work.

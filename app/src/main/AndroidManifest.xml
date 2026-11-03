@@ -41,12 +41,20 @@
     <application
         android:name=".App"
         android:networkSecurityConfig="@xml/network_security_config"
-        android:allowBackup="true"
+        android:allowBackup="false"
         android:appCategory="productivity"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_launcher_name"
         android:roundIcon="@mipmap/ic_launcher"
         android:theme="@style/AppTheme">
+
+        <activity
+            android:name=".inkpilot.ui.StudioHomeActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+        <receiver
+            android:name=".inkpilot.runtime.StudioSmsResultReceiver"
+            android:exported="false" />
 
         <activity
             android:name=".activities.SplashActivity"

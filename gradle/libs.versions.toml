@@ -63,6 +63,7 @@ room = [
 ]
 [plugins]
 android = { id = "com.android.application", version.ref = "gradlePlugins-agp" }
+androidLibrary = { id = "com.android.library", version.ref = "gradlePlugins-agp" }
 # SMS-1-TOUCHPOINT 4/5: kotlinJvm plugin alias + junit above serve the :transport module
 kotlinJvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 kotlinSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }

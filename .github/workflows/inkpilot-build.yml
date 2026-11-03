@@ -17,6 +17,8 @@ jobs:
   android:
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    env:
+      CMAKE_BUILD_PARALLEL_LEVEL: '2'
     steps:
       - uses: actions/checkout@v4
       - name: Verify standalone app identity
@@ -31,7 +33,7 @@ jobs:
           log-accepted-android-sdk-licenses: false
       - uses: gradle/actions/setup-gradle@v4
       - name: Test reusable modules and assemble standalone app
-        run: ./gradlew :agent-core:test :transport:test :app:assembleFossDebug --console=plain --no-daemon
+        run: ./gradlew :agent-core:test :transport:test :local-inference:testDebugUnitTest :app:assembleFossDebug --console=plain --no-daemon --max-workers=2 -Dorg.gradle.jvmargs=-Xmx3g
       - name: Verify packaged SMS role qualification
         shell: bash
         run: |

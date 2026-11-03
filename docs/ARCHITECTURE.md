@@ -10,12 +10,20 @@ draft replies, or operate the studio.
 | --- | --- | --- |
 | `:app` | Android UI, permissions, SMS role, carrier I/O, device storage and host adapters | A second implementation of agent policy |
 | `:agent-core` | Bounded draft workflow, typed inputs/results and host ports | Android classes, network clients, UI, database implementation or SMS sending |
+| `:local-inference` | Pinned llama.cpp JNI, GGUF templates and bounded LFM3 CPU inference | Model downloads, SMS sending, studio records or cloud fallback |
 | `:transport` | Inherited SMS transport contracts and lifecycle behavior | New studio records, memory authority or agent orchestration |
 
 Dependencies point from the app to the small reusable modules.
-The modules do not depend on the app or on each other. Keep domain
+The inference module implements the core's model port; neither depends
+on the app. Keep domain
 records authoritative in one host store; model prompts and imported
 integration payloads are context, not independent databases.
+
+`inkpilot-studio.db` is the one canonical business database: contacts,
+memory, events, policy, held drafts, send claims, albums and calendar.
+It uses checked SQLite transactions and explicit schema versions, with
+no destructive fallback. The inherited `conversations.db` is an SMS UI
+cache that can be rebuilt; it never owns studio business data.
 
 The install ID is `app.inkpilot.android` (`.debug` for debug builds).
 The source namespace stays `org.fossify.messages` to preserve
@@ -31,16 +39,22 @@ the local-model port for reply text, then requests storage of a held
 draft. Model output cannot choose a contact or recipient. There is
 no tool for sending a message in the core.
 
-The host must atomically check revision, staff pause and event
-identity while deduplicating and storing the draft. A Kotlin object
-or an in-memory map is not durable delivery protection. Replay,
-concurrency and process-death correctness must be verified again
-against the eventual production database adapter.
+The SQLite host atomically checks revision, staff pause and event
+identity while deduplicating and storing the draft. Source edits,
+new incoming messages, global pause, Soul changes and customer-memory
+changes invalidate active inference. Real-database tests cover replay,
+concurrent writers, tombstones and restart persistence.
 
 Staff approval and carrier sending remain separate checked actions.
 They must recheck recipient, content revision, approval and business
 SIM before any send. A generated draft is not evidence of sending,
 and carrier acceptance is not evidence of delivery.
+
+The host persists a send claim before invoking SmsManager, records each
+multipart result, and never automatically retries an ambiguous send.
+Native-provider updates have a persistent reconciliation queue separate
+from sending. Failed draft attempts are recorded per event/revision so
+one unprocessable message cannot starve later contacts; staff can retry.
 
 ## Optional OpenFang integration
 
@@ -50,7 +64,7 @@ loop or another record store into OpenFang. A non-JVM host should
 use a small versioned request/result protocol rather than import
 Android implementation classes.
 
-The adapter should translate OpenFang requests into the same checked
+The future adapter should translate OpenFang requests into the same checked
 host actions and return explicit results/receipts. It must preserve
 contact scope, pause state, revision checks and staff approval.
 Installing or removing it must not change standalone behavior.

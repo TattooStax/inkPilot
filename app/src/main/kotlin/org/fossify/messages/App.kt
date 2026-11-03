@@ -32,6 +32,8 @@ class App : FossifyApp() {
 
         ensureBackgroundThread {
             rescheduleAllScheduledMessages()
+            runCatching { org.fossify.messages.inkpilot.runtime.AgentRuntime.reconcileHistory(this) }
+            runCatching { org.fossify.messages.inkpilot.runtime.AgentRuntime.runPending(this) }
         }
     }
 

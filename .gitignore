@@ -16,4 +16,8 @@ fastlane/report.xml
 # ignore rules predate it, so its build output needs its own line.
 /transport/build/
 /agent-core/build/
+/local-inference/build/
+/local-inference/.cxx/
+/app/build/
+/app/.cxx/
 __pycache__/
