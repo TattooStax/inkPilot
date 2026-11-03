@@ -1,4 +1,4 @@
-# :transport — the bridge seam (SMS-1, SMS-2, SMS-3, SMS-4, SMS-5, SMS-6, SMS-7, SMS-8, SMS-9, SMS-10, SMS-11), SMS-12, SMS-14, SMS-15, SMS-18, SMS-19, SMS-20, SMS-21, SMS-22, SMS-26, SMS-27, SMS-28, SMS-29, SMS-33, SMS-37
+# :transport — the bridge seam (SMS-1, SMS-2, SMS-3, SMS-4, SMS-5, SMS-6, SMS-7, SMS-8, SMS-9, SMS-10, SMS-11), SMS-12, SMS-14, SMS-15, SMS-18, SMS-19, SMS-20, SMS-21, SMS-22, SMS-26, SMS-27, SMS-28, SMS-29, SMS-33, SMS-37, SMS-38
 
 Pure Kotlin/JVM module holding the InkStax SMS layer's one
 bridge seam. SMS-1 extracted the outbound side; SMS-2 adds the
@@ -122,6 +122,28 @@ inbound side with its local binding first.
   carries whitespace, build no report at all. Pure definitions
   only in this module: the binding that performs the POST lives
   app-side (SMS-21).
+- `OutboundPickupWire.kt` — the outbound pickup wire
+  definitions (SMS-38): the one request shape every binding
+  uses to pick up outbound work the brain queued for this
+  device (the device id and the phone's pickup time as a flat
+  JSON string object, POSTed to `/companion/outbound-pickup`
+  on the stored credential's endpoint, the secret carried
+  only in the authorization value, in its base64url-encoded
+  spelling, never in the body) and the one reading of the
+  answer (only No Content is an empty queue; on OK, one flat
+  JSON string object naming exactly one work item — the
+  reply's source id, the recipient, the message body, and
+  the queue time — judged strictly: a source id or recipient
+  that is blank or carries whitespace, a blank body, or a
+  queue time that is not ASCII-digit non-negative millis
+  names no send and reads as malformed; a credential refusal
+  is its own failure, distinct from an unreachable endpoint).
+  Extra string fields are ignored. The phone's verdict on a
+  picked-up send is reported through the outbound ack wire
+  (SMS-19), never through this one. Pure definitions only in
+  this module: the binding that performs the POST, sends
+  through the platform SMS API, and wires the verdict into
+  the ack holder lands in later SMS-38 slices.
 - `PendingReportQueue.kt` — the pending outbound report queue
   definitions (SMS-26): the one queue shape every binding holds
   outbound ack reports that have not landed yet in — a plain
