@@ -43,43 +43,60 @@ inkPilot going forward.
 - Plain, spacious screens: one main list/grid and one primary action.
 - Details open when tapped.
 - No crowded dashboards, decorative portraits, repeated status cards,
-  or oversized artwork.
+  oversized artwork or illustrations, or slogans.
 
 ## Studio
 
 - Starter albums: **Finished Work**, **Outlines**, **Client References**.
 - Artists can create and rename additional albums.
 - Import camera photos, device images, and MMS attachments.
-- Link images to artists, clients, and appointments.
+- Link images to artists, customers, projects, and appointments.
 - Preserve originals locally; album membership should not duplicate
   files.
+- Removing an image from an album removes the membership only — it
+  must not silently delete the original image.
 
 ## Calendar
 
-- One authoritative local calendar shared by staff and agent.
+- One authoritative local calendar used by both staff and agent.
 - Appointments and tasks assigned to individual artists.
-- Working hours, time off, conflict checks, local reminders, and
-  appointment status.
-- External bookings are not automatically known — the local calendar
-  is the truth inside the app, and staff should not assume it sees
-  bookings made elsewhere.
+- Working hours, time off, local reminders, and appointment status.
+- Conflict checks cover both artist conflicts and shared-room
+  conflicts.
+- External bookings are not automatically known — bookings made in
+  Square or Google are not visible to the local calendar unless
+  someone enters them. The local calendar is the truth inside the
+  app, and staff should not assume it sees bookings made elsewhere.
 
 ## Agent and memory
 
 - Build for the LFM3 family using on-device inference.
 - Start by qualifying LFM3-1.7B for customer-service text and tools.
 - Qualify vision/audio variants separately.
-- Keep structured records and editable, plain-language memory locally.
-- Reuse useful InkStax checked actions, draft handling, and
-  persistence where they fit this shape.
+- Keep structured records and editable, plain-language memory
+  locally, with sources, corrections, and review state attached —
+  staff can see where a memory came from and whether it has been
+  reviewed.
+- Reuse useful InkStax checked actions, persistence, and held-draft
+  contracts where they fit this shape.
+- Avoid introducing competing databases for the same business
+  records: one record, one home.
 - Staff can review, correct, disable, or forget memories.
-- No required cloud AI or backend.
+- No required cloud AI or backend — and no required hosted AI.
+
+## Phone
+
+- Normal native calling first. The Phone tab is a phone before it
+  is anything else.
+- AI cellular conversations are a later milestone, and only with a
+  proven audio-access path. A speech model alone does not provide
+  that access — do not design as if it does.
 
 ## First functional milestone
 
-> Incoming SMS → contact lookup/create → local memory retrieval →
-> local reply draft → staff approval → carrier send → accurate
-> conversation history.
+> Incoming SMS → identify/create contact → retrieve local memory →
+> generate held draft locally → staff approval → carrier send →
+> accurate native conversation history.
 
 That chain, working end to end and verified at the receiving end,
 is the first proof. Features outside the chain come after it.
@@ -89,10 +106,15 @@ is the first proof. Features outside the chain come after it.
 These are open questions, not solved problems. Each must be verified
 on device before it is claimed to work:
 
-- MMS agent intake
+- MMS reaching agent intake
 - Agent-sent messages appearing in native threads
-- Explicit SIM selection
-- Restart recovery without duplicate sends
+- Explicit business-SIM selection
+- Process-death (restart) recovery without duplicate sends
+- Replacement of the previous split-app transport assumptions —
+  the imported transport was designed for a separate SMS app
+  talking across a bridge seam; what replaces those assumptions
+  inside one APK must be decided and verified, not inherited
+  by accident
 
 ## File-size ratchet
 

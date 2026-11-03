@@ -27,6 +27,19 @@ yet**. Nothing in the plan should be read as an existing feature.
 - The source repository is unchanged by this copy. Ordinary pushes
   from an inkPilot working copy target `TattooStax/inkPilot` only.
 
+## Inherited vs. planned — do not confuse them
+
+**Inherited today (real, in the code):** the Fossify Messages SMS
+application copied from `inkstax-sms` — SMS/MMS messaging and the
+InkStax SMS transport work built on it — with its full history,
+under GPL-3.0. That is what actually runs if you build this
+repository now.
+
+**Planned, not yet implemented:** everything below — the five-tab
+studio shape, Studio albums, the local calendar, the side drawer,
+and the on-device LFM3 agent. No part of the plan has been built,
+and the current screens are the inherited app's screens.
+
 ## Direction in one page
 
 - Five bottom tabs: **SMS · Phone · Contacts · Studio · Calendar**
@@ -42,9 +55,11 @@ yet**. Nothing in the plan should be read as an existing feature.
   agent.
 - Agent: built for the LFM3 family with on-device inference, starting
   with qualifying LFM3-1.7B for customer-service text and tools.
-- First functional milestone: incoming SMS → contact lookup/create →
-  local memory retrieval → local reply draft → staff approval →
-  carrier send → accurate conversation history.
+- First functional milestone: incoming SMS → identify/create contact →
+  retrieve local memory → generate held draft locally → staff
+  approval → carrier send → accurate native conversation history.
+- Phone is normal native calling first; AI cellular conversations
+  are a later milestone that needs a proven audio-access path.
 
 Full direction, design rules, known gaps, and milestones:
 [`docs/INKPILOT-PLAN.md`](docs/INKPILOT-PLAN.md)
