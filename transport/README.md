@@ -153,15 +153,17 @@ inbound side with its local binding first.
   app-side too (SMS-38 steps 3-4, `OutboundWorkSender.kt` and
   `OutboundSendResultReceiver.kt` in the same app-side
   package): the sender submits the work through SmsManager
-  only while this app holds the default-SMS role, carrying
-  one sent-result intent per source id on the final part of
-  a multipart send, and the receiver turns the platform's
-  asynchronous result into the ack event and hands it to
-  SMS-29's verdict caller; a submission that throws
-  synchronously produces no asynchronous result, so the
-  sender files that failure verdict itself. No caller picks
-  up and sends yet — that worker is the remaining SMS-38
-  step.
+  under the stored credential and only while this app holds
+  the default-SMS role, carrying one sent-result intent per
+  part; the receiver aggregates every part's report through
+  the durable send progress the sender opened, turns the
+  completed result into the ack event, and files it through
+  the pairing-bound filing, which holds the verdict only
+  while the pairing that sent the work is still the stored
+  one; a submission that throws synchronously produces no
+  asynchronous result, so the sender files that failure
+  verdict itself. No caller picks up and sends yet — that
+  worker is the remaining SMS-38 step.
 - `PendingReportQueue.kt` — the pending outbound report queue
   definitions (SMS-26): the one queue shape every binding holds
   outbound ack reports that have not landed yet in — a plain
@@ -988,12 +990,15 @@ by the bridge sender's explicit sent-result PendingIntents.
 Everything else in this slice is new files in the app-side
 `org.fossify.messages.transport` package
 (`OutboundWorkSender.kt`, `OutboundWorkSendResult.kt`,
-`OutboundSendResultReceiver.kt`) plus this README.
+`OutboundSendResultReceiver.kt`, `OutboundVerdictFiling.kt`,
+`OutboundSendProgressStorage.kt`,
+`OutboundSendProgressGuard.kt`) plus this README.
 
 The sender performs the send SMS-38 step 1's work item
-names, through SmsManager directly, only while this app
-holds the default-SMS role: a bridge send is defined only
-under that role, so without it nothing is sent and the work
+names, through SmsManager directly, under the stored
+credential and only while this app holds the default-SMS
+role: a bridge send is defined only under that pairing and
+that role, so without either nothing is sent and the work
 stays queued and un-acked at the brain. It sends on the
 platform's default SMS subscription (the posture's
 subscription pinning stays policy-only, as SMS-3 recorded)
@@ -1002,8 +1007,19 @@ path files its verdict against a provider message id, and
 a bridge send's verdict is filed against the brain's source
 id instead — the brain holds the record of the reply it
 dispatched, and the fork's own threads do not show bridge
-sends yet. The verdict wiring reuses SMS-29's caller and
-SMS-26's queue unchanged — no second drain, no second
-scheduler — and the drain retry discipline (SMS-30) covers
-a report that cannot land. Still owed after this slice: the
-caller that picks work up and sends it.
+sends yet. Every part of a multipart send carries its own
+sent-result intent (mutable, as the upstream sender's are,
+so the platform's error-code extra survives the callback),
+and the receiver aggregates the parts through durable send
+progress before filing one verdict — one part's result is
+never the whole message's. Every verdict is filed through
+the pairing-bound filing (`OutboundVerdictFiling.kt`): the
+originating pairing's endpoint and device id travel with
+the send, and the verdict is held only while the stored
+credential still names that pairing, so a callback landing
+after a disconnect and re-pair is dropped, never reported
+to the new endpoint. The verdict wiring reuses SMS-29's
+caller and SMS-26's queue unchanged — no second drain, no
+second scheduler — and the drain retry discipline (SMS-30)
+covers a report that cannot land. Still owed after this
+slice: the caller that picks work up and sends it.
