@@ -25,7 +25,7 @@ fun hasSigningVars(): Boolean {
 
 base {
     val versionCode = project.property("VERSION_CODE").toString().toInt()
-    archivesName = "messages-$versionCode"
+    archivesName = "inkPilot-$versionCode"
 }
 
 android {
@@ -33,6 +33,7 @@ android {
 
     defaultConfig {
         applicationId = project.property("APP_ID").toString()
+        manifestPlaceholders["launcherAliasPackage"] = applicationId!!
         minSdk = project.libs.versions.app.build.minimumSDK.get().toInt()
         targetSdk = project.libs.versions.app.build.targetSDK.get().toInt()
         versionName = project.property("VERSION_NAME").toString()
@@ -115,7 +116,7 @@ android {
         )
     }
 
-    namespace = project.property("APP_ID").toString()
+    namespace = "org.fossify.messages" // Keep inherited source and generated-class imports stable.
 
     lint {
         checkReleaseBuilds = false
@@ -142,6 +143,7 @@ detekt {
 dependencies {
     // SMS-1-TOUCHPOINT 3/5: the app binds the :transport seam locally (see transport/README.md)
     implementation(project(":transport"))
+    implementation(project(":agent-core"))
     implementation(libs.fossify.commons)
     implementation(libs.eventbus)
     implementation(libs.indicator.fast.scroll)

@@ -1,0 +1,55 @@
+name: inkPilot build
+
+on:
+  push:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: inkpilot-build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  android:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify standalone app identity
+        run: python3 scripts/verify_app_identity.py
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v3
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Test reusable modules and assemble standalone app
+        run: ./gradlew :agent-core:test :transport:test :app:assembleFossDebug --console=plain --no-daemon
+      - name: Verify packaged SMS role qualification
+        shell: bash
+        run: |
+          shopt -s nullglob
+          manifests=(app/build/intermediates/merged_manifests/fossDebug/*/AndroidManifest.xml)
+          apks=(app/build/outputs/apk/foss/debug/*.apk)
+          test "${#manifests[@]}" -eq 1
+          test "${#apks[@]}" -eq 1
+          python3 scripts/verify_sms_role_qualification.py "${manifests[0]}" "${apks[0]}"
+      - name: Upload debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: inkPilot-foss-debug
+          path: app/build/outputs/apk/foss/debug/*.apk
+          if-no-files-found: error
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: inkPilot-test-reports
+          path: |
+            agent-core/build/reports/tests/
+            transport/build/reports/tests/
+          if-no-files-found: ignore

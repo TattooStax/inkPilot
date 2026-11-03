@@ -15,3 +15,5 @@ fastlane/report.xml
 # The :transport module is this fork's own module; the upstream
 # ignore rules predate it, so its build output needs its own line.
 /transport/build/
+/agent-core/build/
+__pycache__/

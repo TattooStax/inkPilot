@@ -1,12 +1,10 @@
 # inkPilot — Plan
 
-Direction of record for inkPilot. This document describes what
-inkPilot is to become. **None of the new runtime or redesign below
-is implemented yet** — the repository was set up by copying
-`TattooStax/inkstax-sms` (source commit
-`137ad28390e0a543bf47789fdf508b99993ec5df`), and work stops at
-repository creation, source import, and this documentation until a
-later, separately authorized build phase.
+Direction of record for inkPilot. The build phase is authorized.
+The repository preserves `TattooStax/inkstax-sms` history from
+`137ad28390e0a543bf47789fdf508b99993ec5df`. The first code slice adds
+standalone app identity and a reusable held-draft coordinator;
+Android storage, model integration, and the redesign remain open.
 
 inkPilot is the working name for a separate, entirely local Android
 tattoo-studio assistant.
@@ -30,6 +28,11 @@ bridge seam (see the historical text preserved in
 `FORK-NOTICE.md`). That rule was written for that project and stays
 true there. For inkPilot, SMS, Phone, Contacts, Studio, Calendar,
 and the agent are one APK.
+
+inkPilot must work without OpenFang. Later, an optional OpenFang
+adapter may expose the same checked workflows through a versioned
+contract. It must not introduce a second memory authority or bypass
+staff approval. See [`ARCHITECTURE.md`](ARCHITECTURE.md).
 
 Historical documentation is preserved, not rewritten. Where an
 imported document states the split-APK rule, it describes the source
@@ -132,10 +135,23 @@ inkPilot starts with a file-size ratchet (see
 Work in small, structured steps, in files that stay small. Split a
 file before adding to one that is near its baseline or the cap.
 
-## Boundaries for the setup phase
+## Build sequence and evidence gates
 
-- Repository creation, source import, and planning documentation
-  only.
-- Stop before implementing the new runtime or redesign.
-- Do not describe planned features as already implemented.
-- Leave `TattooStax/inkstax-sms` unchanged.
+1. **Foundation (first slice):** separate installation identity,
+   pure Kotlin held-draft coordinator and ports, behavioral tests,
+   build CI, and ratchet enforcement. The coordinator is not yet
+   connected to inbound SMS or production persistence/inference.
+2. **One local draft loop:** persist contact, memory and draft state
+   in the Android host; connect SMS intake; implement LFM inference;
+   prove a held draft survives process death and never auto-sends.
+3. **Checked sending:** staff approval, revision recheck, explicit
+   business SIM, native provider rows, delivery receipts and replay
+   protection. Prove the complete milestone on physical devices.
+4. **Studio workflow:** five-tab shell, contact editing, albums,
+   artist calendar and simple memory administration, built in small
+   independently verified changes.
+5. **Optional integrations:** OpenFang adapter after the standalone
+   loop passes; voice only after proving an audio-access path.
+
+Do not describe a contract or a passing unit test as device proof.
+Keep the source `TattooStax/inkstax-sms` repository unchanged.

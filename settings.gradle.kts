@@ -17,3 +17,5 @@ dependencyResolutionManagement {
 include(":app")
 // SMS-1-TOUCHPOINT 2/5: the bridge seam lives in its own module (see transport/README.md)
 include(":transport")
+// Standalone business workflow; no Android or optional integration dependencies.
+include(":agent-core")

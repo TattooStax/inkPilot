@@ -43,6 +43,13 @@ Never update the baseline just to make a failing check pass without
 being able to say why the file needed to grow. Prefer splitting the
 file instead.
 
+`--update` refuses both unapproved files over the cap and growth of
+legacy exceptions before writing anything. It preserves exception
+metadata and original ceilings even after a file falls below the
+cap. Once a legacy file's shrink is recorded, it cannot regrow.
+New over-cap exceptions require an explicit, reviewed baseline edit;
+the updater never creates them automatically.
+
 ## Running the check
 
 ```sh

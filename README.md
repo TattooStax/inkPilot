@@ -8,11 +8,12 @@ studio albums, and a shared local calendar — with an on-device agent
 that drafts replies for staff approval. No required cloud AI or
 backend.
 
-**Status: repository setup only.** This repository was created by
-copying `TattooStax/inkstax-sms` in full — history, branches, and
-tags preserved. The new runtime and redesign described in
-[`docs/INKPILOT-PLAN.md`](docs/INKPILOT-PLAN.md) are **not implemented
-yet**. Nothing in the plan should be read as an existing feature.
+**Status: first build foundation.** The app has its own install ID,
+`app.inkpilot.android`, and a separate, pure Kotlin `:agent-core`
+module for held-draft coordination. That module is not yet wired to
+Android persistence or an LFM runtime. The five-tab redesign and
+end-to-end agent workflow are still planned. See
+[`docs/INKPILOT-PLAN.md`](docs/INKPILOT-PLAN.md).
 
 ## Provenance
 
@@ -35,10 +36,16 @@ InkStax SMS transport work built on it — with its full history,
 under GPL-3.0. That is what actually runs if you build this
 repository now.
 
-**Planned, not yet implemented:** everything below — the five-tab
+**Planned, not yet implemented:** the five-tab
 studio shape, Studio albums, the local calendar, the side drawer,
-and the on-device LFM3 agent. No part of the plan has been built,
-and the current screens are the inherited app's screens.
+and the on-device LFM3 integration. The current screens remain the
+inherited app's screens, with the inkPilot product identity.
+
+**Added foundation:** the Android-independent agent core accepts
+authoritative contact and memory context, asks a local-model port
+for text, and requests atomic storage of a held draft. It has no
+send capability. Unit tests exercise replay, stale context, pause,
+and invalid output; host storage and inference adapters are next.
 
 ## Direction in one page
 
@@ -55,6 +62,8 @@ and the current screens are the inherited app's screens.
   agent.
 - Agent: built for the LFM3 family with on-device inference, starting
   with qualifying LFM3-1.7B for customer-service text and tools.
+- Standalone first. A future optional OpenFang adapter will reuse
+  checked domain actions without making OpenFang a requirement.
 - First functional milestone: incoming SMS → identify/create contact →
   retrieve local memory → generate held draft locally → staff
   approval → carrier send → accurate native conversation history.
@@ -63,6 +72,25 @@ and the current screens are the inherited app's screens.
 
 Full direction, design rules, known gaps, and milestones:
 [`docs/INKPILOT-PLAN.md`](docs/INKPILOT-PLAN.md)
+
+Module ownership and the future plugin boundary:
+[`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
+
+## Build and verify
+
+Use JDK 17 and an Android SDK matching `app/build.gradle.kts`.
+
+```sh
+./gradlew :agent-core:test :transport:test :app:assembleFossDebug
+python3 -m unittest discover -s scripts -p 'test_*.py'
+python3 scripts/verify_app_identity.py
+scripts/check-file-size-ratchet.sh
+```
+
+The `inkPilot build` workflow runs on pushes and pull
+requests. It builds the debug APK, checks the packaged SMS-role
+surface, and uploads the APK and test reports. An APK build alone
+does not prove carrier behavior or on-device model integration.
 
 ## File-size ratchet — from day one
 
@@ -95,7 +123,7 @@ full rule.
 
 1. Read [`docs/INKPILOT-PLAN.md`](docs/INKPILOT-PLAN.md) before
    starting work. It is the direction of record for inkPilot.
-2. Stop at the plan's milestone boundaries. The repository-setup
-   change deliberately implements **no** new runtime or redesign.
+2. Keep changes within the active milestone and report implemented
+   behavior separately from planned features.
 3. Keep the ratchet green. If a change needs a file to grow, say why.
 4. Preserve history, `LICENSE`, and copyright notices.

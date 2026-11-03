@@ -82,7 +82,7 @@ def main():
         if base is None:
             news.append(rel)
             base = count  # a new file cannot violate its own first size
-        if count > base:
+        if count > base and not update:
             failures.append(
                 f"GREW: {rel}: {base} -> {count} lines "
                 f"(run --update and justify, or split the file)"
@@ -93,22 +93,25 @@ def main():
                 f"OVER CAP: {rel}: {count} lines > cap {cap} "
                 f"(split it, or record an explicit exception)"
             )
-        if legacy and count > int(exceptions[rel]["lines"]):
+        legacy_limit = min(base, int(exceptions[rel]["lines"])) if legacy else None
+        if legacy and count > legacy_limit:
             failures.append(
                 f"LEGACY OVER-CAP GREW: {rel}: "
-                f"{exceptions[rel]['lines']} -> {count} lines (may only shrink)"
+                f"{legacy_limit} -> {count} lines (may only shrink)"
             )
 
+    if failures:
+        print("File-size ratchet FAILED:")
+        for failure in failures:
+            print(f"  {failure}")
+        return 1
+
     if update:
-        new_exceptions = {}
-        for rel, count in sorted(current.items()):
-            if count > cap:
-                kind = (
-                    exceptions.get(rel, {}).get("kind")
-                    if rel in exceptions
-                    else "over_cap"
-                )
-                new_exceptions[rel] = {"lines": count, "kind": kind or "over_cap"}
+        # An update records sizes, never grants or relaxes an exception. Keep
+        # legacy ceilings even after a file shrinks below the hard cap.
+        new_exceptions = {
+            rel: exceptions[rel] for rel in sorted(current) if rel in exceptions
+        }
         data = {
             "version": 1,
             "cap_lines": cap,
@@ -129,11 +132,6 @@ def main():
 
     for rel in news:
         print(f"NEW (not yet in baseline): {rel}: {current[rel]} lines")
-    if failures:
-        print("File-size ratchet FAILED:")
-        for failure in failures:
-            print(f"  {failure}")
-        return 1
     print(f"File-size ratchet OK: {len(current)} text files at or below baseline, "
           f"cap {cap} lines.")
     return 0
