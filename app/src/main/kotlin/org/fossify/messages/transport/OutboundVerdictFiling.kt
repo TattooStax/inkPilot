@@ -55,7 +55,7 @@ internal fun Context.fileOutboundVerdict(
 }
 
 /**
- * Files every retained completed multipart verdict, clearing
+ * Files every retained completed send verdict, clearing
  * each entry once its verdict is settled: the recovery run
  * for verdicts whose first filing could not be settled — a
  * hold that was not durable, or a process that died between

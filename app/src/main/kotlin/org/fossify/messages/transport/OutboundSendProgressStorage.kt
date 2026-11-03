@@ -54,7 +54,7 @@ sealed interface OutboundSendProgressUpdate {
 }
 
 /**
- * Durable progress for multipart bridge sends, in the app's
+ * Durable progress for bridge sends, in the app's
  * shared preferences: how many parts a send has, which parts
  * have reported and how, and the first reported failure's
  * error code. A send's parts report through separate

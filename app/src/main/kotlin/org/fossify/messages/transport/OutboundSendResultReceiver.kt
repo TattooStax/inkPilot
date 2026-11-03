@@ -24,10 +24,11 @@ import org.fossify.messages.receivers.SendStatusReceiver
  * one, so a verdict arriving after a disconnect and re-pair
  * is never reported to the new endpoint.
  *
- * A single-part send's one report is its whole verdict. A
- * multipart send's verdict is reached only when every part
- * has reported, folded through the durable send progress the
- * sender opened: one part's result is that part's outcome,
+ * Every send's verdict is folded through the durable send
+ * progress the sender opened: a single-part send's one
+ * report completes its progress at once, and a multipart
+ * send's verdict is reached only when every part has
+ * reported — one part's result is that part's outcome,
  * never the whole message's, and an earlier part can fail
  * while the final part succeeds. A failure carries the
  * sending error code the report wire requires: the platform's
@@ -36,7 +37,7 @@ import org.fossify.messages.receivers.SendStatusReceiver
  * platform's send error on this callback. The intents are
  * mutable precisely so that extra can arrive.
  *
- * A completed multipart verdict stays in its progress entry
+ * A completed verdict stays in its progress entry
  * until it is settled — filed durably, or dropped because
  * its pairing is gone — and only then is the entry cleared;
  * a filing that could not be settled leaves the entry in
@@ -79,21 +80,6 @@ class OutboundSendResultReceiver : BroadcastReceiver() {
                 SendStatusReceiver.NO_ERROR_CODE
             )
             if (extraErrorCode != SendStatusReceiver.NO_ERROR_CODE) extraErrorCode else resultCode
-        }
-        if (partCount == 1) {
-            context.fileOutboundVerdict(
-                endpointBase = endpointBase,
-                deviceId = deviceId,
-                sourceId = sourceId,
-                event = if (succeeded) {
-                    OutboundAckEvent.PHONE_ACKED_SENT
-                } else {
-                    OutboundAckEvent.PHONE_REPORTED_FAILURE
-                },
-                errorCode = errorCode,
-                reportedAtMillis = System.currentTimeMillis()
-            )
-            return
         }
         val update = synchronized(OutboundSendProgressGuard.lock) {
             context.recordOutboundSendPart(endpointBase, deviceId, sourceId, partIndex, succeeded, errorCode)

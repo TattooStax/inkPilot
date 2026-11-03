@@ -52,18 +52,20 @@ import org.fossify.messages.messaging.getSmsManager
  * files one verdict when all parts have reported. The
  * intents are mutable, as the upstream sender's are: the
  * platform attaches its sending error code to the callback
- * intent, and an immutable intent would discard it. A
- * single-part send needs no progress — its one callback is
- * the whole verdict.
+ * intent, and an immutable intent would discard it. Every
+ * send opens progress, a single-part send's with one part:
+ * its one callback completes the progress at once, so its
+ * verdict is retained until settled exactly as a multipart
+ * verdict is.
  *
  * A submission that throws synchronously produces no
  * asynchronous result, so this sender files that failure
  * verdict itself, through the same pairing-bound filing the
- * receiver uses, with the fork's sending error code. A
- * multipart send whose progress could not be opened is not
- * submitted at all, for the same reason: its parts' verdicts
- * could never be aggregated honestly, so the failure is filed
- * before any part leaves.
+ * receiver uses, with the fork's sending error code. A send
+ * whose progress could not be opened is not submitted at
+ * all, for the same reason: its verdict could never be
+ * aggregated — or, for a single part, retained — honestly,
+ * so the failure is filed before any part leaves.
  *
  * This call talks to the radio, so it belongs on a background
  * thread.
@@ -85,17 +87,17 @@ fun Context.sendOutboundWork(work: OutboundWork): OutboundWorkSendResult {
         if (parts == null || parts.size < 1) {
             return synchronousFailure(credential, work, TransportOutcome.ERROR_SENDING_MESSAGE)
         }
+        val opened = synchronized(OutboundSendProgressGuard.lock) {
+            beginOutboundSendProgress(credential.endpointBase, credential.deviceId, work.sourceId, parts.size)
+        }
+        if (!opened) {
+            return synchronousFailure(credential, work, TransportOutcome.UNKNOWN_ERROR)
+        }
         if (parts.size == 1) {
             val sentIntent = outboundSentResultIntent(credential, work.sourceId, 0, 1)
             @Suppress("DEPRECATION")
             smsManager.sendTextMessage(destination, null, work.body, sentIntent, null)
         } else {
-            val opened = synchronized(OutboundSendProgressGuard.lock) {
-                beginOutboundSendProgress(credential.endpointBase, credential.deviceId, work.sourceId, parts.size)
-            }
-            if (!opened) {
-                return synchronousFailure(credential, work, TransportOutcome.UNKNOWN_ERROR)
-            }
             val sentIntents = ArrayList(
                 parts.indices.map { outboundSentResultIntent(credential, work.sourceId, it, parts.size) }
             )

@@ -1014,7 +1014,8 @@ and the receiver aggregates the parts through durable send
 progress (keyed by the originating pairing as well as the
 source id, so two pairings' sends never share an entry)
 before filing one verdict — one part's result is never the
-whole message's. A completed verdict stays in its progress
+whole message's, and a single-part send opens one-part
+progress so its verdict is retained the same way. A completed verdict stays in its progress
 entry until it is settled — durably held in the pending
 report queue, or dropped with its pairing gone — and only
 then is the entry cleared; a repeat part report re-drives
