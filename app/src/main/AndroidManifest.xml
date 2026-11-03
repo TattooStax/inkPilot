@@ -564,5 +564,10 @@
             </intent-filter>
         </receiver>
 
+        <!-- SMS-38-TOUCHPOINT 1/1: the bridge send's verdict lands in its own receiver -->
+        <receiver
+            android:name=".transport.OutboundSendResultReceiver"
+            android:exported="false" />
+
     </application>
 </manifest>
