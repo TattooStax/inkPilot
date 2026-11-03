@@ -141,11 +141,14 @@ private fun Context.synchronousFailure(
 
 /**
  * One sent-result PendingIntent per part of a send. The data
- * Uri makes the intent's identity unique per pairing, source
- * id, and part, so two sends in flight never overwrite each
- * other's result routing; the verdict's facts travel as
- * extras, because the Uri carries encoded spellings, not the
- * values the verdict is filed against. The intent is mutable
+ * Uri makes the intent's identity unique per endpoint,
+ * device, source id, and part, so two sends in flight never
+ * overwrite each other's result routing — not even the same
+ * device id and source id under two endpoints, where an
+ * update-current intent would otherwise replace the old
+ * send's callback extras with the new send's; the verdict's
+ * facts travel as extras, because the Uri carries encoded
+ * spellings, not the values the verdict is filed against. The intent is mutable
  * on the versions that distinguish it, following the upstream
  * sender: the platform fills in its error code on the
  * callback, and an immutable intent would silently drop it.
@@ -158,8 +161,8 @@ private fun Context.outboundSentResultIntent(
 ): PendingIntent {
     val intent = Intent(this, OutboundSendResultReceiver::class.java).apply {
         data = Uri.parse(
-            "inkstax-sms://outbound-result/${Uri.encode(credential.deviceId)}" +
-                "/${Uri.encode(sourceId)}/$partIndex"
+            "inkstax-sms://outbound-result/${Uri.encode(credential.endpointBase)}" +
+                "/${Uri.encode(credential.deviceId)}/${Uri.encode(sourceId)}/$partIndex"
         )
         putExtra(OutboundSendResultReceiver.EXTRA_SOURCE_ID, sourceId)
         putExtra(OutboundSendResultReceiver.EXTRA_ENDPOINT_BASE, credential.endpointBase)

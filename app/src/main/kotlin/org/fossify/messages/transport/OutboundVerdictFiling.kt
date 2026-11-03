@@ -53,3 +53,35 @@ internal fun Context.fileOutboundVerdict(
         }
     }
 }
+
+/**
+ * Files every retained completed multipart verdict, clearing
+ * each entry once its verdict is settled: the recovery run
+ * for verdicts whose first filing could not be settled — a
+ * hold that was not durable, or a process that died between
+ * a send's completion and its filing. At completion every
+ * part has already reported, so no further callback can be
+ * relied on to re-drive the filing; instead the pending
+ * outbound report drain runs this first, before draining,
+ * so every drain trigger — a new verdict's enqueue, the
+ * scheduled drain retry — recovers retained verdicts into
+ * the queue it is about to drain. A verdict that still
+ * cannot be settled stays retained for the next drain.
+ */
+internal fun Context.fileRetainedOutboundVerdicts() {
+    for (verdict in storedCompletedOutboundVerdicts()) {
+        val settled = fileOutboundVerdict(
+            endpointBase = verdict.endpointBase,
+            deviceId = verdict.deviceId,
+            sourceId = verdict.sourceId,
+            event = verdict.event,
+            errorCode = verdict.errorCode,
+            reportedAtMillis = System.currentTimeMillis()
+        )
+        if (settled) {
+            synchronized(OutboundSendProgressGuard.lock) {
+                clearOutboundSendProgress(verdict.endpointBase, verdict.deviceId, verdict.sourceId)
+            }
+        }
+    }
+}

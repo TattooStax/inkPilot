@@ -11,6 +11,14 @@ import androidx.work.WorkerParameters
  * enqueued it, and work the process dies before running is run
  * afterwards instead of being lost with the process.
  *
+ * Before draining, the worker recovers retained completed
+ * send verdicts into the queue (see
+ * [fileRetainedOutboundVerdicts]): every trigger of this
+ * drain — a verdict's enqueue, the scheduled retry — is
+ * therefore also the retry for a verdict whose filing was
+ * interrupted, and the drain that follows reports it in the
+ * same run.
+ *
  * A drain that stops at its head is a reporting outcome, not a
  * failure of the work: every outcome the drain can report
  * leaves the unrecorded verdicts pending in order, and
@@ -32,6 +40,7 @@ class PendingReportDrainWorker(
         // verdict-triggered drain never report the same head
         // at once (see DrainExecutionGuard).
         synchronized(DrainExecutionGuard.pendingReportLock) {
+            applicationContext.fileRetainedOutboundVerdicts()
             applicationContext.drainPendingOutboundReportQueue()
         }
         return Result.success()

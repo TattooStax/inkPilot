@@ -13,6 +13,20 @@ private const val PART_FAILED = 'F'
 private const val VERDICT_SENT = 'S'
 private const val VERDICT_FAILED = 'F'
 
+/**
+ * One completed send's retained verdict: the pairing that
+ * sent the work, the work's source id, and the verdict the
+ * parts reached, recovered from a done progress entry so it
+ * can be filed after an interruption.
+ */
+data class CompletedOutboundVerdict(
+    val endpointBase: String,
+    val deviceId: String,
+    val sourceId: String,
+    val event: OutboundAckEvent,
+    val errorCode: Int?
+)
+
 /** What one part's report does to a send's progress. */
 sealed interface OutboundSendProgressUpdate {
     /** The send is still waiting on parts that have not reported. */
@@ -103,6 +117,9 @@ internal fun Context.beginOutboundSendProgress(
     val committed = progressPrefs().edit()
         .putInt("${stem}_parts", partCount)
         .putString("${stem}_mask", mask)
+        .putString("${stem}_endpoint", endpointBase)
+        .putString("${stem}_device", deviceId)
+        .putString("${stem}_source", sourceId)
         .remove("${stem}_error")
         .remove("${stem}_done")
         .remove("${stem}_event")
@@ -113,8 +130,55 @@ internal fun Context.beginOutboundSendProgress(
     val prefs = progressPrefs()
     return prefs.getInt("${stem}_parts", 0) == partCount &&
         prefs.getString("${stem}_mask", null) == mask &&
+        prefs.getString("${stem}_endpoint", null) == endpointBase &&
+        prefs.getString("${stem}_device", null) == deviceId &&
+        prefs.getString("${stem}_source", null) == sourceId &&
         !prefs.contains("${stem}_error") &&
         !prefs.contains("${stem}_done")
+}
+
+/**
+ * Every completed send's retained verdict, read back from
+ * the done entries: the recovery the drain path files
+ * before draining, for verdicts whose filing was
+ * interrupted — a hold that was not durable, or a process
+ * that died between completion and filing — and that no
+ * later part report can be relied on to re-drive, because
+ * at completion every part has already reported. A done
+ * entry whose stored identity or event is damaged names
+ * no verdict and is skipped, never guessed at; a failure
+ * whose error code was lost is recovered under the
+ * unknown-error code, the same rule a code-less failure
+ * report folds under.
+ */
+internal fun Context.storedCompletedOutboundVerdicts(): List<CompletedOutboundVerdict> {
+    val prefs = progressPrefs()
+    val doneStems = prefs.all.keys
+        .filter { it.endsWith("_done") && prefs.getBoolean(it, false) }
+        .map { it.removeSuffix("_done") }
+    return doneStems.mapNotNull { stem -> completedVerdict(prefs, stem) }
+}
+
+/** One done entry read back as its verdict, or null when its stored identity or event names none. */
+private fun completedVerdict(prefs: SharedPreferences, stem: String): CompletedOutboundVerdict? {
+    val endpointBase = prefs.getString("${stem}_endpoint", null)?.takeIf { it.isNotBlank() } ?: return null
+    val deviceId = prefs.getString("${stem}_device", null)?.takeIf { it.isNotBlank() } ?: return null
+    val sourceId = prefs.getString("${stem}_source", null)?.takeIf { it.isNotBlank() } ?: return null
+    val event = when (prefs.getString("${stem}_event", null)) {
+        VERDICT_SENT.toString() -> OutboundAckEvent.PHONE_ACKED_SENT
+        VERDICT_FAILED.toString() -> OutboundAckEvent.PHONE_REPORTED_FAILURE
+        else -> return null
+    }
+    val errorCode = if (event == OutboundAckEvent.PHONE_REPORTED_FAILURE) {
+        if (prefs.contains("${stem}_error")) {
+            prefs.getInt("${stem}_error", TransportOutcome.UNKNOWN_ERROR)
+        } else {
+            TransportOutcome.UNKNOWN_ERROR
+        }
+    } else {
+        null
+    }
+    return CompletedOutboundVerdict(endpointBase, deviceId, sourceId, event, errorCode)
 }
 
 /**
@@ -287,6 +351,9 @@ internal fun Context.clearOutboundSendProgress(endpointBase: String, deviceId: S
     progressPrefs().edit()
         .remove("${stem}_parts")
         .remove("${stem}_mask")
+        .remove("${stem}_endpoint")
+        .remove("${stem}_device")
+        .remove("${stem}_source")
         .remove("${stem}_error")
         .remove("${stem}_done")
         .remove("${stem}_event")

@@ -40,8 +40,11 @@ import org.fossify.messages.receivers.SendStatusReceiver
  * until it is settled — filed durably, or dropped because
  * its pairing is gone — and only then is the entry cleared;
  * a filing that could not be settled leaves the entry in
- * place, and the next part report that names the send
- * returns the stored verdict again and retries the filing.
+ * place: the next part report that names the send returns
+ * the stored verdict again, and every pending-report drain
+ * recovers retained verdicts before draining, so the
+ * scheduled retry retries the filing even when no further
+ * callback ever arrives.
  *
  * A broadcast that names no work item, no pairing, or a part
  * outside its send files nothing, and so does a part report

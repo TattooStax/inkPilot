@@ -1018,7 +1018,14 @@ whole message's. A completed verdict stays in its progress
 entry until it is settled — durably held in the pending
 report queue, or dropped with its pairing gone — and only
 then is the entry cleared; a repeat part report re-drives
-a retained verdict whose filing could not be settled. Every verdict is filed through
+a retained verdict whose filing could not be settled, and
+the pending-report drain worker recovers retained
+verdicts into the queue before every drain, so the
+scheduled drain retry retries an interrupted filing even
+when no further callback arrives. The sent-result
+PendingIntent identity carries the endpoint as well as
+the device, source id, and part, so two endpoints sharing
+a device id never replace each other's callbacks. Every verdict is filed through
 the pairing-bound filing (`OutboundVerdictFiling.kt`): the
 originating pairing's endpoint and device id travel with
 the send, and the verdict is held only while the stored
