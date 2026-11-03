@@ -1,44 +1,86 @@
-# Fossify Messages
-<img alt="Logo" src="graphics/icon.webp" width="120" />
+# inkPilot
 
-<a href='https://play.google.com/store/apps/details?id=org.fossify.messages'><img alt='Get it on Google Play' src='https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png' height=80/></a> <a href="https://f-droid.org/packages/org.fossify.messages/"><img src="https://fdroid.gitlab.io/artwork/badge/get-it-on-en.svg" alt="Get it on F-Droid" height=80/></a> <a href="https://apt.izzysoft.de/fdroid/index/apk/org.fossify.messages"><img src="https://gitlab.com/IzzyOnDroid/repo/-/raw/master/assets/IzzyOnDroid.png" alt="Get it on IzzyOnDroid" height=80/></a>
+inkPilot is the working name for a separate, entirely local Android
+tattoo-studio assistant.
 
-Fossify Messages is your trusted messaging companion, designed to enhance your messaging experience in various ways.
+One native Android APK for a tattoo studio — SMS, phone, contacts,
+studio albums, and a shared local calendar — with an on-device agent
+that drafts replies for staff approval. No required cloud AI or
+backend.
 
-**📱 STAY CONNECTED WITH EASE:**  
-With Fossify Messages, you can effortlessly send SMS and MMS messages to stay connected with your loved ones. Enjoy SMS/MMS based group messaging and express yourself with photos, emojis, and quick greetings.
+**Status: repository setup only.** This repository was created by
+copying `TattooStax/inkstax-sms` in full — history, branches, and
+tags preserved. The new runtime and redesign described in
+[`docs/INKPILOT-PLAN.md`](docs/INKPILOT-PLAN.md) are **not implemented
+yet**. Nothing in the plan should be read as an existing feature.
 
-**🚫 BLOCK UNWANTED MESSAGES:**  
-Take control of your messaging experience with a robust blocking feature, easily preventing unwanted messages, even from unknown contacts. You can also export and import blocked numbers for hassle-free backup. Additionally, customize your experience by preventing messages with specific words or phrases from reaching your inbox.
+## Provenance
 
-**🔒 EFFORTLESS SMS BACKUP:**  
-Say goodbye to worries about losing important messages. Fossify Messages offers convenient SMS backup functionality by allowing you to export and import your messages. This feature ensures that you can easily switch devices without losing your valuable conversations.
+- **Source repository:** https://github.com/TattooStax/inkstax-sms
+- **Source commit copied:** `137ad28390e0a543bf47789fdf508b99993ec5df`
+  (source `main` at the time of copying, 2026-11-03; verified live
+  before the copy, not assumed from the earlier reviewed checkpoint,
+  which it matched)
+- **Upstream:** Fossify Messages — see [`README-UPSTREAM.md`](README-UPSTREAM.md)
+  and [`FORK-NOTICE.md`](FORK-NOTICE.md). The upstream `LICENSE`
+  (GPL-3.0) and all copyright notices are preserved unmodified.
+- The source repository is unchanged by this copy. Ordinary pushes
+  from an inkPilot working copy target `TattooStax/inkPilot` only.
 
-**🚀 LIGHTNING-FAST AND LIGHTWEIGHT:**  
-Despite its powerful features, Fossify Messages boasts a remarkably small app size, making it quick and easy to download and install. Experience speed and efficiency while enjoying the peace of mind that comes with SMS backup.
+## Direction in one page
 
-**🔐 ENHANCED PRIVACY:**  
-Customize what appears on your lock screen for added privacy. Choose to display only the sender, message content, or nothing at all. Your messages are in your control.
+- Five bottom tabs: **SMS · Phone · Contacts · Studio · Calendar**
+- Soul, agent conversation, memory administration, behavior, activity,
+  and model settings live in a contextual side drawer — not as tabs.
+- Design: warm ivory, charcoal, restrained oxblood accents; small
+  traditional tattoo icons; plain, spacious screens with one main
+  list/grid and one primary action.
+- Studio: starter albums Finished Work, Outlines, Client References,
+  plus artist-created albums; originals preserved locally, album
+  membership does not duplicate files.
+- Calendar: one authoritative local calendar shared by staff and
+  agent.
+- Agent: built for the LFM3 family with on-device inference, starting
+  with qualifying LFM3-1.7B for customer-service text and tools.
+- First functional milestone: incoming SMS → contact lookup/create →
+  local memory retrieval → local reply draft → staff approval →
+  carrier send → accurate conversation history.
 
-**🔍 EFFICIENT MESSAGE SEARCH:**  
-Say goodbye to endless scrolling through conversations. Fossify Messages simplifies message retrieval with a quick and efficient search feature. Find what you need, when you need it.
+Full direction, design rules, known gaps, and milestones:
+[`docs/INKPILOT-PLAN.md`](docs/INKPILOT-PLAN.md)
 
-**🌈 MODERN DESIGN & USER-FRIENDLY INTERFACE:**  
-Enjoy a clean, modern design with a user-friendly interface. The app features a material design and a dark theme option, providing a visually appealing and comfortable user experience.
+## File-size ratchet — from day one
 
-**🌐 OPEN-SOURCE TRANSPARENCY:**  
-Your privacy is a top priority. Fossify Messages operates without requiring an internet connection, guaranteeing message security and stability. Our app is completely free of ads and does not request unnecessary permissions. Moreover, it is fully open-source, providing you with peace of mind, as you have access to the source code for security and privacy audits.
+This project starts with a ratchet so GBT (and every other
+contributor) begins in a structured way and files cannot quietly
+balloon:
 
-Make the switch to Fossify Messages and experience messaging the way it should be – private, efficient, and user-friendly. Download now and join our community committed to safeguarding your messaging experience.
+- Every tracked text file has a recorded line-count baseline in
+  [`.file-size-ratchet.json`](.file-size-ratchet.json).
+- A file may **shrink or stay the same freely**. It may not grow past
+  its baseline unless the same change also updates the baseline with
+  a stated reason — growth is a deliberate, reviewed act, not drift.
+- New files are allowed; the check records them and they become part
+  of the baseline on their first ratchet pass.
+- Hard cap: no source file over **1,000 lines** without an explicit
+  exception recorded in the baseline file. Files already over the cap
+  in the imported source are listed as legacy exceptions at their
+  imported size — they may only shrink from there.
+- Check locally: `scripts/check-file-size-ratchet.sh`
+- Update the baseline deliberately:
+  `scripts/check-file-size-ratchet.sh --update`
+  and explain the growth in the commit message.
+- CI runs the same check on every push and pull request
+  (`.github/workflows/file-size-ratchet.yml`).
 
-➡️ Explore more Fossify apps: https://www.fossify.org<br>
-➡️ Open-Source Code: https://www.github.com/FossifyOrg<br>
-➡️ Join the community on Reddit: https://www.reddit.com/r/Fossify<br>
-➡️ Connect on Telegram: https://t.me/Fossify
+See [`docs/FILE-SIZE-RATCHET.md`](docs/FILE-SIZE-RATCHET.md) for the
+full rule.
 
-<div align="center">
-<img alt="App image" src="fastlane/metadata/android/en-US/images/phoneScreenshots/1_en-US.png" width="30%">
-<img alt="App image" src="fastlane/metadata/android/en-US/images/phoneScreenshots/2_en-US.png" width="30%">
-<img alt="App image" src="fastlane/metadata/android/en-US/images/phoneScreenshots/3_en-US.png" width="30%">
-</div>
+## Working here
 
+1. Read [`docs/INKPILOT-PLAN.md`](docs/INKPILOT-PLAN.md) before
+   starting work. It is the direction of record for inkPilot.
+2. Stop at the plan's milestone boundaries. The repository-setup
+   change deliberately implements **no** new runtime or redesign.
+3. Keep the ratchet green. If a change needs a file to grow, say why.
+4. Preserve history, `LICENSE`, and copyright notices.
