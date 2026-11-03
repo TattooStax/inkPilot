@@ -116,7 +116,12 @@ fun Context.performPairingExchange(offer: PairingOffer): PairingExchangeBindingR
  * [EXCHANGE_MAX_RESPONSE_BYTES] — an oversized answer is no
  * credential answer, and the outcome reader names a missing body
  * on a success status malformed. Bytes past the limit are never
- * buffered, so the read stops instead of filling memory first.
+ * buffered, so the read stops instead of filling memory first. The
+ * buffered bytes are decoded as strict UTF-8: a decoder that
+ * reports malformed and unmappable input throws instead of
+ * substituting a replacement character, and the caller's guarded
+ * read turns that failure into a missing body — a corrupted
+ * answer must never mint a credential from altered values.
  */
 private fun readExchangeResponseBody(connection: HttpURLConnection): String? {
     val bytes = java.io.ByteArrayOutputStream()
@@ -133,5 +138,8 @@ private fun readExchangeResponseBody(connection: HttpURLConnection): String? {
             bytes.write(buffer, 0, count)
         }
     }
-    return bytes.toString(Charsets.UTF_8.name())
+    val decoder = Charsets.UTF_8.newDecoder()
+        .onMalformedInput(java.nio.charset.CodingErrorAction.REPORT)
+        .onUnmappableCharacter(java.nio.charset.CodingErrorAction.REPORT)
+    return decoder.decode(java.nio.ByteBuffer.wrap(bytes.toByteArray())).toString()
 }
