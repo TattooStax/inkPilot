@@ -2,6 +2,9 @@ package inkstax.sms.transport
 
 import java.net.URI
 import java.net.URISyntaxException
+import java.nio.ByteBuffer
+import java.nio.charset.CharacterCodingException
+import java.nio.charset.CodingErrorAction
 
 /**
  * Onboarding pairing definitions for the bridge seam.
@@ -123,7 +126,10 @@ fun pairingOfferFromQrPayload(rawPayload: String?): PairingOffer? {
 
 /**
  * Percent-decodes one query value, or returns null on a malformed
- * escape. Only `%` escapes are decoded; a literal `+` stays a plus,
+ * escape or on decoded bytes that are not valid UTF-8 — a lenient
+ * decode would substitute the replacement character and hand the
+ * exchange a different token than the one the QR carried. Only
+ * `%` escapes are decoded; a literal `+` stays a plus,
  * because the token is a credential, not form text, and rewriting
  * it would hand the exchange a different token than the QR carried.
  * The decoder validates its own escapes instead of relying on the
@@ -157,7 +163,14 @@ internal fun percentDecoded(value: String): String? {
             index++
         }
     }
-    return String(bytes.toByteArray(), Charsets.UTF_8)
+    val decoder = Charsets.UTF_8.newDecoder()
+        .onMalformedInput(CodingErrorAction.REPORT)
+        .onUnmappableCharacter(CodingErrorAction.REPORT)
+    return try {
+        decoder.decode(ByteBuffer.wrap(bytes.toByteArray())).toString()
+    } catch (exception: CharacterCodingException) {
+        null
+    }
 }
 
 /**
