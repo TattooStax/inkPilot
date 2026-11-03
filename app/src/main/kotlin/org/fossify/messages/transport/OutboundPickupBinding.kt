@@ -78,7 +78,12 @@ sealed interface OutboundPickupBindingResult {
  * merely unreachable. A body read that fails or runs past the
  * bound leaves the body unread, which the outcome reader names
  * malformed on an OK status: an answer that cannot be read
- * exactly names no send.
+ * exactly names no send. The body is decoded as strict UTF-8 —
+ * malformed bytes fail the decode instead of being replaced,
+ * because a replacement character inside a work item would
+ * hand the caller altered work (a changed message body, or a
+ * changed source id its verdict is filed against) that the
+ * outcome reader would accept as the work the brain queued.
  */
 fun Context.performOutboundPickup(requestedAtMillis: Long): OutboundPickupBindingResult {
     require(requestedAtMillis >= 0L) { "requestedAtMillis must not be negative" }
@@ -135,7 +140,11 @@ internal fun Context.performOutboundPickup(
  * [PICKUP_MAX_RESPONSE_BYTES] — an oversized answer is no work
  * answer, and the outcome reader names a missing body on an OK
  * status malformed. Bytes past the limit are never buffered, so
- * the read stops instead of filling memory first.
+ * the read stops instead of filling memory first. The buffered
+ * bytes are decoded as strict UTF-8: a decoder that reports
+ * malformed and unmappable input throws instead of substituting
+ * a replacement character, and the caller's guarded read turns
+ * that failure into a missing body.
  */
 private fun readPickupResponseBody(connection: HttpURLConnection): String? {
     val bytes = java.io.ByteArrayOutputStream()
@@ -152,5 +161,8 @@ private fun readPickupResponseBody(connection: HttpURLConnection): String? {
             bytes.write(buffer, 0, count)
         }
     }
-    return bytes.toString(Charsets.UTF_8.name())
+    val decoder = Charsets.UTF_8.newDecoder()
+        .onMalformedInput(java.nio.charset.CodingErrorAction.REPORT)
+        .onUnmappableCharacter(java.nio.charset.CodingErrorAction.REPORT)
+    return decoder.decode(java.nio.ByteBuffer.wrap(bytes.toByteArray())).toString()
 }
