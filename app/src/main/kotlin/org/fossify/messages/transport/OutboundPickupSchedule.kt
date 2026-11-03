@@ -43,10 +43,13 @@ private const val OUTBOUND_PICKUP_PERIODIC_WORK_NAME = "outbound_pickup_periodic
  * ensure it, and keeping the existing work preserves its next
  * run time instead of pushing a pickup a full interval later
  * on every Settings visit. The one-time run an ensure can ask
- * for is unique and appended, so it runs after a run already
- * pending rather than beside it, and the pickup guard
- * serializes the runs themselves whichever trigger enqueued
- * them. The network constraint is the pickup's own
+ * for is unique and appended-or-replaced: it runs after a run
+ * already pending rather than beside it, but a chain a
+ * disconnect cancelled cannot cancel a fresh pairing's first
+ * run along with itself - the replacement starts a new chain
+ * where the old one was cancelled or failed, and the pickup
+ * guard serializes the runs themselves whichever trigger
+ * enqueued them. The network constraint is the pickup's own
  * precondition, so a run that falls due while the phone is
  * offline waits for the network instead of burning its attempt
  * against an endpoint it cannot reach.
@@ -82,7 +85,7 @@ fun Context.enqueueOutboundPickup() {
         .build()
     WorkManager.getInstance(this).enqueueUniqueWork(
         OUTBOUND_PICKUP_WORK_NAME,
-        ExistingWorkPolicy.APPEND,
+        ExistingWorkPolicy.APPEND_OR_REPLACE,
         request
     )
 }

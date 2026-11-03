@@ -18,7 +18,11 @@ import androidx.work.WorkerParameters
  * the pairing being restored — retrying from here cannot fix
  * any of those, and the scheduled pickup is the retry the
  * design already keeps. The work therefore reports success
- * once its one run has run, whatever the run picked up.
+ * once its one run has run, whatever the run picked up. The
+ * run is handed this worker's stopped state: a worker the
+ * platform has stopped (its constraints lost, its deadline
+ * reached, its chain cancelled by a disconnect) stops picking
+ * up and sending instead of running on past its own lifetime.
  */
 class OutboundPickupWorker(
     context: Context,
@@ -31,7 +35,7 @@ class OutboundPickupWorker(
         // never pick the same queued work up at once (see
         // OutboundPickupGuard).
         synchronized(OutboundPickupGuard.lock) {
-            applicationContext.pickUpAndSendOutboundWork()
+            applicationContext.pickUpAndSendOutboundWork { isStopped }
         }
         return Result.success()
     }

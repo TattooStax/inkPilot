@@ -1,7 +1,9 @@
 package org.fossify.messages.transport
 
 import android.content.Context
+import inkstax.sms.transport.DeviceCredential
 import inkstax.sms.transport.OutboundPickupOutcome
+import inkstax.sms.transport.OutboundWork
 
 /**
  * One outbound pickup run: pick queued work up from the paired
@@ -56,6 +58,15 @@ import inkstax.sms.transport.OutboundPickupOutcome
  * same reply would put a duplicate text in front of the
  * recipient that no verdict could honestly describe.
  *
+ * The caller may hand the run a stop predicate - the pickup
+ * worker hands it the platform's stopped state for its work -
+ * and the run consults it before each pickup and again before
+ * each send: a run whose lifetime has ended stops instead of
+ * running on past it, and a send is submitted only atomically
+ * with the pairing revalidation, under the credential guard a
+ * disconnect's clear also takes, so the check and the
+ * submission cannot be split by a disconnect.
+ *
  * This call blocks on the network and the radio, so it belongs
  * on a background thread — the pickup worker is its caller.
  * Returns how many items the run submitted or failed at
@@ -64,27 +75,57 @@ import inkstax.sms.transport.OutboundPickupOutcome
  * verdict travels the ack path whether the run reports it or
  * not.
  */
-internal fun Context.pickUpAndSendOutboundWork(): Int {
+internal fun Context.pickUpAndSendOutboundWork(isStopped: () -> Boolean = { false }): Int {
     val credential = storedDeviceCredential() ?: return 0
     var sentCount = 0
     val seenSourceIds = HashSet<String>()
     var running = true
     while (running) {
+        if (isStopped() || storedDeviceCredential() != credential) {
+            running = false
+            break
+        }
         val outcome = when (val result = performOutboundPickup(credential, System.currentTimeMillis())) {
             OutboundPickupBindingResult.NoUsableCredential -> null
             is OutboundPickupBindingResult.Completed -> result.outcome
         }
         val work = (outcome as? OutboundPickupOutcome.WorkAvailable)?.work
-        if (work == null || storedDeviceCredential() != credential || !seenSourceIds.add(work.sourceId)) {
+        if (work == null || !seenSourceIds.add(work.sourceId)) {
             running = false
         } else {
-            when (sendOutboundWork(credential, work)) {
+            when (sendPickedUpWork(credential, work, isStopped)) {
                 OutboundWorkSendResult.Submitted -> sentCount++
                 is OutboundWorkSendResult.Failed -> sentCount++
                 OutboundWorkSendResult.NotPaired,
-                OutboundWorkSendResult.NotDefaultSmsApp -> running = false
+                OutboundWorkSendResult.NotDefaultSmsApp,
+                null -> running = false
             }
         }
     }
     return sentCount
+}
+
+/**
+ * Submits one picked-up item's send under the credential
+ * guard, atomically with the pairing and stopped
+ * revalidation: a disconnect's clear takes the same guard, so
+ * it lands whole before this section (and the send is refused
+ * as not paired, the caller's stop signal) or after the
+ * submission (and the verdict filing drops the verdict under
+ * its own pairing check) - never between the check and the
+ * send. A null result is that refusal: the run that asked for
+ * the send is over, whatever its reason was.
+ */
+private fun Context.sendPickedUpWork(
+    credential: DeviceCredential,
+    work: OutboundWork,
+    isStopped: () -> Boolean
+): OutboundWorkSendResult? {
+    return synchronized(CredentialGuard.lock) {
+        if (isStopped() || storedDeviceCredential() != credential) {
+            null
+        } else {
+            sendOutboundWork(credential, work)
+        }
+    }
 }
