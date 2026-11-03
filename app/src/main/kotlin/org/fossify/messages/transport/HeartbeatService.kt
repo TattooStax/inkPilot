@@ -143,6 +143,7 @@ internal fun Context.runHeartbeatBeatOnce(isStopped: () -> Boolean = { false }) 
                     cancelHeartbeatSchedule()
                     cancelHeartbeatNotification()
                     cancelDrainRetrySchedule()
+                    cancelOutboundPickupSchedule()
                 }
             }
             is HeartbeatBindingResult.Completed -> {

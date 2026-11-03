@@ -77,6 +77,7 @@ private fun Activity.disconnectPairing(onDisconnected: () -> Unit) {
                     // service has nothing to beat with and stops.
                     stopHeartbeatService()
                     cancelDrainRetrySchedule()
+                    cancelOutboundPickupSchedule()
                     toast(R.string.pairing_disconnected)
                     onDisconnected()
                 } else {

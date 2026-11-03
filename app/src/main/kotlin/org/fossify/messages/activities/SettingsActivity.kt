@@ -50,6 +50,7 @@ import org.fossify.messages.helpers.refreshConversations
 import org.fossify.messages.transport.confirmPairingDisconnect
 import org.fossify.messages.transport.ensureDrainRetrySchedule
 import org.fossify.messages.transport.ensureHeartbeatSchedule
+import org.fossify.messages.transport.ensureOutboundPickupSchedule
 import org.fossify.messages.transport.hasStoredCredentialMaterial
 import org.fossify.messages.transport.launchPairingScan
 import org.fossify.messages.transport.registerPairingScanner
@@ -177,6 +178,10 @@ class SettingsActivity : SimpleActivity() {
         // paired phone's scheduled drain retry - the same
         // foreground recovery as the heartbeat schedule above.
         ensureDrainRetrySchedule()
+        // SMS-38-TOUCHPOINT (step 5) 1/1: a Settings visit also
+        // re-arms a paired phone's scheduled outbound pickup -
+        // the same foreground recovery as the schedules above.
+        ensureOutboundPickupSchedule()
         refreshDisconnectCompanionVisibility()
         binding.settingsDisconnectCompanionHolder.setOnClickListener {
             confirmPairingDisconnect {

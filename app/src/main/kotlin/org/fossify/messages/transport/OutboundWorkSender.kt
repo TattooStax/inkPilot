@@ -70,10 +70,25 @@ import org.fossify.messages.messaging.getSmsManager
  * This call talks to the radio, so it belongs on a background
  * thread.
  */
-@Suppress("TooGenericExceptionCaught", "SwallowedException")
 fun Context.sendOutboundWork(work: OutboundWork): OutboundWorkSendResult {
     val credential = storedDeviceCredential()
         ?: return OutboundWorkSendResult.NotPaired
+    return sendOutboundWork(credential, work)
+}
+
+/**
+ * The same send performed with a credential the caller already
+ * holds: a caller that acts under a pairing — the pickup run
+ * that took this work from that pairing's endpoint — sends
+ * with that pairing's credential, never one a disconnect and
+ * re-pair may have stored since, so work taken from one
+ * pairing is only ever sent and acked under that pairing.
+ */
+@Suppress("TooGenericExceptionCaught", "SwallowedException")
+internal fun Context.sendOutboundWork(
+    credential: DeviceCredential,
+    work: OutboundWork
+): OutboundWorkSendResult {
     if (Telephony.Sms.getDefaultSmsPackage(this) != packageName) {
         return OutboundWorkSendResult.NotDefaultSmsApp
     }

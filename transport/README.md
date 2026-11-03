@@ -1056,3 +1056,50 @@ credential answer can no longer be judged after silent
 alteration — the strict wire reader downstream judged the
 values it was handed, so the bytes must reach it unaltered
 or not at all.
+
+## Upstream touchpoint registry (SMS-38 step 5, ≤5, tagged in code)
+
+One tagged touchpoint — SettingsActivity.kt
+(SMS-38-TOUCHPOINT (step 5) 1/1): a Settings visit re-arms a
+paired phone's scheduled outbound pickup, the same foreground
+recovery the heartbeat and drain-retry schedules already get
+there. Everything else in this slice is new files in the
+app-side `org.fossify.messages.transport` package
+(`OutboundPickup.kt`, `OutboundPickupWorker.kt`,
+`OutboundPickupSchedule.kt`, `OutboundPickupGuard.kt`) plus
+changes to this track's own files: the sender gained a
+credential-taking overload (its existing entry point
+delegates, the SMS-28/SMS-34 shape), and the pairing,
+disconnect, heartbeat, and boot callers start, re-arm, or
+cancel the pickup schedule alongside the schedules they
+already keep.
+
+The caller joins the pickup binding (step 2) to the sender
+(steps 3–4): a run captures the stored credential once, picks
+one item up under that pairing, sends it under that same
+pairing, and picks up again, until the brain's queue reads
+empty or a pickup hands over no work. A pickup hands an item
+over once, so the run's loop is the drain the wire shape
+describes — the phone sends what it picked up, its verdict
+travels the outbound ack path, and the next pickup asks for
+the next item. A run never sends one source id twice: an
+answer that hands over a source id the run already sent ends
+the run instead of putting a duplicate text in front of the
+recipient. A send refused for want of the default-SMS role or
+the pairing also ends the run, with the work still queued and
+un-acked at the brain.
+
+Outbound work is created at the brain, so no phone-side event
+can trigger a run: the schedule is the trigger, periodic
+lifecycle-managed work at the drain-retry interval (the
+heartbeat interval), ensured by pairing, by a completed boot,
+and by every Settings visit, cancelled by disconnect and by a
+heartbeat that finds no usable credential, and asked for at
+once when a pairing completes. Every run runs under the
+pickup execution guard, so two triggers never pick the same
+queued work up at once. This completes SMS-38's fork side:
+definitions, binding, platform send, verdict wiring, and now
+the caller. Device proof still waits on the core/shell half
+being on the 6T alongside this build; the acceptance
+conversation re-fires only then, under its one-shot
+discipline.
