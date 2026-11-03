@@ -10,7 +10,7 @@
     ".github/ISSUE_TEMPLATE/feature_request.yml": 52,
     ".github/dependabot.yml": 48,
     ".github/workflows/file-size-ratchet.yml": 15,
-    ".github/workflows/inkpilot-build.yml": 55,
+    ".github/workflows/inkpilot-build.yml": 58,
     ".github/workflows/no-response.yml": 11,
     ".github/workflows/pr-labeler.yml": 10,
     ".github/workflows/pr.yml": 13,
