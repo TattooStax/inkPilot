@@ -1103,3 +1103,16 @@ the caller. Device proof still waits on the core/shell half
 being on the 6T alongside this build; the acceptance
 conversation re-fires only then, under its one-shot
 discipline.
+
+## Upstream touchpoint registry (SMS-HK4, ≤5, tagged in code)
+
+None — zero upstream files are modified in this slice. The
+slice changes only `Pairing.kt` inside `:transport` and its
+test: the percent-decoder now decodes its bytes as strict
+UTF-8, so percent bytes that form no valid UTF-8 read as
+malformed instead of reaching the exchange as a token with
+replacement characters substituted in. Bytes that are valid
+UTF-8 decode exactly as before. The decoder-level tests hold
+this directly, with no URI parse in front of the decoder,
+and the malformed-bytes case fails against the lenient
+decode it replaces.

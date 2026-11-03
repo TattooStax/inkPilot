@@ -120,6 +120,22 @@ class PairingTest {
     }
 
     @Test
+    fun `the decoder rejects percent bytes that are not valid UTF-8`() {
+        // Straight at percentDecoded again: a lenient decode would
+        // replace these bytes with the replacement character and
+        // hand the exchange a token the QR never carried, so the
+        // decoder itself must read them as malformed.
+        assertNull(percentDecoded("abc%FF"))
+        assertNull(percentDecoded("abc%C3%28"))
+        assertNull(percentDecoded("%80"))
+    }
+
+    @Test
+    fun `the decoder accepts percent bytes that are valid UTF-8`() {
+        assertEquals("caf\u00E9", percentDecoded("caf%C3%A9"))
+    }
+
+    @Test
     fun `a pairing URL with a fragment is no offer`() {
         assertNull(pairingOfferFromQrPayload("https://brain.example/companion/start?t=tok#extra"))
         assertNull(pairingOfferFromQrPayload("https://brain.example/companion/start?t=tok#"))
