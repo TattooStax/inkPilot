@@ -10,6 +10,8 @@ private const val OUTBOUND_SEND_PROGRESS_PREFS = "outbound_send_progress"
 private const val PART_PENDING = 'P'
 private const val PART_SENT = 'S'
 private const val PART_FAILED = 'F'
+private const val VERDICT_SENT = 'S'
+private const val VERDICT_FAILED = 'F'
 
 /** What one part's report does to a send's progress. */
 sealed interface OutboundSendProgressUpdate {
@@ -20,8 +22,10 @@ sealed interface OutboundSendProgressUpdate {
      * Every part has now reported, so the send's one verdict is
      * reached: [event] is the verdict, and [errorCode] is the
      * first reported failure's sending error code on a failure.
-     * The progress entry is already cleared — the verdict is
-     * the caller's to file, exactly once.
+     * The verdict stays stored in the progress entry until the
+     * caller clears it after the verdict is settled, and a
+     * repeat part report returns this same update again — the
+     * re-drive that lets a retained verdict be filed later.
      */
     data class Completed(val event: OutboundAckEvent, val errorCode: Int?) : OutboundSendProgressUpdate
 
@@ -48,19 +52,33 @@ sealed interface OutboundSendProgressUpdate {
  * can fail while the final part succeeds, and reporting
  * success then would ack a reply that never fully left.
  *
- * The key stem is the source id's base64url spelling, so any
- * source id the wire admits keys exactly one entry. Every
- * write is one checked synchronous commit that reports
- * success only after a verifying read-back, in the shape the
- * track's other stores use. Every function here runs under
+ * The key stem is the base64url spelling of the originating
+ * pairing's identity (endpoint and device id) together with
+ * the source id, so one source id sent under two pairings
+ * keys two entries and neither send's reports can fold into
+ * the other's progress. Every write is one checked
+ * synchronous commit that reports success only after a
+ * verifying read-back, in the shape the track's other stores
+ * use. Every function here runs under
  * [OutboundSendProgressGuard] — the sender opens a send's
  * progress under it before submitting, and each part report
  * folds under it.
+ *
+ * A completed send's verdict stays in its entry — marked
+ * done, with its event and error code — until the caller
+ * clears it, which it does only once the verdict is settled:
+ * durably held in the pending outbound report queue, or
+ * deliberately dropped because its pairing is gone. Clearing
+ * at completion would delete the only durable record before
+ * the verdict is held anywhere, and a hold that failed (or a
+ * process that died first) would lose a verdict the drain
+ * could otherwise still report.
  */
 
-private fun progressKeyStem(sourceId: String): String {
+private fun progressKeyStem(endpointBase: String, deviceId: String, sourceId: String): String {
+    val identity = "$endpointBase\n$deviceId\n$sourceId"
     return Base64.encodeToString(
-        sourceId.toByteArray(Charsets.UTF_8),
+        identity.toByteArray(Charsets.UTF_8),
         Base64.URL_SAFE or Base64.NO_WRAP or Base64.NO_PADDING
     )
 }
@@ -74,13 +92,20 @@ private fun Context.progressPrefs() = getSharedPreferences(OUTBOUND_SEND_PROGRES
  * new send's. Returns whether the opened progress read back
  * as stored.
  */
-internal fun Context.beginOutboundSendProgress(sourceId: String, partCount: Int): Boolean {
-    val stem = progressKeyStem(sourceId)
+internal fun Context.beginOutboundSendProgress(
+    endpointBase: String,
+    deviceId: String,
+    sourceId: String,
+    partCount: Int
+): Boolean {
+    val stem = progressKeyStem(endpointBase, deviceId, sourceId)
     val mask = PART_PENDING.toString().repeat(partCount)
     val committed = progressPrefs().edit()
         .putInt("${stem}_parts", partCount)
         .putString("${stem}_mask", mask)
         .remove("${stem}_error")
+        .remove("${stem}_done")
+        .remove("${stem}_event")
         .commit()
     if (!committed) {
         return false
@@ -88,7 +113,8 @@ internal fun Context.beginOutboundSendProgress(sourceId: String, partCount: Int)
     val prefs = progressPrefs()
     return prefs.getInt("${stem}_parts", 0) == partCount &&
         prefs.getString("${stem}_mask", null) == mask &&
-        !prefs.contains("${stem}_error")
+        !prefs.contains("${stem}_error") &&
+        !prefs.contains("${stem}_done")
 }
 
 /**
@@ -100,24 +126,36 @@ internal fun Context.beginOutboundSendProgress(sourceId: String, partCount: Int)
  * platform reports each part once, and a repeat broadcast is
  * the same report arriving twice, not a second chance at the
  * verdict. When the fold leaves every part reported, the
- * entry is cleared in the same commit and the update is the
- * send's verdict: a failure if any part failed, carrying the
- * first reported failure's error code, else sent.
+ * verdict is stored in the entry (marked done) and returned;
+ * it stays stored until the caller clears it after filing,
+ * and a repeat report against a done entry returns the same
+ * verdict again instead of folding, so a verdict whose
+ * filing could not be settled can be re-driven by the next
+ * report that names the send.
  */
 internal fun Context.recordOutboundSendPart(
+    endpointBase: String,
+    deviceId: String,
     sourceId: String,
     partIndex: Int,
     succeeded: Boolean,
     errorCode: Int?
 ): OutboundSendProgressUpdate {
-    val stem = progressKeyStem(sourceId)
+    val stem = progressKeyStem(endpointBase, deviceId, sourceId)
     val prefs = progressPrefs()
     val entry = progressEntry(prefs, stem, partIndex) ?: return OutboundSendProgressUpdate.Unknown
+    val doneEvent = entry.doneEvent
+    if (doneEvent != null) {
+        return OutboundSendProgressUpdate.Completed(
+            doneEvent,
+            if (doneEvent == OutboundAckEvent.PHONE_REPORTED_FAILURE) entry.storedError else null
+        )
+    }
     if (entry.alreadyReported) {
         return if (entry.stillPending) {
             OutboundSendProgressUpdate.Pending
         } else {
-            OutboundSendProgressUpdate.Unknown
+            completeProgress(prefs, stem, entry.mask, entry.storedError)
         }
     }
     val newMask = StringBuilder(entry.mask).apply {
@@ -140,7 +178,8 @@ private data class ProgressEntry(
     val mask: String,
     val storedError: Int?,
     val alreadyReported: Boolean,
-    val stillPending: Boolean
+    val stillPending: Boolean,
+    val doneEvent: OutboundAckEvent?
 )
 
 /**
@@ -156,11 +195,21 @@ private fun progressEntry(prefs: SharedPreferences, stem: String, partIndex: Int
         return null
     }
     val storedError = if (prefs.contains("${stem}_error")) prefs.getInt("${stem}_error", 0) else null
+    val doneEvent = if (prefs.getBoolean("${stem}_done", false)) {
+        when (prefs.getString("${stem}_event", null)) {
+            VERDICT_SENT.toString() -> OutboundAckEvent.PHONE_ACKED_SENT
+            VERDICT_FAILED.toString() -> OutboundAckEvent.PHONE_REPORTED_FAILURE
+            else -> null
+        }
+    } else {
+        null
+    }
     return ProgressEntry(
         mask = mask,
         storedError = storedError,
         alreadyReported = mask[partIndex] != PART_PENDING,
-        stillPending = PART_PENDING in mask
+        stillPending = PART_PENDING in mask,
+        doneEvent = doneEvent
     )
 }
 
@@ -187,13 +236,17 @@ private fun storeProgressMask(
 }
 
 /**
- * Closes a completed progress: the entry is cleared in the
- * same commit that records the final fold, so the verdict is
- * produced exactly once, and the update is that verdict — a
- * failure if any part failed, else sent. A clear that cannot
+ * Closes a completed progress: the final fold and the
+ * verdict it reaches are stored in the same commit, the
+ * entry marked done with its event — a failure if any part
+ * failed, carrying the first reported failure's code, else
+ * sent. The entry is NOT cleared here: it is cleared by the
+ * caller once the verdict is settled, so a verdict that
+ * could not be filed stays recoverable in the entry and a
+ * repeat part report returns it again. A store that cannot
  * be verified reads as Unknown instead: the caller files
- * nothing, because filing a verdict whose progress might
- * produce it again would double-file it.
+ * nothing, because filing a verdict whose completion might
+ * not be durable could lose it silently at the next fold.
  */
 private fun completeProgress(
     prefs: SharedPreferences,
@@ -201,16 +254,27 @@ private fun completeProgress(
     newMask: String,
     firstError: Int?
 ): OutboundSendProgressUpdate {
-    val committed = prefs.edit()
+    val failed = PART_FAILED in newMask
+    val eventChar = if (failed) VERDICT_FAILED else VERDICT_SENT
+    val editor = prefs.edit()
         .putString("${stem}_mask", newMask)
-        .remove("${stem}_parts")
-        .remove("${stem}_mask")
-        .remove("${stem}_error")
-        .commit()
-    if (!committed || prefs.contains("${stem}_parts") || prefs.contains("${stem}_mask")) {
+        .putBoolean("${stem}_done", true)
+        .putString("${stem}_event", eventChar.toString())
+    if (failed && firstError != null) {
+        editor.putInt("${stem}_error", firstError)
+    } else if (!failed) {
+        editor.remove("${stem}_error")
+    }
+    if (!editor.commit()) {
         return OutboundSendProgressUpdate.Unknown
     }
-    return if (PART_FAILED in newMask) {
+    val verified = prefs.getString("${stem}_mask", null) == newMask &&
+        prefs.getBoolean("${stem}_done", false) &&
+        prefs.getString("${stem}_event", null) == eventChar.toString()
+    if (!verified) {
+        return OutboundSendProgressUpdate.Unknown
+    }
+    return if (failed) {
         OutboundSendProgressUpdate.Completed(OutboundAckEvent.PHONE_REPORTED_FAILURE, firstError)
     } else {
         OutboundSendProgressUpdate.Completed(OutboundAckEvent.PHONE_ACKED_SENT, null)
@@ -218,11 +282,13 @@ private fun completeProgress(
 }
 
 /** Clears a send's progress, for a submission that never went out. */
-internal fun Context.clearOutboundSendProgress(sourceId: String) {
-    val stem = progressKeyStem(sourceId)
+internal fun Context.clearOutboundSendProgress(endpointBase: String, deviceId: String, sourceId: String) {
+    val stem = progressKeyStem(endpointBase, deviceId, sourceId)
     progressPrefs().edit()
         .remove("${stem}_parts")
         .remove("${stem}_mask")
         .remove("${stem}_error")
+        .remove("${stem}_done")
+        .remove("${stem}_event")
         .commit()
 }

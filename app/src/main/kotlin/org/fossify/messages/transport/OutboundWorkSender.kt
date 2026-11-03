@@ -91,7 +91,7 @@ fun Context.sendOutboundWork(work: OutboundWork): OutboundWorkSendResult {
             smsManager.sendTextMessage(destination, null, work.body, sentIntent, null)
         } else {
             val opened = synchronized(OutboundSendProgressGuard.lock) {
-                beginOutboundSendProgress(work.sourceId, parts.size)
+                beginOutboundSendProgress(credential.endpointBase, credential.deviceId, work.sourceId, parts.size)
             }
             if (!opened) {
                 return synchronousFailure(credential, work, TransportOutcome.UNKNOWN_ERROR)
@@ -126,7 +126,7 @@ private fun Context.synchronousFailure(
     errorCode: Int
 ): OutboundWorkSendResult {
     synchronized(OutboundSendProgressGuard.lock) {
-        clearOutboundSendProgress(work.sourceId)
+        clearOutboundSendProgress(credential.endpointBase, credential.deviceId, work.sourceId)
     }
     fileOutboundVerdict(
         endpointBase = credential.endpointBase,

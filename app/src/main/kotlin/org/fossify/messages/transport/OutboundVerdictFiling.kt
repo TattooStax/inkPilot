@@ -25,8 +25,16 @@ import inkstax.sms.transport.OutboundAckEvent
  * is gone, and the brain that dispatched the reply still
  * holds it un-acked under the old pairing.
  *
- * Returns whether the verdict is pending in the stored queue
- * when the call returns.
+ * Returns whether the verdict is settled: pending in the
+ * stored queue when the call returns, or dropped because
+ * the stored credential no longer names the pairing that
+ * sent the work (its endpoint is gone, so there is nothing
+ * left to file it with). The call returns false only when
+ * the pairing still matches but the hold itself was not
+ * durable — the one outcome a caller may retry later, so a
+ * caller holding a recoverable copy of the verdict (a
+ * completed multipart progress) retains it on false and
+ * clears it on true.
  */
 internal fun Context.fileOutboundVerdict(
     endpointBase: String,
@@ -39,7 +47,7 @@ internal fun Context.fileOutboundVerdict(
     return synchronized(CredentialGuard.lock) {
         val current = storedDeviceCredential()
         if (current == null || current.endpointBase != endpointBase || current.deviceId != deviceId) {
-            false
+            true
         } else {
             holdAndDrainOutboundVerdict(sourceId, event, errorCode, reportedAtMillis)
         }

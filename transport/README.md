@@ -1011,8 +1011,14 @@ sends yet. Every part of a multipart send carries its own
 sent-result intent (mutable, as the upstream sender's are,
 so the platform's error-code extra survives the callback),
 and the receiver aggregates the parts through durable send
-progress before filing one verdict — one part's result is
-never the whole message's. Every verdict is filed through
+progress (keyed by the originating pairing as well as the
+source id, so two pairings' sends never share an entry)
+before filing one verdict — one part's result is never the
+whole message's. A completed verdict stays in its progress
+entry until it is settled — durably held in the pending
+report queue, or dropped with its pairing gone — and only
+then is the entry cleared; a repeat part report re-drives
+a retained verdict whose filing could not be settled. Every verdict is filed through
 the pairing-bound filing (`OutboundVerdictFiling.kt`): the
 originating pairing's endpoint and device id travel with
 the send, and the verdict is held only while the stored

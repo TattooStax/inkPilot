@@ -36,6 +36,13 @@ import org.fossify.messages.receivers.SendStatusReceiver
  * platform's send error on this callback. The intents are
  * mutable precisely so that extra can arrive.
  *
+ * A completed multipart verdict stays in its progress entry
+ * until it is settled — filed durably, or dropped because
+ * its pairing is gone — and only then is the entry cleared;
+ * a filing that could not be settled leaves the entry in
+ * place, and the next part report that names the send
+ * returns the stored verdict again and retries the filing.
+ *
  * A broadcast that names no work item, no pairing, or a part
  * outside its send files nothing, and so does a part report
  * whose progress is gone — a verdict reconstructed from a
@@ -86,10 +93,10 @@ class OutboundSendResultReceiver : BroadcastReceiver() {
             return
         }
         val update = synchronized(OutboundSendProgressGuard.lock) {
-            context.recordOutboundSendPart(sourceId, partIndex, succeeded, errorCode)
+            context.recordOutboundSendPart(endpointBase, deviceId, sourceId, partIndex, succeeded, errorCode)
         }
         if (update is OutboundSendProgressUpdate.Completed) {
-            context.fileOutboundVerdict(
+            val settled = context.fileOutboundVerdict(
                 endpointBase = endpointBase,
                 deviceId = deviceId,
                 sourceId = sourceId,
@@ -97,6 +104,11 @@ class OutboundSendResultReceiver : BroadcastReceiver() {
                 errorCode = update.errorCode,
                 reportedAtMillis = System.currentTimeMillis()
             )
+            if (settled) {
+                synchronized(OutboundSendProgressGuard.lock) {
+                    context.clearOutboundSendProgress(endpointBase, deviceId, sourceId)
+                }
+            }
         }
     }
 
