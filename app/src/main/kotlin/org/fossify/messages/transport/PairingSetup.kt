@@ -123,6 +123,8 @@ private fun Activity.handleScannedPairingPayload(contents: String, onPaired: () 
                     // service's whole reason to run.
                     startHeartbeatService()
                     ensureDrainRetrySchedule()
+                    ensureOutboundPickupSchedule()
+                    enqueueOutboundPickup()
                     // The host resumed before this background exchange
                     // finished, so any paired-state UI it refreshed on
                     // resume predates the stored credential; the
