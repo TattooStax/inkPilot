@@ -25,6 +25,11 @@ Android API 35 x86_64. It:
    persistence, and duplicate-approval rejection. Records observed
    callbacks without claiming real-world recipient delivery.
 
+An additional incoming SMS to a separate synthetic contact must wake
+WorkManager and create its held reply without the test invoking the
+runtime directly. The app-lock test verifies that a locked notification
+entry opens the inherited unlock screen without rendering studio data.
+
 The Actions artifact contains instrumentation output, screenshots,
 model hash, local-loop evidence, and virtual-send evidence. A missing
 model, failed test, crash, or skipped required test fails the gate.
@@ -67,3 +72,8 @@ Weights are an explicit import, not bundled or silently downloaded. The
 app disables Android cloud backup; a supported export/restore workflow
 is still needed before treating this phone as the sole business archive.
 OpenFang integration remains an optional future adapter.
+
+The inherited conversation/settings UI can still show Commons' modified-
+package warning. The new studio home avoids that incorrect branding
+warning while reusing the real lock manager and unlock activity. Replacing
+that inherited notice remains UI cleanup for broader distribution.

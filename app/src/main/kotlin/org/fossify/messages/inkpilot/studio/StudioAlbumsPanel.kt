@@ -63,6 +63,7 @@ internal class StudioAlbumsPanel(private val host: StudioPanelHost, private val 
                     orientation = LinearLayout.HORIZONTAL
                     setPadding(0, host.dp(8), 0, host.dp(8))
                     setOnClickListener { preview(image, album) }
+                    isFocusable = true
                     contentDescription = "Open ${image.displayName}"
                 }
                 val thumbnail = ImageView(host.activity).apply {

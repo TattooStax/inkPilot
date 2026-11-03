@@ -19,6 +19,9 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import org.fossify.messages.R
+import org.fossify.messages.BuildConfig
+import org.fossify.commons.extensions.appLockManager
+import org.fossify.commons.extensions.appLaunched
 import org.fossify.messages.inkpilot.data.StudioRepository
 import org.fossify.messages.inkpilot.studio.StudioPanels
 import java.util.concurrent.Executors
@@ -36,6 +39,7 @@ class StudioHomeActivity : AppCompatActivity() {
     private var tab = StudioTab.SMS
     private var screen = "tab"
     private var smsObserver: SmsRefreshObserver? = null
+    private val appLock by lazy { StudioAppLock(this) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -53,10 +57,12 @@ class StudioHomeActivity : AppCompatActivity() {
         agent = AgentPanel(this, work, ::render)
         studio = StudioPanels(this, executor, { StudioUi.error(this, it) }, repository)
         buildFrame()
+        appLaunched(BuildConfig.APPLICATION_ID)
         smsObserver = SmsRefreshObserver(this) { if (screen == "tab" && tab == StudioTab.SMS) render() }
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
-                if (screen != "tab") { screen = "tab"; render() } else finish()
+                if (screen != "tab") { screen = "tab"; render() }
+                else { appLockManager.lock(); finish() }
             }
         })
     }
@@ -92,6 +98,7 @@ class StudioHomeActivity : AppCompatActivity() {
     private fun render() {
         if (isDestroyed || isFinishing) return
         canvas.removeAllViews()
+        if (appLockManager.isLocked()) return
         val messages = MessagePanel(this, work, ::setupSms) { openAgent("drafts") }
         val view = when (screen) {
             "drafts" -> DraftPanel(this, repository, work, ::render).view()
@@ -135,7 +142,11 @@ class StudioHomeActivity : AppCompatActivity() {
         if (needed.isNotEmpty()) requestPermissions(needed.toTypedArray(), SMS_ROLE_REQUEST) else render()
     }
 
-    override fun onResume() { super.onResume(); render(); smsObserver?.start() }
+    override fun onResume() {
+        super.onResume()
+        if (appLock.onResume()) { render(); smsObserver?.start() }
+        else { canvas.removeAllViews(); smsObserver?.stop() }
+    }
     override fun onPause() { smsObserver?.stop(); super.onPause() }
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)

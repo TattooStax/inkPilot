@@ -8,6 +8,7 @@ smoke=org.fossify.messages.inkpilot.smoke.LocalLoopSmokeTest
 evidence=app/build/device-test-evidence
 fixture_number=+12025550123
 fixture_message='Can I book a consultation? inkPilot device proof.'
+worker_message='Can I ask about a tattoo consultation? inkPilot worker wakeup proof.'
 mkdir -p "$evidence"
 
 collect() {
@@ -18,7 +19,7 @@ trap collect EXIT
 
 run_tests() {
   local name="$1" selector="$2" value="$3"
-  timeout 600 adb shell "am instrument -w -r -e $selector '$value' -e fixtureMessage '$fixture_message' $runner" \
+  timeout 600 adb shell "am instrument -w -r -e $selector '$value' -e fixtureMessage '$fixture_message' -e workerMessage '$worker_message' $runner" \
     | tee "$evidence/$name.txt"
   python3 scripts/inkpilot-device-result.py "$evidence/$name.txt"
 }
@@ -38,6 +39,7 @@ done
 
 run_tests sqlite package org.fossify.messages.inkpilot.data
 run_tests studio package org.fossify.messages.inkpilot.studio
+run_tests app-lock package org.fossify.messages.inkpilot.ui
 run_tests prepare class "$smoke#prepareForSyntheticSms"
 
 adb shell run-as "$package" mkdir -p files/models
@@ -61,5 +63,27 @@ run_tests navigation class org.fossify.messages.inkpilot.smoke.HomeNavigationSmo
 for tab in sms phone contacts studio calendar; do
   adb exec-out run-as "$package" cat "files/device-test-evidence/tab-$tab.png" > "$evidence/tab-$tab.png"
 done
+
+# Start the normal app, then keep observation instrumentation alive before SMS arrival.
+adb shell am start -W -a android.intent.action.MAIN -c android.intent.category.LAUNCHER -p "$package"
+adb shell run-as "$package" rm -f files/device-test-evidence/worker-ready
+run_tests worker-wakeup class org.fossify.messages.inkpilot.smoke.WorkerWakeupSmokeTest &
+worker_pid=$!
+worker_ready=false
+for attempt in $(seq 1 120); do
+  if adb shell run-as "$package" test -f files/device-test-evidence/worker-ready; then
+    worker_ready=true
+    break
+  fi
+  if ! kill -0 "$worker_pid" 2>/dev/null; then wait "$worker_pid"; exit 1; fi
+  sleep 0.5
+done
+if [[ "$worker_ready" != true ]]; then
+  kill "$worker_pid" 2>/dev/null || true
+  exit 1
+fi
+adb emu sms send +12025550124 "$worker_message"
+wait "$worker_pid"
+adb exec-out run-as "$package" cat files/device-test-evidence/worker-wakeup.json > "$evidence/worker-wakeup.json"
 run_tests native-send class org.fossify.messages.inkpilot.smoke.NativeSendSmokeTest
 adb exec-out run-as "$package" cat files/device-test-evidence/native-send.json > "$evidence/native-send.json"

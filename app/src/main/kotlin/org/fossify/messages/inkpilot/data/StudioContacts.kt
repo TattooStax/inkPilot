@@ -69,7 +69,7 @@ internal fun SQLiteDatabase.setStudioPaused(id: String, paused: Boolean) {
     transaction {
         val contact = requireNotNull(studioContact(id)) { "Contact not found" }
         if (contact.paused != paused) {
-            execSQL("UPDATE studio_contacts SET paused = ?, revision = revision + 1 WHERE id = ?", arrayOf(if (paused) 1 else 0, id))
+            execSQL("UPDATE studio_contacts SET paused = ?, revision = revision + 1 WHERE id = ?", arrayOf<Any>(if (paused) 1 else 0, id))
         }
     }
 }

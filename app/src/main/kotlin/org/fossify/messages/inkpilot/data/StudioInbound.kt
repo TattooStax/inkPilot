@@ -44,7 +44,7 @@ internal fun SQLiteDatabase.recordStudioInbound(
         if (isLatest) {
             execSQL(
                 "UPDATE studio_contacts SET revision = ?, latest_event_id = ?, last_message_at = ? WHERE id = ?",
-                arrayOf(revision, eventId, receivedAt, contact.id),
+                arrayOf<Any>(revision, eventId, receivedAt, contact.id),
             )
         }
         DraftRequest(eventId, threadId.toString(), contact.id, revision)

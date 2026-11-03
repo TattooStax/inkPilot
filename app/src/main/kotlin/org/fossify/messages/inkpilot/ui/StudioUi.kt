@@ -13,6 +13,7 @@ import android.widget.TextView
 import android.widget.Toast
 import java.util.concurrent.Executor
 import java.util.concurrent.RejectedExecutionException
+import org.fossify.commons.extensions.appLockManager
 
 internal object StudioUi {
     val paper = Color.rgb(244, 235, 221)
@@ -74,7 +75,7 @@ internal class StudioWork(private val activity: Activity, private val executor: 
             executor.execute {
                 val result = try { Result.success(task()) } catch (error: Exception) { Result.failure(error) }
                 activity.runOnUiThread {
-                    if (!activity.isFinishing && !activity.isDestroyed) {
+                    if (!activity.isFinishing && !activity.isDestroyed && !activity.appLockManager.isLocked()) {
                         result.fold(done) { StudioUi.error(activity, it.message ?: "Couldn't complete that. Please try again.") }
                     }
                 }

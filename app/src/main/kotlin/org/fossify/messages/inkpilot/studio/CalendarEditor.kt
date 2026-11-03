@@ -3,8 +3,11 @@ package org.fossify.messages.inkpilot.studio
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
 import android.text.InputType
+import android.view.View
+import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.Spinner
+import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import java.time.LocalDate
 import java.time.LocalTime
@@ -77,6 +80,14 @@ internal class CalendarEditor(
     }
 
     private fun spinner(values: List<String>) = Spinner(host.activity).apply {
-        adapter = ArrayAdapter(host.activity, android.R.layout.simple_spinner_dropdown_item, values)
+        adapter = object : ArrayAdapter<String>(host.activity, android.R.layout.simple_spinner_dropdown_item, values) {
+            private fun color(view: View) = (view as TextView).apply {
+                setTextColor(host.ink); setBackgroundColor(host.paper)
+            }
+            override fun getView(position: Int, convertView: View?, parent: ViewGroup): View =
+                color(super.getView(position, convertView, parent))
+            override fun getDropDownView(position: Int, convertView: View?, parent: ViewGroup): View =
+                color(super.getDropDownView(position, convertView, parent))
+        }
     }
 }

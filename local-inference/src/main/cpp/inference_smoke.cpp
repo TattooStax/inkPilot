@@ -9,7 +9,9 @@ int main(int argc, char ** argv) {
     try {
         const inkpilot::Limits limits{1024, 128, 800, 180000, 4};
         const auto reply = inkpilot::generate(argv[1],
-            "Draft one short tattoo studio reply for staff review. Use supplied facts only. Return only reply text.",
+            "Write the exact SMS text addressed directly to the tattoo studio customer. Use only supplied facts. "
+            "Do not invent prices, artist availability or bookings. Ask one short question when facts are missing. "
+            "Output only the customer-facing message, without an introduction, staff commentary, markdown or surrounding quotation marks.",
             "{\"customer_message\":\"Can I book a rose tattoo consultation?\","
             "\"staff_approved_contact_notes\":[\"Ask which day the client prefers.\"]}",
             limits, [] { return false; });

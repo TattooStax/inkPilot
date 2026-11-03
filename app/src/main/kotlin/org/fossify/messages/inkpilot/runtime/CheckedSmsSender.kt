@@ -50,9 +50,12 @@ internal class CheckedSmsSender(private val context: Context) {
                 return "Submitted to the selected SIM. Waiting for carrier confirmation."
             } catch (_: Exception) {
                 val state = if (invoked) SendStatus.UNKNOWN else SendStatus.FAILED
-                repository.markSendResult(draftId, state, error = if (invoked) "Send acknowledgement unavailable" else "Preparation failed before carrier call")
-                if (!invoked && insertedId != null) SmsProviderHistory.finish(context, claim.copy(providerId = insertedId), state)
-                repository.getSendClaim(draftId)?.let { SmsProviderHistory.finish(context, it, state) }
+                // Provider cleanup must still run if studio storage is temporarily unavailable.
+                if (!invoked && insertedId != null) runCatching { SmsProviderHistory.finish(context, claim.copy(providerId = insertedId), state) }
+                runCatching {
+                    repository.markSendResult(draftId, state, error = if (invoked) "Send acknowledgement unavailable" else "Preparation failed before carrier call")
+                    repository.getSendClaim(draftId)?.let { SmsProviderHistory.finish(context, it, state) }
+                }
                 return if (invoked) "Send status is unknown. Check the conversation before sending anything again."
                 else "The message was not sent. Check SMS permissions and try from the conversation."
             }
