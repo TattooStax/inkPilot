@@ -1040,3 +1040,19 @@ caller and SMS-26's queue unchanged — no second drain, no
 second scheduler — and the drain retry discipline (SMS-30)
 covers a report that cannot land. Still owed after this
 slice: the caller that picks work up and sends it.
+
+## Upstream touchpoint registry (SMS-HK3, ≤5, tagged in code)
+
+None — zero upstream files are modified in this slice.
+Everything in this slice is one change to this track's own
+app-side file (`PairingExchangeBinding.kt`) plus this README.
+The exchange binding's success body is now decoded as strict
+UTF-8, the shape the outbound pickup binding already uses: a
+decoder that reports malformed and unmappable input throws
+instead of substituting a replacement character, and the
+binding's guarded read turns that failure into a missing
+body, which the outcome reader names malformed. A corrupted
+credential answer can no longer be judged after silent
+alteration — the strict wire reader downstream judged the
+values it was handed, so the bytes must reach it unaltered
+or not at all.
