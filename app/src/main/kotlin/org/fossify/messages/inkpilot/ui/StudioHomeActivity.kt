@@ -63,7 +63,9 @@ class StudioHomeActivity : AppCompatActivity() {
         appLaunched(BuildConfig.APPLICATION_ID)
         smsObserver = SmsRefreshObserver(this) {
             panels.invalidate(StudioRoute.Tab(StudioTab.SMS))
-            if (navigator.current == StudioRoute.Tab(StudioTab.SMS)) render()
+            val route = navigator.current
+            if (route is StudioRoute.Thread) panels.invalidate(route)
+            if (route is StudioRoute.Thread || route == StudioRoute.Tab(StudioTab.SMS)) render()
         }
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
@@ -105,9 +107,11 @@ class StudioHomeActivity : AppCompatActivity() {
         if (isDestroyed || isFinishing) return
         if (appLockManager.isLocked()) { canvas.removeAllViews(); return }
         val route = navigator.current
-        val messages = MessagePanel(this, work, ::setupSms) { openAgent("drafts") }
+        val messages = MessagePanel(this, work, ::setupSms, { openAgent("drafts") }, ::openRoute)
         val view = panels.view(route) { when (route) {
             StudioRoute.Auxiliary("drafts") -> DraftPanel(this, repository, work, ::refreshPanels).view()
+            is StudioRoute.Thread -> messages.thread(route.threadId)
+            is StudioRoute.Compose -> StudioUi.text(this, "New messages will be available in the composer update.")
             StudioRoute.Soul -> agent.soul()
             StudioRoute.Model -> agent.model()
             else -> when (tab) {
@@ -119,7 +123,7 @@ class StudioHomeActivity : AppCompatActivity() {
             }
         }
         }
-        heading.text = if (route is StudioRoute.Tab) tab.label else "Assistant"
+        heading.text = when (route) { is StudioRoute.Tab -> tab.label; is StudioRoute.Thread -> "Conversation"; is StudioRoute.Compose -> "New message"; else -> "Assistant" }
         if (canvas.getChildAt(0) !== view) {
             canvas.removeAllViews()
             canvas.addView(view, FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT))
@@ -131,6 +135,8 @@ class StudioHomeActivity : AppCompatActivity() {
             footer.tag = tab
         }
     }
+
+    internal fun openRoute(route: StudioRoute) { navigator.open(route); render() }
 
     private fun openAgent(value: String) {
         navigator.open(when (value) {
