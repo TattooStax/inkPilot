@@ -15,15 +15,21 @@ draft replies, or operate the studio.
 
 Dependencies point from the app to the small reusable modules.
 The inference module implements the core's model port; neither depends
-on the app. Keep domain
-records authoritative in one host store; model prompts and imported
-integration payloads are context, not independent databases.
+on the app. The app owns one persistent five-tab UI shell; inherited
+messenger activities may parse system intents but may not render a second
+conversation, composer or settings interface. Keep domain records
+authoritative in one host store; model prompts and imported integration
+payloads are context, not independent databases.
 
-`inkpilot-studio.db` is the one canonical business database: contacts,
+`inkpilot-studio.db` is the canonical studio business database: contacts,
 memory, events, policy, held drafts, send claims, albums and calendar.
 It uses checked SQLite transactions and explicit schema versions, with
-no destructive fallback. The inherited `conversations.db` is an SMS UI
-cache that can be rebuilt; it never owns studio business data.
+no destructive fallback. The inherited `conversations.db` also holds
+human drafts, scheduled messages, archive and recycle state alongside
+provider projections. It is user data, not safely rebuildable. Its
+current destructive migration fallback must be removed through a
+lossless migration before changing the released schema. The contact
+identity and UI projection must converge on one linked customer record.
 
 The install ID is `app.inkpilot.android` (`.debug` for debug builds).
 The source namespace stays `org.fossify.messages` to preserve
@@ -74,11 +80,13 @@ host actions and return explicit results/receipts. It must preserve
 contact scope, pause state, revision checks and staff approval.
 Installing or removing it must not change standalone behavior.
 
-Transport and packaging are intentionally undecided until needed.
-No network listener, remote send endpoint or OpenFang dependency is
-added by this foundation. Before distribution, verify license
-compatibility for the chosen packaging; existing GPL-3.0 notices
-remain intact.
+An optional companion bridge already pairs over the network and polls
+a remote outbound endpoint. It is distinct from the local LFM3 workflow
+and is not a required OpenFang dependency. Its current sends bypass the
+phone's message history; keep it outside the text-first beta until its
+visibility, latency and replay behavior meet the same message contract.
+Before distribution, verify license compatibility for the chosen
+packaging; existing GPL-3.0 notices remain intact.
 
 ## Keeping the code manageable
 

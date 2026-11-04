@@ -81,7 +81,14 @@ app disables Android cloud backup; a supported export/restore workflow
 is still needed before treating this phone as the sole business archive.
 OpenFang integration remains an optional future adapter.
 
-The inherited conversation/settings UI can still show Commons' modified-
-package warning. The new studio home avoids that incorrect branding
-warning while reusing the real lock manager and unlock activity. Replacing
-that inherited notice remains UI cleanup for broader distribution.
+The inherited conversation and settings UI currently replace the inkPilot
+five-tab canvas. This is a text-first beta blocker, not deferred cleanup.
+For every inbox tap, new message, notification, shortcut, supported share or
+deep link, draft review, forwarding, contact detail and settings route,
+verify the five tabs remain visible and Back returns to the correct canvas.
+Open a thread, receive a message while composing, attach an MMS image,
+rotate/restart and reject a send; the recipient and unsent text/media must
+survive. Staff review must appear inside the relevant customer thread.
+The app lock must block all cold-entry routes before message content is
+shown. A separate Android permission or call surface is the only intended
+system handoff. See `INKPILOT-FULL-CODE-AUDIT-2026-11-04.md`.

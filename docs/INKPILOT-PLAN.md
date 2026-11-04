@@ -17,6 +17,17 @@ One native Android APK with five bottom tabs:
 
 **SMS · Phone · Contacts · Studio · Calendar**
 
+The five-tab shell owns every day-to-day screen. Opening a message keeps the
+thread, SMS/MMS attachments, composer, delivery state, and held agent draft
+inside the SMS canvas with the bottom navigation visible. New messages,
+settings, notification taps, shortcuts, shares, forwarding, contact details,
+and draft review must not reveal an inherited Fossify activity or leave the
+inkPilot interface. Each entry route preserves Back navigation, app-lock
+behavior, recipient identity, and unsent content. System role/permission
+prompts and the Android call surface are explicit operating-system handoffs.
+See [`INKPILOT-FULL-CODE-AUDIT-2026-11-04.md`](INKPILOT-FULL-CODE-AUDIT-2026-11-04.md)
+for the source findings and ordered repair gates.
+
 Move Soul, agent conversation, memory administration, behavior,
 activity, and model settings into a contextual side drawer. Those
 surfaces are contextual tools, not primary navigation.
