@@ -1,6 +1,5 @@
 package org.fossify.messages.inkpilot.ui
 
-import android.content.Intent
 import android.view.Gravity
 import android.view.ViewGroup
 import android.widget.LinearLayout
@@ -8,10 +7,12 @@ import androidx.recyclerview.widget.RecyclerView
 import org.fossify.messages.messaging.key
 import org.fossify.messages.models.Message
 
-internal class ThreadAdapter(private val activity: android.app.Activity) : RecyclerView.Adapter<ThreadAdapter.Row>() {
+internal class ThreadAdapter(private val activity: android.app.Activity) : RecyclerView.Adapter<ThreadAdapter.Row>(), StudioMessageRows {
     private val rows = mutableListOf<Message>()
     init { setHasStableIds(true); stateRestorationPolicy = StateRestorationPolicy.PREVENT_WHEN_EMPTY }
     class Row(val body: LinearLayout) : RecyclerView.ViewHolder(body)
+    override fun messageKey(position: Int) = rows.getOrNull(position)?.key()
+    override fun messagePosition(key: org.fossify.messages.messaging.MessageKey) = rows.indexOfFirst { it.key() == key }
     override fun getItemCount() = rows.size
     override fun getItemId(position: Int) = rows[position].getStableId()
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) = Row(StudioUi.column(activity).apply {
@@ -40,12 +41,11 @@ internal class ThreadAdapter(private val activity: android.app.Activity) : Recyc
                 com.bumptech.glide.Glide.with(activity).load(attachment.getUri()).into(image)
             }
             bubble.addView(StudioUi.button(activity, attachment.filename.ifBlank { attachment.mimetype }) {
-                val intent = Intent(Intent.ACTION_VIEW).setDataAndType(attachment.getUri(), attachment.mimetype)
-                    .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                val intent = attachment.viewIntent()
                 runCatching { activity.startActivity(intent) }.onFailure { StudioUi.error(activity, "No app can open this attachment.") }
             })
         }
-        val state = if (message.isReceivedMessage()) "Received" else when (message.type) { 4 -> "Sending"; 5 -> "Failed"; 6 -> "Queued"; else -> if (!message.isMMS && message.status == 0) "Delivered" else "Sent" }
+        val state = message.deliveryLabel()
         body.addView(StudioUi.text(activity,
             "${if (message.isMMS) "MMS" else "SMS"} · ${android.text.format.DateFormat.format("MMM d, h:mm a", message.millis())} $state", 12f))
         body.contentDescription = "${if (message.isReceivedMessage()) "Received" else "Outgoing"} ${if (message.isMMS) "MMS" else "SMS"}"

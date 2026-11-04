@@ -15,8 +15,8 @@ internal class MessagePanel(
     private val drafts: () -> Unit,
     private val open: (StudioRoute) -> Unit = {},
     private val threadFooter: ((Long) -> View)? = null,
+    private val gateway: StudioConversations = ConversationGateway(activity.applicationContext),
 ) {
-    private val gateway = ConversationGateway(activity.applicationContext)
     fun messages(): View {
         val body = StudioUi.column(activity)
         body.addView(StudioUi.button(activity, "Drafts to review", drafts))
@@ -35,7 +35,7 @@ internal class MessagePanel(
         fun load() {
             if (loading || complete) return
             loading = true
-            work.load({ gateway.pageThreads(cursor, 40) }) { page ->
+            work.load({ gateway.pageThreads(cursor, 40) }, { loading = false }) { page ->
                 adapter.append(page.items); cursor = page.next; complete = page.next == null; loading = false
                 list.contentReady(adapter.itemCount, !complete)
             }
@@ -66,7 +66,7 @@ internal class MessagePanel(
         fun load() {
             if (loading || complete) return
             loading = true
-            work.load({ gateway.pageMessages(threadId, cursor, 40) }) { page ->
+            work.load({ gateway.pageMessages(threadId, cursor, 40) }, { loading = false }) { page ->
                 adapter.append(page.items); cursor = page.next; complete = page.next == null; loading = false
                 list.contentReady(adapter.itemCount, !complete)
             }

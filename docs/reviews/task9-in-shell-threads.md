@@ -22,11 +22,23 @@ StudioPagedList defers RecyclerView restoration until all previously loaded page
 ## Validation
 
 - Main Kotlin compilation: passed.
-- Android instrumentation Kotlin compilation: passed with the parent branch's ShellBaselineTest typed-MessageKey cleanup copied temporarily into this worktree. That unrelated cleanup is excluded from this commit.
-- `ConversationPagingTest`: 3 host tests passed, 0 failures (full timestamp, cross-origin ties, long IDs, parameter arity and initial boundary).
+- Android instrumentation Kotlin compilation: passed against the committed typed-fixture dependency noted below; no temporary fixture edits remain.
+- `ConversationPagingTest` and `MessagePresentationTest`: 5 host tests passed, 0 failures (cursor boundaries, typed identity and draft/delivery presentation).
 - `git diff --check`: passed.
-- File-size ratchet: Task 9 files have explicit baseline entries; inherited failures remain in LegacyFirstLaunchTest (162 to 179) and Context.kt (1379 to 1384, legacy-over-cap). The original baseline contains a duplicate LegacyFirstLaunchTest key; this change preserves it rather than changing another task's baseline.
+- File-size ratchet: passed after the committed parent typed-fixture dependency repaired its inherited Context.kt growth and duplicate LegacyFirstLaunchTest baseline key. Task9 owns only its new and changed file entries.
 
 `InShellThreadTest` compiles but was not executed: the disposable Victus AVD crashes before boot, and the physical OnePlus must not be substituted. The emulator-only provider test seeds and removes its own 151 synthetic SMS threads plus MMS, verifies all pages, mixed typed identities, footer/tab/back/rotation continuity, provider refresh, mark-read and zero legacy ThreadActivity launches. A second instrumentation test covers pending restoration across repeated rotation. CI must supply the SMS role and READ_SMS/READ_CONTACTS permissions on a disposable emulator.
 
 No live-phone provider writes, outbound messages, pushes or main-branch merges were performed.
+
+
+## Independent review repairs
+
+- Hidden thread freshness: provider refresh invalidates every cached Thread route while preserving non-message panels. Returning to SMS recreates the invalidated thread and rechecks read state.
+- Retry: StudioWork accepts an error completion; inbox and thread paging reset their loading flag on provider failure, retaining the cursor for an explicit retry.
+- Stable anchor: StudioPagedList saves the visible MessageKey (origin plus full provider ID) and decorated edge offset. It pages until that identity exists, restores that identity rather than its previous index, and preserves the pending key through another rotation. Deleted anchors fall back only after source exhaustion.
+- Presentation: SMS delivery-report statuses and MMS message boxes have separate mappings. SMS/MMS drafts display Draft. Attachment intent construction is shared with the tested row action.
+
+Regression coverage now includes hidden provider update while Phone is selected, actual inbox RecyclerView pagination and clicking the 151st synthetic thread, injected first-page provider failure then retry for inbox and thread, older-message typed anchor/offset after new insertion and two rotations, MMS image preview/attachment grant metadata, and SMS/MMS draft and delivery status labels. Instrumentation cases remain pending a disposable hosted emulator run; no runtime pass is claimed.
+
+Reproducible compilation uses the parent branch's committed typed-fixture dependency `40d347d`, cherry-picked here as `c9d97ce`, rather than a temporary modified fixture. Main Kotlin and instrumentation Kotlin compilation passed; focused host tests passed 5/5 against this branch's source (`task9-review-fixes-final.log`). When integrating, the parent already has this dependency; cherry-pick only Task9's implementation and repair commits.

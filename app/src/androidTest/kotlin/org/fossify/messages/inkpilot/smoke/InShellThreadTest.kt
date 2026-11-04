@@ -87,7 +87,43 @@ class InShellThreadTest {
             assertTrue(mixed.any { !it.isMMS && it.body == "task9 fixture 0" })
             assertEquals(mixed.size, mixed.map { it.key() }.toSet().size)
             ActivityScenario.launch(StudioHomeActivity::class.java).use { scenario ->
-                scenario.onActivity { it.openRoute(StudioRoute.Thread(thread)) }
+                // Exercise RecyclerView paging and the actual row callback past the former 150 cap.
+                SmokeViews.await<Boolean>("initial inbox page") {
+                    var ready = false
+                    scenario.onActivity { activity ->
+                        ready = activity.findViewById<androidx.recyclerview.widget.RecyclerView>(org.fossify.messages.R.id.inkpilot_message_list).adapter!!.itemCount >= 40
+                    }
+                    if (ready) true else null
+                }
+                listOf(80, 120, 151).forEach { needed ->
+                    scenario.onActivity { activity ->
+                        val inbox = activity.findViewById<androidx.recyclerview.widget.RecyclerView>(org.fossify.messages.R.id.inkpilot_message_list)
+                        inbox.scrollToPosition(inbox.adapter!!.itemCount - 1)
+                    }
+                    SmokeViews.await<Boolean>("inbox page $needed") {
+                        var ready = false
+                        scenario.onActivity { activity ->
+                            ready = activity.findViewById<androidx.recyclerview.widget.RecyclerView>(org.fossify.messages.R.id.inkpilot_message_list).adapter!!.itemCount >= needed
+                        }
+                        if (ready) true else null
+                    }
+                }
+                var lastPosition = -1
+                scenario.onActivity { activity ->
+                    val inbox = activity.findViewById<androidx.recyclerview.widget.RecyclerView>(org.fossify.messages.R.id.inkpilot_message_list)
+                    lastPosition = (0 until inbox.adapter!!.itemCount).first { inbox.adapter!!.getItemId(it) == threads.last() }
+                    inbox.scrollToPosition(lastPosition)
+                }
+                SmokeViews.await<Boolean>("151st row callback") {
+                    var clicked = false
+                    scenario.onActivity { activity ->
+                        val inbox = activity.findViewById<androidx.recyclerview.widget.RecyclerView>(org.fossify.messages.R.id.inkpilot_message_list)
+                        clicked = inbox.findViewHolderForAdapterPosition(lastPosition)?.itemView?.performClick() == true
+                    }
+                    if (clicked) true else null
+                }
+                SmokeViews.assertText("task9 fixture 150")
+                scenario.onActivity { it.onBackPressedDispatcher.onBackPressed(); it.openRoute(StudioRoute.Thread(thread)) }
                 SmokeViews.assertText("Read-only conversation")
                 SmokeViews.assertText("task9 MMS fixture")
                 SmokeViews.assertText("task9 fixture 0")
@@ -97,7 +133,11 @@ class InShellThreadTest {
                 resolver.update(created.first(), ContentValues().apply { put("body", "task9 refreshed") }, null, null)
                 SmokeViews.assertText("task9 refreshed")
                 SmokeViews.clickDescription("Phone")
+                resolver.update(created.first(), ContentValues().apply { put("body", "task9 hidden refresh") }, null, null)
+                // Ensure the debounced observer runs while Phone, rather than Thread, is current.
+                android.os.SystemClock.sleep(1000)
                 SmokeViews.clickDescription("SMS")
+                SmokeViews.assertText("task9 hidden refresh")
                 SmokeViews.assertText("Read-only conversation")
                 scenario.onActivity { it.onBackPressedDispatcher.onBackPressed() }
                 SmokeViews.assertText("New message")

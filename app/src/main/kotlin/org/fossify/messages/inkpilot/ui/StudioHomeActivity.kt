@@ -64,7 +64,7 @@ class StudioHomeActivity : AppCompatActivity() {
         smsObserver = SmsRefreshObserver(this) {
             panels.invalidate(StudioRoute.Tab(StudioTab.SMS))
             val route = navigator.current
-            if (route is StudioRoute.Thread) panels.invalidate(route)
+            panels.invalidateThreads()
             if (route is StudioRoute.Thread || route == StudioRoute.Tab(StudioTab.SMS)) render()
         }
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {

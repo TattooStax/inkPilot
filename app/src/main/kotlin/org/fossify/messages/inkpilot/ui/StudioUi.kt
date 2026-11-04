@@ -70,13 +70,13 @@ internal object StudioUi {
 
 /** All reads/imports use the host queue; callbacks stop when their activity is gone. */
 internal class StudioWork(private val activity: Activity, private val executor: Executor) {
-    fun <T> load(task: () -> T, done: (T) -> Unit) {
+    fun <T> load(task: () -> T, failed: (Throwable) -> Unit = {}, done: (T) -> Unit) {
         try {
             executor.execute {
                 val result = try { Result.success(task()) } catch (error: Exception) { Result.failure(error) }
                 activity.runOnUiThread {
                     if (!activity.isFinishing && !activity.isDestroyed && !activity.appLockManager.isLocked()) {
-                        result.fold(done) { StudioUi.error(activity, it.message ?: "Couldn't complete that. Please try again.") }
+                        result.fold(done) { failed(it); StudioUi.error(activity, it.message ?: "Couldn't complete that. Please try again.") }
                     }
                 }
             }

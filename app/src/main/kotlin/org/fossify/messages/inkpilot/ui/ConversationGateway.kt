@@ -14,9 +14,15 @@ internal data class ThreadCursor(val dateMillis: Long, val threadId: Long)
 internal data class MessageCursor(val dateMillis: Long, val key: MessageKey)
 internal data class Page<T, C>(val items: List<T>, val next: C?)
 
+internal interface StudioConversations {
+    fun pageThreads(after: ThreadCursor?, limit: Int): Page<Conversation, ThreadCursor>
+    fun pageMessages(threadId: Long, after: MessageCursor?, limit: Int): Page<Message, MessageCursor>
+    fun markRead(threadId: Long)
+}
+
 /** Provider-owned ordering uses full timestamps and table-qualified identities, never offsets. */
-internal class ConversationGateway(private val context: Context) {
-    fun pageThreads(after: ThreadCursor?, limit: Int): Page<Conversation, ThreadCursor> {
+internal class ConversationGateway(private val context: Context) : StudioConversations {
+    override fun pageThreads(after: ThreadCursor?, limit: Int): Page<Conversation, ThreadCursor> {
         require(limit in 1..200)
         val selection = "message_count > 0" + if (after == null) "" else " AND (date < ? OR (date = ? AND _id < ?))"
         val args = after?.let { arrayOf(it.dateMillis.toString(), it.dateMillis.toString(), it.threadId.toString()) }
@@ -36,7 +42,7 @@ internal class ConversationGateway(private val context: Context) {
         return Page(rows.map { it.first }, if (exhausted) null else last)
     }
 
-    fun pageMessages(threadId: Long, after: MessageCursor?, limit: Int): Page<Message, MessageCursor> {
+    override fun pageMessages(threadId: Long, after: MessageCursor?, limit: Int): Page<Message, MessageCursor> {
         require(limit in 1..200)
         val rows = mutableListOf<Pair<Message, MessageCursor>>()
         listOf(false, true).forEach { mms ->
@@ -63,7 +69,7 @@ internal class ConversationGateway(private val context: Context) {
         return Page(page.map { it.first }, if (sorted.size > limit) page.last().second else null)
     }
 
-    fun markRead(threadId: Long) {
+    override fun markRead(threadId: Long) {
         val unread = listOf(Telephony.Sms.CONTENT_URI to "type", Telephony.Mms.CONTENT_URI to "msg_box").any { (uri, type) ->
             context.contentResolver.query(uri, arrayOf("_id"),
                 "thread_id = ? AND $type = 1 AND (read = 0 OR seen = 0)", arrayOf(threadId.toString()), null)
