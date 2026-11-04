@@ -46,9 +46,20 @@ class LocalLoopSmokeTest {
         assertSmsRoleHeld()
         assertTrue("The checksum-pinned GGUF must be installed", File(context.filesDir, "models/active.gguf").isFile)
         StudioRepository(context).use { repository ->
-            val source = SmokeViews.await("native SMS intake") {
-                repository.contacts().mapNotNull { it.latestEventId?.let(repository::readSource) }
-                    .firstOrNull { it.inboundText == message }
+            File(evidence, "local-loop-ready").writeText("waiting for synthetic SMS")
+            val source = try {
+                SmokeViews.await("native SMS intake") {
+                    repository.contacts().mapNotNull { it.latestEventId?.let(repository::readSource) }
+                        .firstOrNull { it.inboundText == message }
+                }
+            } catch (failure: AssertionError) {
+                val nativeRows = context.contentResolver.query(
+                    Telephony.Sms.Inbox.CONTENT_URI, arrayOf("_id"), "body = ?", arrayOf(message), null,
+                ).use { requireNotNull(it).count }
+                val diagnostic = JSONObject().put("matchingNativeInboxRows", nativeRows)
+                    .put("businessContacts", repository.contacts().size).put("runtimeStatus", AgentSettings(context).status)
+                File(evidence, "intake-failure.json").writeText(diagnostic.toString(2))
+                throw AssertionError("Native SMS intake did not arrive: $diagnostic", failure)
             }
             assertEquals("+12025550123", source.recipient)
             assertProviderArrival(source.threadId.toLong())

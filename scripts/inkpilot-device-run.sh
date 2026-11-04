@@ -12,16 +12,17 @@ worker_message='Can I ask about a tattoo consultation? inkPilot worker wakeup pr
 mkdir -p "$evidence"
 
 collect() {
-  adb logcat -d -t 2000 > "$evidence/logcat.txt" 2>&1 || true
+  adb logcat -b all -d > "$evidence/logcat.txt" 2>&1 || true
   adb shell dumpsys package "$package" > "$evidence/package.txt" 2>&1 || true
   adb shell cmd role get-role-holders --user 0 android.app.role.SMS > "$evidence/sms-role.txt" 2>&1 || true
   adb shell appops get "$package" > "$evidence/appops.txt" 2>&1 || true
   adb exec-out screencap -p > "$evidence/last-screen.png" 2>/dev/null || true
   adb shell uiautomator dump /sdcard/inkpilot-test-ui.xml >/dev/null 2>&1 || true
   adb pull /sdcard/inkpilot-test-ui.xml "$evidence/last-ui.xml" >/dev/null 2>&1 || true
-  for artifact in local-loop.json worker-wakeup.json native-send.json batch-failure.json \
+  for artifact in local-loop.json intake-failure.json worker-wakeup.json native-send.json batch-failure.json \
     local-draft-review.png tab-sms.png tab-phone.png tab-contacts.png tab-studio.png tab-calendar.png; do
-    if adb exec-out run-as "$package" cat "files/device-test-evidence/$artifact" > "$evidence/$artifact.partial" 2>/dev/null; then
+    if adb shell run-as "$package" test -f "files/device-test-evidence/$artifact" && \
+      adb exec-out run-as "$package" cat "files/device-test-evidence/$artifact" > "$evidence/$artifact.partial" 2>/dev/null; then
       mv "$evidence/$artifact.partial" "$evidence/$artifact"
     else
       rm -f "$evidence/$artifact.partial"
@@ -35,6 +36,28 @@ run_tests() {
   timeout 600 adb shell "am instrument -w -r -e $selector '$value' -e fixtureMessage '$fixture_message' -e workerMessage '$worker_message' $runner" \
     | tee "$evidence/$name.txt"
   python3 scripts/inkpilot-device-result.py "$evidence/$name.txt"
+}
+
+# Instrumentation restarts the target process. Start observation before delivery.
+observe_sms() {
+  local name="$1" test_class="$2" marker="$3" number="$4" body="$5"
+  adb shell run-as "$package" rm -f "files/device-test-evidence/$marker"
+  run_tests "$name" class "$test_class" &
+  local observer_pid=$! ready=false
+  for attempt in $(seq 1 120); do
+    if adb shell run-as "$package" test -f "files/device-test-evidence/$marker"; then
+      ready=true
+      break
+    fi
+    if ! kill -0 "$observer_pid" 2>/dev/null; then wait "$observer_pid"; return 1; fi
+    sleep 0.5
+  done
+  if [[ "$ready" != true ]]; then
+    kill "$observer_pid" 2>/dev/null || true
+    return 1
+  fi
+  adb emu sms send "$number" "$body"
+  wait "$observer_pid"
 }
 
 shopt -s nullglob
@@ -65,8 +88,7 @@ grep -q '^43a7d09a0e9cba91b63eb7052488b9564569bddfd65754d2e426465e572a7452 ' "$e
 adb shell svc wifi disable
 adb shell svc data disable
 adb shell settings put global stay_on_while_plugged_in 3
-adb emu sms send "$fixture_number" "$fixture_message"
-run_tests local-loop class "$smoke#incomingSmsCreatesLocalHeldDraft"
+observe_sms local-loop "$smoke#incomingSmsCreatesLocalHeldDraft" local-loop-ready "$fixture_number" "$fixture_message"
 adb exec-out run-as "$package" cat files/device-test-evidence/local-draft-review.png > "$evidence/local-draft-review.png"
 adb exec-out run-as "$package" cat files/device-test-evidence/local-loop.json > "$evidence/local-loop.json"
 
@@ -80,24 +102,7 @@ done
 
 # Start the normal app, then keep observation instrumentation alive before SMS arrival.
 adb shell am start -W -a android.intent.action.MAIN -c android.intent.category.LAUNCHER -p "$package"
-adb shell run-as "$package" rm -f files/device-test-evidence/worker-ready
-run_tests worker-wakeup class org.fossify.messages.inkpilot.smoke.WorkerWakeupSmokeTest &
-worker_pid=$!
-worker_ready=false
-for attempt in $(seq 1 120); do
-  if adb shell run-as "$package" test -f files/device-test-evidence/worker-ready; then
-    worker_ready=true
-    break
-  fi
-  if ! kill -0 "$worker_pid" 2>/dev/null; then wait "$worker_pid"; exit 1; fi
-  sleep 0.5
-done
-if [[ "$worker_ready" != true ]]; then
-  kill "$worker_pid" 2>/dev/null || true
-  exit 1
-fi
-adb emu sms send +12025550124 "$worker_message"
-wait "$worker_pid"
+observe_sms worker-wakeup org.fossify.messages.inkpilot.smoke.WorkerWakeupSmokeTest worker-ready +12025550124 "$worker_message"
 adb exec-out run-as "$package" cat files/device-test-evidence/worker-wakeup.json > "$evidence/worker-wakeup.json"
 run_tests native-send class org.fossify.messages.inkpilot.smoke.NativeSendSmokeTest
 adb exec-out run-as "$package" cat files/device-test-evidence/native-send.json > "$evidence/native-send.json"
