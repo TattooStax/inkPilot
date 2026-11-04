@@ -58,7 +58,7 @@ class LocalMessageTransport(private val context: Context) : MessageTransport {
         } catch (e: SmsException) {
             TransportOutcome.Failed(e.errorCode)
         } catch (e: Exception) {
-            TransportOutcome.Failed(TransportOutcome.UNKNOWN_ERROR, e.message ?: e.toString())
+            TransportOutcome.Failed(TransportOutcome.UNKNOWN_ERROR, context.getString(R.string.message_not_sent_short))
         }
     }
 
@@ -121,7 +121,7 @@ class LocalMessageTransport(private val context: Context) : MessageTransport {
             }
             TransportOutcome.Sent
         } catch (e: Exception) {
-            TransportOutcome.Failed(TransportOutcome.UNKNOWN_ERROR, e.message ?: e.toString())
+            TransportOutcome.Failed(TransportOutcome.UNKNOWN_ERROR, context.getString(R.string.message_not_sent_short))
         }
     }
 

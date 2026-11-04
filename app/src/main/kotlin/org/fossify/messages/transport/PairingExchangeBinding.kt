@@ -76,6 +76,9 @@ sealed interface PairingExchangeBindingResult {
  */
 @Suppress("SwallowedException")
 fun Context.performPairingExchange(offer: PairingOffer): PairingExchangeBindingResult {
+    if (!org.fossify.messages.BuildConfig.OPTIONAL_BRIDGE_ENABLED) {
+        return PairingExchangeBindingResult.Failed(PairingExchangeFailure.ENDPOINT_REJECTED)
+    }
     val request = pairingExchangeRequestFor(offer)
     var connection: HttpURLConnection? = null
     var statusCode: Int? = null

@@ -32,6 +32,7 @@ private const val PAIRED_DEVICE_SECRET = "paired_device_secret"
  * cannot be reported honestly.
  */
 fun Context.storedDeviceCredential(): DeviceCredential? {
+    if (!org.fossify.messages.BuildConfig.OPTIONAL_BRIDGE_ENABLED) return null
     val tokenDeviceId = runCatching {
         File(noBackupFilesDir, CREDENTIAL_TOKEN_FILE).readText()
     }.getOrNull()

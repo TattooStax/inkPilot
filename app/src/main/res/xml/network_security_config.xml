@@ -3,7 +3,7 @@
      device itself (see isLoopbackAuthority in :transport). The
      platform default for this target refuses cleartext anywhere,
      loopback included, so the exception is scoped to the two
-     loopback host names the seam admits: localhost and 127.0.0.1.
+     loopback host names the seam admits (IPv6 HTTP is refused): localhost and 127.0.0.1.
      Cleartext to any other host stays refused. -->
 <network-security-config>
     <domain-config cleartextTrafficPermitted="true">

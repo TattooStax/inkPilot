@@ -39,6 +39,9 @@ android {
         versionName = project.property("VERSION_NAME").toString()
         versionCode = project.property("VERSION_CODE").toString().toInt()
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        // Optional integration is deliberately absent from the standalone beta.
+        buildConfigField("boolean", "OPTIONAL_BRIDGE_ENABLED",
+            (providers.gradleProperty("inkpilotOptionalBridge").orNull == "true").toString())
         ndk { abiFilters += (providers.gradleProperty("inkpilotAbi").orNull?.split(",") ?: listOf("arm64-v8a", "x86_64")) }
         ksp {
             arg("room.schemaLocation", "$projectDir/schemas")

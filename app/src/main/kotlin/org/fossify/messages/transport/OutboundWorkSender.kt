@@ -15,59 +15,17 @@ import org.fossify.messages.messaging.SmsException
 import org.fossify.messages.messaging.getSmsManager
 
 /**
- * Sends one picked-up [OutboundWork] item through the platform
- * SMS API under the default-SMS role — step (3) of the outbound
- * send path, performing the send the pickup binding (step 2)
- * hands over.
+ * Sends picked-up work only in an opted-in build holding the default SMS role.
+ * A durable pairing/source claim and verified native outbox receipt precede
+ * radio submission. Claims survive ack cleanup and process death, so replay
+ * never resends an ambiguous submission.
  *
- * The send runs under the pairing that picked the work up: the
- * stored credential is captured before anything is sent, its
- * non-secret identity (endpoint and device id, never the
- * secret) travels with the send's result callbacks, and every
- * verdict the send produces is filed through
- * [fileOutboundVerdict], which holds it only while that
- * pairing is still the stored one — a disconnect and re-pair
- * landing while the radio is still answering can never pick
- * the verdict up and report it to the new endpoint.
+ * Every part has a pairing/source/part-specific mutable result PendingIntent.
+ * Durable progress aggregates their verdicts and reconciles the native row
+ * before pairing-bound ack filing. Disconnect cannot redirect a report to
+ * a replacement pairing. Synchronous failures use the same durable filing.
  *
- * The send goes through SmsManager directly, on the platform's
- * default SMS subscription (the posture's subscription pinning
- * stays policy-only, as SMS-3 recorded), and writes no provider
- * row in this slice: the upstream persisting send path files
- * its asynchronous verdict against a provider message id, and
- * a bridge send's verdict is filed against the brain's source
- * id instead — so the insert that path exists to support has
- * nothing to attach to here. The brain holds the record of the
- * reply it dispatched; the fork's own threads do not show
- * bridge sends yet, the same trade-off the permissions-only
- * posture records for its sends.
- *
- * Every part of a multipart send carries its own sent-result
- * PendingIntent, addressed to [OutboundSendResultReceiver]
- * and unique per pairing, source id, and part: one part's
- * result is that part's outcome, never the whole message's,
- * so the receiver aggregates every part's report (through the
- * durable progress the sender opens before submitting) and
- * files one verdict when all parts have reported. The
- * intents are mutable, as the upstream sender's are: the
- * platform attaches its sending error code to the callback
- * intent, and an immutable intent would discard it. Every
- * send opens progress, a single-part send's with one part:
- * its one callback completes the progress at once, so its
- * verdict is retained until settled exactly as a multipart
- * verdict is.
- *
- * A submission that throws synchronously produces no
- * asynchronous result, so this sender files that failure
- * verdict itself, through the same pairing-bound filing the
- * receiver uses, with the fork's sending error code. A send
- * whose progress could not be opened is not submitted at
- * all, for the same reason: its verdict could never be
- * aggregated — or, for a single part, retained — honestly,
- * so the failure is filed before any part leaves.
- *
- * This call talks to the radio, so it belongs on a background
- * thread.
+ * This call talks to the radio and belongs on a background thread.
  */
 fun Context.sendOutboundWork(work: OutboundWork): OutboundWorkSendResult {
     val credential = storedDeviceCredential()
@@ -88,14 +46,36 @@ internal fun Context.sendOutboundWork(
     credential: DeviceCredential,
     work: OutboundWork
 ): OutboundWorkSendResult {
+    return synchronized(CredentialGuard.lock) {
+        if (!org.fossify.messages.BuildConfig.OPTIONAL_BRIDGE_ENABLED || storedDeviceCredential() != credential) {
+            OutboundWorkSendResult.NotPaired
+        } else {
+            sendGuardedOutboundWork(credential, work)
+        }
+    }
+}
+
+@Suppress("TooGenericExceptionCaught", "SwallowedException")
+private fun Context.sendGuardedOutboundWork(
+    credential: DeviceCredential,
+    work: OutboundWork
+): OutboundWorkSendResult {
     if (!org.fossify.messages.helpers.SmsRole.isHeld(this)) {
         return OutboundWorkSendResult.NotDefaultSmsApp
+    }
+    when (claimBridgeSource(credential, work.sourceId)) {
+        BridgeSourceClaim.EXISTING -> return OutboundWorkSendResult.AlreadyHandled
+        BridgeSourceClaim.STORAGE_FAILED -> return OutboundWorkSendResult.Failed(TransportOutcome.ERROR_PERSISTING_MESSAGE)
+        BridgeSourceClaim.OWNED -> Unit
     }
     val destination = PhoneNumberUtils.stripSeparators(work.recipient)
     if (destination.isEmpty()) {
         return synchronousFailure(credential, work, TransportOutcome.EMPTY_DESTINATION_ADDRESS)
     }
     return try {
+        if (createBridgeReceipt(credential, work, destination) == null) {
+            return synchronousFailure(credential, work, TransportOutcome.ERROR_PERSISTING_MESSAGE)
+        }
         val smsManager = getSmsManager(SubscriptionManager.getDefaultSmsSubscriptionId())
         val parts = smsManager.divideMessage(work.body)
         if (parts == null || parts.size < 1) {
@@ -166,6 +146,7 @@ private fun Context.synchronousFailure(
         errorCode = errorCode,
         reportedAtMillis = reportedAtMillis
     )
+    if (retained && !settled) enqueueBridgeReceiptRecovery()
     if (retained && settled) {
         synchronized(OutboundSendProgressGuard.lock) {
             clearOutboundSendProgress(credential.endpointBase, credential.deviceId, work.sourceId)

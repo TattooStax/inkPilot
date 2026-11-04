@@ -160,6 +160,11 @@ class SettingsActivity : SimpleActivity() {
     }
 
     private fun setupPairCompanion() = binding.apply {
+        settingsPairCompanionHolder.visibility = if (org.fossify.messages.BuildConfig.OPTIONAL_BRIDGE_ENABLED) {
+            android.view.View.VISIBLE
+        } else {
+            android.view.View.GONE
+        }
         settingsPairCompanionHolder.setOnClickListener {
             launchPairingScan(pairingScanner)
         }

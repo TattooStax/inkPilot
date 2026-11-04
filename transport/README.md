@@ -1,3 +1,41 @@
+# Optional companion bridge
+
+Standalone beta works without this integration. Pairing, scheduled pickup and
+bridge sends are disabled by default, even with old stored credentials.
+Explicit integration builds opt in with `-PinkpilotOptionalBridge=true`.
+Pairing still requires the owner ceremony; bridge sends require the default
+SMS role. Standalone builds hide the Settings pairing entry.
+
+Pickup is **delayed**: periodic WorkManager requests use a 15-minute minimum
+interval, and Android may defer them further for battery, idle or network
+restrictions. There is no live reply or maximum latency guarantee.
+
+Enabled sends durably claim a pairing/source key, insert and verify a native
+Telephony outbox receipt, then submit the radio request. Native thread readers
+see that provider row. Every part has its own result; the aggregate reconciles
+the same row to sent or failed before its acknowledgement settles. Provider
+update failures retain the verdict for the recovery drain. Local recovery uses the same worker without a network
+prerequisite and retries retained verdicts after disconnect. Disconnect drops
+network reporting, but native history status is still reconciled.
+
+Source claims survive ack cleanup and disconnect. A replay cannot reset part
+progress or resubmit a text. Crash-ambiguous submissions are deliberately
+at-most-once: never automatically retried. An outbox row may remain pending
+without a callback; it cannot be described as sent or safely retryable. A crash
+before provider insertion can leave a claim without a row, but no radio send
+occurred. Tombstones retain source identity and optional provider URI, not
+credentials or bodies, for app-data lifetime. Clearing app data removes replay
+protection; endpoints must not replay old source ids after re-pairing.
+
+The pure `:transport` module remains the optional boundary for a future OpenFang
+adapter. Standalone local messaging and `:agent-core` require no remote companion.
+The bridge never uses the permissions-only no-provider local sender.
+
+Diagnostic strings redact pairing tokens, device secrets and exchange bodies
+without changing wire values. HTTP accepts only localhost and 127.0.0.1,
+matching Android network security policy. IPv6 loopback HTTP is refused;
+remote endpoints require HTTPS.
+
 # :transport — the bridge seam (SMS-1, SMS-2, SMS-3, SMS-4, SMS-5, SMS-6, SMS-7, SMS-8, SMS-9, SMS-10, SMS-11), SMS-12, SMS-14, SMS-15, SMS-18, SMS-19, SMS-20, SMS-21, SMS-22, SMS-26, SMS-27, SMS-28, SMS-29, SMS-33, SMS-37, SMS-38
 
 Pure Kotlin/JVM module holding the InkStax SMS layer's one
@@ -994,52 +1032,13 @@ Everything else in this slice is new files in the app-side
 `OutboundSendProgressStorage.kt`,
 `OutboundSendProgressGuard.kt`) plus this README.
 
-The sender performs the send SMS-38 step 1's work item
-names, through SmsManager directly, under the stored
-credential and only while this app holds the default-SMS
-role: a bridge send is defined only under that pairing and
-that role, so without either nothing is sent and the work
-stays queued and un-acked at the brain. It sends on the
-platform's default SMS subscription (the posture's
-subscription pinning stays policy-only, as SMS-3 recorded)
-and writes no provider row: the upstream persisting send
-path files its verdict against a provider message id, and
-a bridge send's verdict is filed against the brain's source
-id instead — the brain holds the record of the reply it
-dispatched, and the fork's own threads do not show bridge
-sends yet. Every part of a multipart send carries its own
-sent-result intent (mutable, as the upstream sender's are,
-so the platform's error-code extra survives the callback),
-and the receiver aggregates the parts through durable send
-progress (keyed by the originating pairing as well as the
-source id, so two pairings' sends never share an entry)
-before filing one verdict — one part's result is never the
-whole message's, and a single-part send opens one-part
-progress so its verdict is retained the same way. A completed verdict stays in its progress
-entry until it is settled — durably held in the pending
-report queue, or dropped with its pairing gone — and only
-then is the entry cleared; a repeat part report re-drives
-a retained verdict whose filing could not be settled, and
-the pending-report drain worker recovers retained
-verdicts into the queue before every drain, so the
-scheduled drain retry retries an interrupted filing even
-when no further callback arrives — carrying the time the
-phone originally reached it, and including synchronous
-submission failures, which the sender retains as
-completed entries in the same shape. The sent-result
-PendingIntent identity carries the endpoint as well as
-the device, source id, and part, so two endpoints sharing
-a device id never replace each other's callbacks. Every verdict is filed through
-the pairing-bound filing (`OutboundVerdictFiling.kt`): the
-originating pairing's endpoint and device id travel with
-the send, and the verdict is held only while the stored
-credential still names that pairing, so a callback landing
-after a disconnect and re-pair is dropped, never reported
-to the new endpoint. The verdict wiring reuses SMS-29's
-caller and SMS-26's queue unchanged — no second drain, no
-second scheduler — and the drain retry discipline (SMS-30)
-covers a report that cannot land. Still owed after this
-slice: the caller that picks work up and sends it.
+The current provider-backed send and source replay contract is documented
+at the top of this README. Each sent-result PendingIntent is unique by
+endpoint, device, source and part, and retains the platform error extra.
+Durable progress aggregates all parts; a completed verdict stays recoverable
+until native history reconciliation and pairing-bound filing settle. The
+existing report queue and drain retry recover interrupted filings without a
+second scheduler. Reports after re-pairing never reach the new endpoint.
 
 ## Upstream touchpoint registry (SMS-HK3, ≤5, tagged in code)
 

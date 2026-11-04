@@ -2,6 +2,9 @@ package org.fossify.messages.transport
 
 /** The result of one attempt to send a picked-up work item. */
 sealed interface OutboundWorkSendResult {
+    /** This source was claimed previously; submission may be unknown. Never resend. */
+    data object AlreadyHandled : OutboundWorkSendResult
+
     /**
      * Nothing was sent: this device holds no usable credential.
      * Outbound work exists only under a pairing — it was picked

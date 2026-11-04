@@ -34,9 +34,9 @@ private const val OUTBOUND_PICKUP_PERIODIC_WORK_NAME = "outbound_pickup_periodic
  * sits at the same interval. A wake path that can name the
  * moment work lands — the push provider the design keeps
  * behind its interface — shortens the wait when it arrives;
- * until then the periodic run is the honest pace, and a reply
- * the brain queues is picked up within one interval of being
- * queued.
+ * until then pickup is delayed: 15-minute periodic work is a minimum
+ * interval, never a deadline. Android may defer it further for battery,
+ * connectivity or idle restrictions. This integration is not live reply.
  *
  * Periodic work is kept, not replaced, when the schedule is
  * ensured again: pairing, a boot, and every Settings visit all
@@ -78,6 +78,7 @@ fun Context.ensureOutboundPickupSchedule() {
 
 /** Enqueues one outbound pickup run at once, as lifecycle-managed work. */
 fun Context.enqueueOutboundPickup() {
+    if (storedDeviceCredential() == null) return
     val request = OneTimeWorkRequestBuilder<OutboundPickupWorker>()
         .setConstraints(
             Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()

@@ -51,6 +51,7 @@ private const val PENDING_REPORT_DRAIN_RETRY_WORK_NAME = "pending_outbound_repor
  * nothing held pays one empty read per queue per interval.
  */
 fun Context.ensureDrainRetrySchedule() {
+    if (storedCompletedOutboundVerdicts().isNotEmpty()) enqueueBridgeReceiptRecovery()
     if (storedDeviceCredential() == null) {
         return
     }
