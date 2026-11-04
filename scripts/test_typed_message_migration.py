@@ -62,6 +62,25 @@ class TypedMigrationTest(unittest.TestCase):
         self.assertEqual([(0,0),(1,0),(1,1)],db.execute('SELECT is_mms,is_scheduled FROM messages ORDER BY is_mms,is_scheduled').fetchall())
         self.assertEqual([(42,123,4)],db.execute('SELECT * FROM recycle_bin_messages WHERE kind_code=4').fetchall())
 
+    def test_resolution_keeps_later_typed_timestamp_for_both_origins(self):
+        dao=(SOURCE/'interfaces/LegacyRecycleDao.kt').read_text()
+        self.assertRegex(dao,r'@Insert\(onConflict = OnConflictStrategy.IGNORE\)\s+fun insertRecycleBinEntryIfAbsent')
+        queries=dict((name,sql) for sql,name in re.findall(r'@Query\("([^"\n]*)"\)\s+fun (\w+)',dao))
+        for origin in [0,1]:
+            for typed_ts in [5,200]:
+                db=frozen()
+                db.execute("BEGIN")
+                with db:
+                    for sql in statements(): db.execute(sql)
+                db.execute('INSERT INTO recycle_bin_messages VALUES(42,?,?)',(typed_ts,origin))
+                with db:
+                    db.execute('INSERT OR IGNORE INTO recycle_bin_messages VALUES(42,123,?)',(origin,))
+                    db.execute(queries['retainLaterRecycleTimestamp'],{'id':42,'kindCode':origin,'deletedTs':123})
+                    db.execute(queries['deleteFromRecycleBin'],{'id':42,'kindCode':4})
+                self.assertEqual([(42,max(typed_ts,123),origin)],db.execute('SELECT * FROM recycle_bin_messages').fetchall())
+                if typed_ts == 200:
+                    self.assertEqual([],db.execute('SELECT * FROM recycle_bin_messages WHERE deleted_ts < 150').fetchall())
+
     def test_every_interruption_rolls_back(self):
         sqls=statements()
         self.assertEqual(9,len(sqls))

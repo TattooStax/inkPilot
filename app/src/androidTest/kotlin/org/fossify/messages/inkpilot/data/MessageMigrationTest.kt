@@ -22,13 +22,14 @@ class MessageMigrationTest {
 
     @Test fun frozenV11PreservesHumanRowsAndOpaqueMediaAcrossRestart() {
         val name = "typed-migration-fixture.db"
+        val mediaJson = """{"id":42,"text":"media","attachments":[{"id":1,"messageId":42,"uriString":"content://fixture/42","mimetype":"image/png","width":2,"height":3,"filename":"image.png"}]}"""
         context.deleteDatabase(name)
         val file = context.getDatabasePath(name)
         file.parentFile!!.mkdirs()
         SQLiteDatabase.openOrCreateDatabase(file, null).use { old ->
             FrozenMessagesV11.create(old)
             old.execSQL("INSERT INTO messages VALUES(42,'cache',1,0,'[]',100,0,9,1,?, '', '', '', -1,0)",
-                arrayOf("{\"text\":\"media\",\"attachments\":[]}"))
+                arrayOf(mediaJson))
             old.execSQL("INSERT INTO messages VALUES(77,'human scheduled',2,0,'[]',200,0,9,0,NULL,'','','',-1,1)")
             old.execSQL("INSERT INTO drafts VALUES(9,'human draft',123)")
             old.execSQL("INSERT INTO conversations VALUES(9,'archive',100,0,'name','',0,'+15550000',0,0,1,0)")
@@ -51,14 +52,16 @@ class MessageMigrationTest {
                 db.openHelper.writableDatabase.query("SELECT archived FROM conversations").use { assertTrue(it.moveToFirst()); assertEquals(1,it.getInt(0)) }
                 db.openHelper.writableDatabase.query("SELECT uri_string FROM attachments").use { assertTrue(it.moveToFirst()); assertEquals("content://fixture/42",it.getString(0)) }
                 db.openHelper.writableDatabase.query("SELECT attachments FROM message_attachments").use { assertTrue(it.moveToFirst()); assertEquals("[]",it.getString(0)) }
-                // Provider refresh can restore both source rows without overwriting local work.
-                dao.insertMessages(message(MessageOrigin.SMS), message(MessageOrigin.MMS))
-                assertEquals(3, dao.getAll().size)
-                assertEquals(1, dao.getUnresolvedRecycleBinEntries().size)
+                db.openHelper.writableDatabase.query("SELECT attachment FROM messages WHERE id=42").use {
+                    assertTrue(it.moveToFirst()); assertEquals(mediaJson,it.getString(0))
+                }
             }
             open().use { db ->
-                assertEquals(3, db.MessagesDao().getAll().size)
+                assertEquals(2, db.MessagesDao().getAll().size)
                 assertEquals(1, db.MessagesDao().getUnresolvedRecycleBinEntries().size)
+                db.openHelper.writableDatabase.query("SELECT attachment FROM messages WHERE id=42").use {
+                    assertTrue(it.moveToFirst()); assertEquals(mediaJson,it.getString(0))
+                }
             }
         } finally { context.deleteDatabase(name) }
     }

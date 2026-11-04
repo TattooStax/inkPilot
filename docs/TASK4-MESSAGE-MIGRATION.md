@@ -35,3 +35,20 @@ or Telephony mutation was performed for this task.
 Small ratchet baseline changes cover the typed DAO wrappers, model schema/diff
 fields, receiver import and Task 1 fixture API adaptation. Large files did not
 grow; migration and tombstone reconciliation are separate sources.
+
+Review follow-up: resolution now inserts a typed tombstone only if absent,
+then keeps `MAX(existing deleted_ts, legacy deleted_ts)` in the same Room
+transaction that removes unknown. An old legacy timestamp cannot shorten a
+newly recycled message's retention. Both SMS and MMS coexistence/expiry and
+restart cases run through the production reconciler in the new private-DB
+integration fixture. Host SQL tests cover both older and newer typed dates.
+
+The production reconciler accepts a read-only Cursor query port; its Context
+adapter queries the two native Telephony URIs. Synthetic provider integration
+covers all 16 present/absent/null/denied combinations, cursor closing, exact
+backfilled keys, preserved local scheduled content, unique conversion and
+ambiguous tombstone retention. Provider snapshots remain unchanged, and the
+port supplies no delete/update capability. Frozen media fixtures now assert
+nested production-shaped attachment JSON byte-for-byte before backfill and
+after reopening. These instrumentation assertions are compiled locally;
+execution remains a hosted-CI requirement.
