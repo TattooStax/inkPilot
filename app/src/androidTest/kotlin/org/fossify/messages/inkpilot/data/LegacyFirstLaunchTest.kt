@@ -57,6 +57,19 @@ class LegacyFirstLaunchTest {
             assertEquals("Grant fixture permission $it", PackageManager.PERMISSION_GRANTED,
                 ContextCompat.checkSelfPermission(context, it))
         }
+        // A clean app database does not imply a clean native provider. Refuse
+        // reused emulator history (including empty/archived threads) before
+        // getOrCreateThreadId, archive updates, or any other fixture mutation.
+        listOf(Telephony.Sms.CONTENT_URI, Telephony.Mms.CONTENT_URI,
+            Telephony.Threads.CONTENT_URI.buildUpon().appendQueryParameter("simple", "true").build()
+        ).forEach { uri ->
+            context.contentResolver.query(uri, arrayOf("_id"), null, null, null).use { cursor ->
+                checkNotNull(cursor) { "Cannot verify disposable emulator provider isolation: $uri" }
+                check(!cursor.moveToFirst()) {
+                    "Use an empty disposable SMS/MMS provider; existing native history must never be cleared or modified."
+                }
+            }
+        }
         check(context.messagesDB.getAll().isEmpty() &&
             context.draftsDB.getAll().isEmpty() &&
             context.messagesDB.getArchivedCount() == 0 &&
@@ -83,6 +96,11 @@ class LegacyFirstLaunchTest {
         }
         providerUri = requireNotNull(context.contentResolver.insert(Telephony.Sms.CONTENT_URI, values))
         val providerId = ContentUris.parseId(requireNotNull(providerUri))
+        // Empty providers can retain high autoincrement sequences after cleanup.
+        // Refuse namespace collisions before inserting any local fixture rows.
+        check(providerId != scheduledId && providerId != recycledId && providerThread != temporaryThread) {
+            "Disposable provider IDs collide with local fixture IDs."
+        }
         assertEquals(1, context.contentResolver.update(
             ContentUris.withAppendedId(Telephony.Threads.CONTENT_URI, providerThread),
             ContentValues().apply { put(Telephony.Threads.ARCHIVED, 1) }, null, null))
