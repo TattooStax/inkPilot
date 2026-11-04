@@ -21,6 +21,7 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.READ_SYNC_SETTINGS" />
     <uses-permission android:name="android.permission.CALL_PHONE" />
+    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
 
     <uses-permission android:name="android.permission.READ_CONTACTS" />
     <uses-permission
@@ -51,6 +52,31 @@
         android:label="@string/app_launcher_name"
         android:roundIcon="@mipmap/ic_launcher"
         android:theme="@style/AppTheme">
+
+        <activity android:name=".inkpilot.phone.DialActivity"
+            android:exported="true" android:launchMode="singleTop"
+            android:theme="@style/Theme.InkPilot.Studio">
+            <intent-filter>
+                <action android:name="android.intent.action.DIAL" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.DIAL" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="tel" />
+            </intent-filter>
+        </activity>
+        <activity android:name=".inkpilot.phone.ManualCallActivity"
+            android:exported="false" android:launchMode="singleTop"
+            android:excludeFromRecents="true"
+            android:theme="@style/Theme.InkPilot.Studio" />
+        <service android:name=".inkpilot.phone.StudioInCallService"
+            android:exported="true" android:permission="android.permission.BIND_INCALL_SERVICE">
+            <meta-data android:name="android.telecom.IN_CALL_SERVICE_UI" android:value="true" />
+            <!-- Telecom retains ringing responsibility. -->
+            <intent-filter><action android:name="android.telecom.InCallService" /></intent-filter>
+        </service>
 
         <activity
             android:name=".inkpilot.ui.StudioHomeActivity"

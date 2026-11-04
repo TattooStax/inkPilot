@@ -3,10 +3,7 @@ package org.fossify.messages.inkpilot.ui
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.net.Uri
-import android.text.InputType
 import android.view.View
-import android.widget.EditText
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import org.fossify.messages.R
@@ -65,23 +62,5 @@ internal class MessagePanel(
         return scroll
     }
 
-    fun phone(): View {
-        val body = StudioUi.column(activity)
-        body.addView(StudioUi.text(activity, "Make a call", 24f, true))
-        val number = EditText(activity).apply {
-            hint = "Phone number"
-            contentDescription = "Phone number"
-            inputType = InputType.TYPE_CLASS_PHONE
-            setTextColor(StudioUi.ink)
-            setHintTextColor(StudioUi.muted)
-            minHeight = StudioUi.dp(this, 56)
-        }
-        body.addView(number)
-        body.addView(StudioUi.button(activity, "Open dialer") {
-            val intent = Intent(Intent.ACTION_DIAL, Uri.fromParts("tel", number.text.toString().trim(), null))
-            runCatching { activity.startActivity(intent) }.onFailure { StudioUi.error(activity, "No phone dialer is available.") }
-        })
-        body.addView(StudioUi.text(activity, "Calls use your phone’s SIM and native call screen.", 14f))
-        return StudioUi.scroll(activity, body)
-    }
+    fun phone(): View = org.fossify.messages.inkpilot.phone.PhonePanel(activity).view()
 }
