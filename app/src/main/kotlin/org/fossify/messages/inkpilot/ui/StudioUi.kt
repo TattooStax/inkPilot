@@ -26,6 +26,7 @@ internal object StudioUi {
 
     fun column(activity: Activity, padding: Int = 20) = LinearLayout(activity).apply {
         orientation = LinearLayout.VERTICAL
+        setBackgroundColor(paper)
         val inset = dp(this, padding)
         setPadding(inset, inset, inset, inset)
     }

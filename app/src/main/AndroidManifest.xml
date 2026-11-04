@@ -55,6 +55,7 @@
         <activity
             android:name=".inkpilot.ui.StudioHomeActivity"
             android:exported="false"
+            android:theme="@style/Theme.InkPilot.Studio"
             android:windowSoftInputMode="adjustResize" />
         <receiver
             android:name=".inkpilot.runtime.StudioSmsResultReceiver"

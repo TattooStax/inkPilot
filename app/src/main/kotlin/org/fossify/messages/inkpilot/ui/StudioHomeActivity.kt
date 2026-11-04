@@ -54,7 +54,7 @@ class StudioHomeActivity : AppCompatActivity() {
             ?: if (intent.getStringExtra("inkpilot_panel") == "drafts") "drafts" else "tab"
         repository = StudioRepository(applicationContext)
         work = StudioWork(this, executor)
-        agent = AgentPanel(this, work, ::render)
+        agent = AgentPanel(this, work, ::render, savedInstanceState?.getString("soul_draft"))
         studio = StudioPanels(this, executor, { StudioUi.error(this, it) }, repository)
         buildFrame()
         appLaunched(BuildConfig.APPLICATION_ID)
@@ -155,6 +155,7 @@ class StudioHomeActivity : AppCompatActivity() {
     }
     override fun onSaveInstanceState(outState: Bundle) {
         outState.putString("tab", tab.name); outState.putString("screen", screen)
+        agent.soulDraft?.let { outState.putString("soul_draft", it) }
         super.onSaveInstanceState(outState)
     }
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {

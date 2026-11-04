@@ -1,0 +1,14 @@
+<resources>
+    <!-- The fixed-light studio canvas and its dialogs share the StudioUi palette. -->
+    <style name="Theme.InkPilot.Studio" parent="Theme.Material3.Light.NoActionBar">
+        <item name="android:colorBackground">#F4EBDD</item>
+        <item name="android:windowBackground">#F4EBDD</item>
+        <item name="colorSurface">#F4EBDD</item>
+        <item name="colorOnSurface">#25211E</item>
+        <item name="colorOnSurfaceVariant">#695F57</item>
+        <item name="colorPrimary">#782D34</item>
+        <item name="colorOnPrimary">#F4EBDD</item>
+        <item name="colorSecondary">#782D34</item>
+        <item name="colorOnSecondary">#F4EBDD</item>
+    </style>
+</resources>

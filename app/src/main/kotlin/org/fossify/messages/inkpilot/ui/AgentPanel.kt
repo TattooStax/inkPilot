@@ -2,8 +2,10 @@ package org.fossify.messages.inkpilot.ui
 
 import android.app.Activity
 import android.content.Intent
+import android.text.Editable
 import android.text.InputFilter
 import android.text.InputType
+import android.text.TextWatcher
 import android.view.View
 import android.widget.EditText
 import androidx.appcompat.app.AppCompatActivity
@@ -16,7 +18,12 @@ internal class AgentPanel(
     private val activity: AppCompatActivity,
     private val work: StudioWork,
     private val refresh: () -> Unit,
+    initialSoulDraft: String? = null,
 ) {
+    // Uncommitted guidance is UI state; only the explicit Save action writes studio memory.
+    var soulDraft: String? = initialSoulDraft
+        private set
+
     fun model(): View {
         val body = StudioUi.column(activity)
         val settings = AgentSettings(activity.applicationContext)
@@ -71,6 +78,11 @@ internal class AgentPanel(
             setTextColor(StudioUi.ink)
             setHintTextColor(StudioUi.muted)
             isEnabled = false
+            addTextChangedListener(object : TextWatcher {
+                override fun afterTextChanged(value: Editable?) { soulDraft = value?.toString() }
+                override fun beforeTextChanged(value: CharSequence?, start: Int, count: Int, after: Int) = Unit
+                override fun onTextChanged(value: CharSequence?, start: Int, before: Int, count: Int) = Unit
+            })
         }
         body.addView(editor)
         val save = StudioUi.button(activity, "Save studio memory") {
@@ -78,7 +90,11 @@ internal class AgentPanel(
             work.load({ settings.soul = value }) { StudioUi.error(activity, "Studio memory saved.") }
         }.apply { isEnabled = false }
         body.addView(save)
-        work.load({ settings.soul }) { value -> editor.setText(value); editor.isEnabled = true; save.isEnabled = true }
+        work.load({ settings.soul }) { value ->
+            editor.setText(soulDraft ?: value)
+            editor.isEnabled = true
+            save.isEnabled = true
+        }
         return StudioUi.scroll(activity, body)
     }
 

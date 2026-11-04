@@ -33,6 +33,8 @@ An additional incoming SMS to a separate synthetic contact must wake
 WorkManager and create its held reply without the test invoking the
 runtime directly. The app-lock test verifies that a locked notification
 entry opens the inherited unlock screen without rendering studio data.
+The studio-memory editor test preserves unsaved text across resume and
+activity recreation, while requiring an explicit Save before records change.
 The final batch check forces a real-model context failure, then requires
 the next customer's reply to be generated in the same production batch.
 

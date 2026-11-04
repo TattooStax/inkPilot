@@ -100,8 +100,16 @@ for tab in sms phone contacts studio calendar; do
   adb exec-out run-as "$package" cat "files/device-test-evidence/tab-$tab.png" > "$evidence/tab-$tab.png"
 done
 
-# Start the normal app, then keep observation instrumentation alive before SMS arrival.
-adb shell am start -W -a android.intent.action.MAIN -c android.intent.category.LAUNCHER -p "$package"
+# Mirror launcher lookup: MAIN/LAUNCHER filters do not need the DEFAULT category.
+mapfile -t launcher_components < <(adb shell cmd package query-activities --brief --components --query-flags 0 \
+  -a android.intent.action.MAIN -c android.intent.category.LAUNCHER -p "$package" | tr -d '\r')
+test "${#launcher_components[@]}" -eq 1
+launcher_component="${launcher_components[0]}"
+[[ "$launcher_component" == "$package/"* ]]
+[[ "$launcher_component" =~ ^[A-Za-z0-9_.$]+/[A-Za-z0-9_.$]+$ ]]
+printf '%s\n' "$launcher_component" > "$evidence/launcher-component.txt"
+# Shell launch also verifies that the discovered enabled component is publicly exported.
+adb shell am start -W -a android.intent.action.MAIN -c android.intent.category.LAUNCHER -n "$launcher_component"
 observe_sms worker-wakeup org.fossify.messages.inkpilot.smoke.WorkerWakeupSmokeTest worker-ready +12025550124 "$worker_message"
 adb exec-out run-as "$package" cat files/device-test-evidence/worker-wakeup.json > "$evidence/worker-wakeup.json"
 run_tests native-send class org.fossify.messages.inkpilot.smoke.NativeSendSmokeTest

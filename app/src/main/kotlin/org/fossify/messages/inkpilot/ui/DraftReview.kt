@@ -34,7 +34,7 @@ internal class DraftReview(
         body.addView(editor)
         body.addView(StudioUi.text(activity, "Check the recipient and reply. You will choose the business SIM before sending.", 14f))
         val dialog = AlertDialog.Builder(activity).setTitle("Review reply").setView(StudioUi.scroll(activity, body))
-            .setNegativeButton("Keep draft", null).setPositiveButton("Choose SIM", null).create()
+            .setNegativeButton("Cancel", null).setPositiveButton("Choose SIM", null).create()
         dialog.setOnShowListener {
             dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
                 val reply = editor.text.toString().trim()
