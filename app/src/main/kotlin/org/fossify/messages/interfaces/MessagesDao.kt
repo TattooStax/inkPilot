@@ -8,12 +8,21 @@ import androidx.room.Query
 import androidx.room.Transaction
 import org.fossify.messages.messaging.MessageKey
 import org.fossify.messages.messaging.MessageOrigin
+import org.fossify.messages.messaging.key
 import org.fossify.messages.models.Message
 
 @Dao
 interface MessagesDao : LegacyRecycleDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insertOrUpdate(message: Message)
+
+    /** Replacing scheduled kind must commit or roll back both identities together. */
+    @Transaction
+    fun replaceScheduled(message: Message, previousKey: MessageKey?) {
+        require(message.isScheduled && (previousKey == null || previousKey.isScheduled()))
+        insertOrUpdate(message)
+        if (previousKey != null && previousKey != message.key()) delete(previousKey)
+    }
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     fun insertOrIgnore(message: Message): Long

@@ -1,6 +1,6 @@
 package org.fossify.messages.receivers
 
-import org.fossify.messages.messaging.scheduledKey
+import org.fossify.messages.messaging.resolveScheduledAlarm
 import org.fossify.messages.messaging.dispatchScheduled
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -37,9 +37,7 @@ class ScheduledMessageReceiver : BroadcastReceiver() {
     }
 
     private fun handleIntent(context: Context, intent: Intent) {
-        val key = intent.scheduledKey() ?: return // Legacy raw-ID alarms cannot authorize a send.
-        val threadId = intent.getLongExtra(THREAD_ID, 0L)
-        val message = context.messagesDB.get(key)?.takeIf { it.threadId == threadId } ?: return
+        val message = context.resolveScheduledAlarm(intent) ?: return
         context.dispatchScheduled(message)
     }
 }

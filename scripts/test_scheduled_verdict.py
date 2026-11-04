@@ -26,7 +26,7 @@ class ScheduledRegressionTest(unittest.TestCase):
     def test_dispatch_has_durable_claim_before_handoff(self):
         receiver = source('receivers/ScheduledMessageReceiver.kt')
         self.assertNotIn('deleteScheduledMessage(', receiver)
-        self.assertIn('intent.scheduledKey() ?: return', receiver)
+        self.assertIn('context.resolveScheduledAlarm(intent) ?: return', receiver)
         dispatch = source('messaging/ScheduledDispatch.kt')
         self.assertLess(dispatch.index('journal.claimPrepared(key)'), dispatch.index('messagingUtils.sendMmsMessage'))
         self.assertIn('journal.unknown(key)', dispatch)
@@ -50,6 +50,47 @@ class ScheduledRegressionTest(unittest.TestCase):
         self.assertNotIn('deleteScheduledMessage', actions)
         self.assertIn('if (queued)', actions)
         self.assertIn('activity.scheduledStatus(message.key())', source('adapters/ThreadAdapter.kt'))
+
+    def test_thread_moves_and_cross_kind_replacement_are_safe(self):
+        queue = source('messaging/ScheduledQueue.kt')
+        dao = source('interfaces/MessagesDao.kt')
+        self.assertIn('messagesDB.replaceScheduled(message, previousKey)', queue)
+        self.assertRegex(dao, r'@Transaction\s+fun replaceScheduled')
+        self.assertNotIn('threadId == snapshot.threadId', source('messaging/ScheduledDispatch.kt'))
+        self.assertIn('return messagesDB.get(key)', queue)
+        self.assertNotIn('threadId == threadId', source('receivers/ScheduledMessageReceiver.kt'))
+
+    def test_interrupted_cross_kind_replace_rolls_back_on_reopen(self):
+        dao = source('interfaces/MessagesDao.kt')
+        self.assertRegex(dao, r'@Transaction\s+fun replaceScheduled')
+        delete = re.search(r'@Query\("([^"\n]+)"\)\s+fun deleteFromMessages', dao).group(1)
+        import tempfile
+        for old_mms in (0, 1):
+            with tempfile.TemporaryDirectory() as tmp:
+                path = str(Path(tmp) / 'replacement.db')
+                db = sqlite3.connect(path)
+                db.execute('CREATE TABLE messages(id INTEGER, is_mms INTEGER, is_scheduled INTEGER, body TEXT, PRIMARY KEY(id,is_mms,is_scheduled))')
+                db.execute('INSERT INTO messages VALUES(42,?,1,?)', (old_mms, 'original'))
+                db.commit()
+                db.execute("CREATE TRIGGER stop_replacement BEFORE DELETE ON messages BEGIN SELECT RAISE(ABORT,'controlled interruption'); END")
+                try:
+                    with db:
+                        db.execute('INSERT INTO messages VALUES(42,?,1,?)', (1-old_mms, 'edit'))
+                        db.execute(delete, dict(id=42, isMms=old_mms, isScheduled=1))
+                    self.fail('Expected controlled interruption')
+                except sqlite3.IntegrityError:
+                    pass
+                db.close()
+                db = sqlite3.connect(path)
+                self.assertEqual([(42, old_mms, 1, 'original')], db.execute('SELECT * FROM messages').fetchall())
+                db.execute('DROP TRIGGER stop_replacement')
+                with db:
+                    db.execute('INSERT INTO messages VALUES(42,?,1,?)', (1-old_mms, 'edit'))
+                    db.execute(delete, dict(id=42, isMms=old_mms, isScheduled=1))
+                db.close()
+                db = sqlite3.connect(path)
+                self.assertEqual([(42, 1-old_mms, 1, 'edit')], db.execute('SELECT * FROM messages').fetchall())
+                db.close()
 
     def test_production_journal_schema_survives_reopen_and_enforces_unique_claims(self):
         ddl = re.findall(r'db.execSQL\("(CREATE TABLE [^"\n]+)"\)', source('messaging/ScheduledVerdicts.kt'))

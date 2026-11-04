@@ -71,3 +71,31 @@ verification adds seven passing JVM tests and compiles ScheduledQueueTest, whose
 production queue seam injects only alarm posting: it asserts Room persistence
 before a thrown post, retained overdue rows on rejection, UNKNOWN edit refusal,
 and latest-snapshot claiming. Instrumentation execution remains deferred.
+
+## Thread migration and cross-kind edit follow-up
+
+Typed scheduled identity is now authoritative across temporary-to-real thread
+moves. The receiver resolves its immutable MessageKey against the current Room
+row; an old THREAD_ID extra cannot consume an otherwise valid alarm. Dispatch
+also reloads the current row without rejecting a migrated thread ID. Untyped
+legacy alarms continue to fail closed. This uses the globally unique typed row
+identity rather than mutable conversation metadata to authorize resolution.
+
+Cross-kind replacement now uses MessagesDao.replaceScheduled, one Room
+@Transaction encompassing insert of the new identity and deletion of the old.
+The separate journal edit guard still serializes it with dispatch claims, but is
+no longer relied on to roll back changes in the Room database.
+
+ScheduledIdentityLifecycleTest adds the exact production migration/old-alarm
+resolution flow and verifies both SMS-to-MMS and MMS-to-SMS replacement. A
+controlled SQLite trigger aborts the deletion after the insertion; closing and
+reopening the disposable Room database must recover only the original row.
+Successful replacement and reopen must recover only the edit. No test registers
+an alarm or invokes a carrier handoff.
+
+Host regression checks now total eight, including SQL trigger interruption and
+reopen in both kind directions using the production DAO deletion query.
+`task6-rereview-red.log` reproduces the missing guards against 2998031;
+`task6-rereview-host.log` passes. `task6-rereview-verified.log` records focused
+production/Android-test compilation and the seven scheduled JVM tests.
+Instrumentation execution remains deferred to the hosted emulator handoff.

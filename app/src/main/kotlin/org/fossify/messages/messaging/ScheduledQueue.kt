@@ -17,8 +17,7 @@ fun Context.queueScheduled(message: Message, previousKey: MessageKey? = null,
     ScheduledVerdicts(this).use { journal ->
         persistThenPost(persist = {
             journal.editQueued(listOfNotNull(previousKey, message.key())) {
-                messagesDB.insertOrUpdate(message)
-                if (previousKey != null && previousKey != message.key()) messagesDB.delete(previousKey)
+                messagesDB.replaceScheduled(message, previousKey)
             }
         }, post = {
             if (previousKey != null && previousKey != message.key()) cancelScheduleSendPendingIntent(previousKey)
@@ -33,4 +32,10 @@ fun Context.scheduledStatus(key: MessageKey): String = ScheduledVerdicts(this).u
         "CONFIRMED" -> "Carrier confirmed all parts."
         else -> "Send status unknown or pending. Check the conversation; do not resend automatically."
     }
+}
+
+/** Thread IDs can migrate; the immutable typed row identity remains authoritative. */
+internal fun Context.resolveScheduledAlarm(intent: android.content.Intent): Message? {
+    val key = intent.scheduledKey() ?: return null // Raw-ID legacy alarms still fail closed.
+    return messagesDB.get(key)
 }

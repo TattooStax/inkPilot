@@ -14,7 +14,7 @@ fun Context.dispatchScheduled(snapshot: Message): DispatchOutcome {
     ScheduledVerdicts(this).use { journal ->
         var rejection = "This send is already claimed. Check the conversation before sending again."
         val message = journal.claimPrepared(key) {
-            val current = messagesDB.get(key)?.takeIf { it.threadId == snapshot.threadId } ?: return@claimPrepared null
+            val current = messagesDB.get(key) ?: return@claimPrepared null
             val addresses = current.participants.getAddresses().distinct()
             val attachments = current.attachment?.attachments.orEmpty()
             val problem = scheduledPreflight(current.subscriptionId, addresses.isNotEmpty(), SmsRole.isHeld(this)) {
