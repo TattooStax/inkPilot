@@ -4,6 +4,7 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import java.util.UUID
 import android.telephony.PhoneNumberUtils
 import android.widget.Toast.LENGTH_LONG
 import inkstax.sms.transport.MessageTransport
@@ -108,15 +109,17 @@ class LocalMessageTransport(private val context: Context) : MessageTransport {
                 if (parts == null || parts.size < 1) {
                     return TransportOutcome.Failed(TransportOutcome.ERROR_SENDING_MESSAGE)
                 }
-                val sentIntent = sentResultIntent(destination)
+                val attempt = UUID.randomUUID().toString()
                 if (parts.size == 1) {
                     @Suppress("DEPRECATION")
-                    smsManager.sendTextMessage(destination, null, message.text, sentIntent, null)
+                    smsManager.sendTextMessage(destination, null, message.text,
+                        sentResultIntent(destination, attempt, 0), null)
                 } else {
+                    val sentIntents = ArrayList(parts.indices.map { part ->
+                        sentResultIntent(destination, attempt, part)
+                    })
                     @Suppress("DEPRECATION")
-                    smsManager.sendMultipartTextMessage(
-                        destination, null, parts, ArrayList(List(parts.size) { sentIntent }), null
-                    )
+                    smsManager.sendMultipartTextMessage(destination, null, parts, sentIntents, null)
                 }
             }
             TransportOutcome.Sent
@@ -130,9 +133,10 @@ class LocalMessageTransport(private val context: Context) : MessageTransport {
      * makes each intent's identity unique, so concurrent sends never
      * overwrite each other's result routing.
      */
-    private fun sentResultIntent(destination: String): PendingIntent {
+    internal fun sentResultIntent(destination: String, attempt: String, part: Int): PendingIntent {
         val intent = Intent(context, PermissionsOnlySendResultReceiver::class.java).apply {
-            data = Uri.parse("inkstax-sms://sent-result/$destination/${System.currentTimeMillis()}")
+            data = Uri.Builder().scheme("inkpilot-sms").authority("sent-result")
+                .appendPath(destination).appendPath(attempt).appendPath(part.toString()).build()
         }
         val flags = PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         return PendingIntent.getBroadcast(context, 0, intent, flags)

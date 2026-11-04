@@ -25,6 +25,9 @@ class Config(context: Context) : BaseConfig(context) {
 
     fun getUseSIMIdAtNumber(number: String) = prefs.getInt(USE_SIM_ID_PREFIX + number, 0)
 
+    fun savedSIMIdAtNumber(number: String): Int? =
+        if (prefs.contains(USE_SIM_ID_PREFIX + number)) prefs.getInt(USE_SIM_ID_PREFIX + number, 0) else null
+
     var showCharacterCounter: Boolean
         get() = prefs.getBoolean(SHOW_CHARACTER_COUNTER, false)
         set(showCharacterCounter) = prefs.edit()

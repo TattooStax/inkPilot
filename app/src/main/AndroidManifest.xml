@@ -270,7 +270,7 @@
 
         <receiver
             android:name=".receivers.MmsReceiver"
-            android:exported="true"
+            android:exported="false"
             android:taskAffinity="com.klinker.android.messaging.MMS_RECEIVED" />
 
         <receiver

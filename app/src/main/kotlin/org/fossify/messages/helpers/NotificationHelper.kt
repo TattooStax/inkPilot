@@ -45,7 +45,8 @@ class NotificationHelper(private val context: Context) {
         threadId: Long,
         bitmap: Bitmap?,
         sender: String?,
-        alertOnlyOnce: Boolean = false
+        alertOnlyOnce: Boolean = false,
+        subscriptionId: Int? = null,
     ) {
         val hasCustomNotifications =
             context.config.customNotifications.contains(threadId.toString())
@@ -105,6 +106,8 @@ class NotificationHelper(private val context: Context) {
             val replyIntent = Intent(context, DirectReplyReceiver::class.java).apply {
                 putExtra(THREAD_ID, threadId)
                 putExtra(THREAD_NUMBER, address)
+                putExtra(DirectReplyReceiver.SUBSCRIPTION_ID, subscriptionId ?: -1)
+                data = android.net.Uri.parse("inkpilot-reply://thread/$threadId/${if (isMms) "mms" else "sms"}/$messageId")
             }
 
             val replyPendingIntent =

@@ -1073,28 +1073,6 @@ fun Context.getThreadId(addresses: Set<String>): Long {
     }
 }
 
-fun Context.showReceivedMessageNotification(
-    messageId: Long,
-    isMms: Boolean,
-    address: String,
-    senderName: String,
-    body: String,
-    threadId: Long,
-    bitmap: Bitmap?,
-) {
-    Handler(Looper.getMainLooper()).post {
-        notificationHelper.showMessageNotification(
-            messageId = messageId,
-            isMms = isMms,
-            address = address,
-            body = body,
-            threadId = threadId,
-            bitmap = bitmap,
-            sender = senderName
-        )
-    }
-}
-
 fun Context.getNameFromAddress(address: String, privateCursor: Cursor?): String {
     var sender = getNameAndPhotoFromPhoneNumber(address).name
     if (address == sender) {

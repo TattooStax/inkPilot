@@ -27,12 +27,16 @@ import org.fossify.messages.helpers.ReceiverUtils.isMessageFilteredOut
 import org.fossify.messages.helpers.refreshConversations
 import org.fossify.messages.helpers.refreshMessages
 import org.fossify.messages.models.Message
+import org.fossify.messages.inkpilot.runtime.CarrierIngressPolicy
+import org.fossify.messages.inkpilot.runtime.FilteredSmsJournal
+import org.fossify.messages.helpers.SmsRole
 import org.fossify.messages.transport.LocalInboundSink
 import org.fossify.messages.transport.holdAndDrainInboundArrival
 
 class SmsReceiver : BroadcastReceiver() {
 
     override fun onReceive(context: Context, intent: Intent) {
+        if (intent.action != Telephony.Sms.Intents.SMS_DELIVER_ACTION || !SmsRole.isHeld(context)) return
         val pending = goAsync()
         val appContext = context.applicationContext
 
@@ -48,18 +52,21 @@ class SmsReceiver : BroadcastReceiver() {
                 val status = parts.last().status
                 val body = buildString { parts.forEach { append(it.messageBody.orEmpty()) } }
 
-                if (isMessageFilteredOut(appContext, body)) return@ensureBackgroundThread
-                if (appContext.isNumberBlocked(address)) return@ensureBackgroundThread
+                val date = parts.last().timestampMillis.takeIf { it > 0 } ?: System.currentTimeMillis()
+                val subscriptionId = intent.getIntExtra("subscription", -1)
+                fun skip(reason: String) = FilteredSmsJournal(appContext).use {
+                    it.record(address, body, date, subscriptionId, reason)
+                }
+                if (isMessageFilteredOut(appContext, body)) { skip("keyword"); return@ensureBackgroundThread }
+                if (appContext.isNumberBlocked(address)) { skip("blocked"); return@ensureBackgroundThread }
                 if (appContext.baseConfig.blockUnknownNumbers) {
-                    val privateCursor =
-                        appContext.getMyContactsCursor(favoritesOnly = false, withPhoneNumbersOnly = true)
-                    val result = SimpleContactsHelper(appContext).existsSync(address, privateCursor)
-                    if (result == ContactLookupResult.NotFound) return@ensureBackgroundThread
+                    val result = appContext.getMyContactsCursor(favoritesOnly = false, withPhoneNumbersOnly = true).use {
+                        SimpleContactsHelper(appContext).existsSync(address, it)
+                    }
+                    if (result == ContactLookupResult.NotFound) { skip("unknown_sender"); return@ensureBackgroundThread }
                 }
 
-                val date = System.currentTimeMillis()
                 val threadId = appContext.getThreadId(address)
-                val subscriptionId = intent.getIntExtra("subscription", -1)
 
                 handleMessageSync(
                     context = appContext,
@@ -77,7 +84,7 @@ class SmsReceiver : BroadcastReceiver() {
         }
     }
 
-    private fun handleMessageSync(
+    internal fun handleMessageSync(
         context: Context,
         address: String,
         subject: String,
@@ -87,22 +94,25 @@ class SmsReceiver : BroadcastReceiver() {
         threadId: Long,
         type: Int = Telephony.Sms.MESSAGE_TYPE_INBOX,
         subscriptionId: Int,
-        status: Int
+        status: Int,
+        nativeInsert: (Context) -> Long = {
+            it.insertNewSMS(address, subject, body, date, read, threadId, type, subscriptionId)
+        },
     ) {
+        if (threadId <= 0) {
+            FilteredSmsJournal(context).use { it.record(address, body, date, subscriptionId, "provider_failed") }
+            return
+        }
+        val newMessageId = nativeInsert(context)
+        if (CarrierIngressPolicy.nativeSource(newMessageId, threadId) == null) {
+            FilteredSmsJournal(context).use { it.record(address, body, date, subscriptionId, "provider_failed") }
+            org.fossify.messages.inkpilot.runtime.AgentSettings(context)
+                .recordStatus("An SMS could not enter the native inbox. Open Agent to review it.")
+            return
+        }
+
         val photoUri = SimpleContactsHelper(context).getPhotoUriFromPhoneNumber(address)
         val bitmap = context.getNotificationBitmap(photoUri)
-
-        val newMessageId = context.insertNewSMS(
-            address = address,
-            subject = subject,
-            body = body,
-            date = date,
-            read = read,
-            threadId = threadId,
-            type = type,
-            subscriptionId = subscriptionId
-        )
-
         context.getConversations(threadId).firstOrNull()?.let { conv ->
             runCatching { context.insertOrUpdateConversation(conv) }
         }
@@ -153,18 +163,19 @@ class SmsReceiver : BroadcastReceiver() {
             senderName = senderName,
             body = body,
             threadId = threadId,
-            bitmap = bitmap
+            bitmap = bitmap,
+            subscriptionId = subscriptionId,
         )
         val inbound = InboundSms(
             sender = address, body = body, receivedAtMillis = date,
             subscriptionId = subscriptionId,
-            // insertNewSMS returns 0L when the provider insert failed; that sentinel
-            // is not a provider row, so the seam must see an unknown id, not "sms:0".
-            providerId = newMessageId.takeIf { it != 0L }, threadId = threadId
+            providerId = newMessageId, threadId = threadId
         )
         // SMS-2-TOUCHPOINT 1/2: inbound SMS passes through the :transport seam's local
         // binding after local persistence, so later bindings share this entry point.
-        LocalInboundSink().onInbound(inbound)
+        runCatching { LocalInboundSink().onInbound(inbound) }
+            .onFailure { org.fossify.messages.inkpilot.runtime.AgentSettings(context)
+                .recordStatus("Optional bridge intake failed; native SMS and local draft are preserved.") }
         // A failure in local drafting must never interrupt native SMS delivery.
         runCatching { org.fossify.messages.inkpilot.runtime.AgentSmsIntake.record(context, inbound, senderName) }
             .onFailure {
