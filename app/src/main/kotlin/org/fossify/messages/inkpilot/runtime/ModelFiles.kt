@@ -42,9 +42,9 @@ internal object ModelFiles {
                     output.fd.sync()
                 }
             }
-            inkpilot.inference.GgufQualification.requireApproved(temporary)
-            StudioRepository(context).use { it.invalidateAllPending() }
-            check(temporary.renameTo(target)) { "Cannot replace the local model." }
+            inkpilot.inference.GgufQualification.replaceApproved(temporary, target) {
+                StudioRepository(context).use { it.invalidateAllPending() }
+            }
             val name = displayName(context, uri)
             AgentSettings(context).apply {
                 recordModel(name)

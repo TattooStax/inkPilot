@@ -27,8 +27,8 @@ object ToolProtocolProbe {
                 case.latencyMillis !in 0..120_000 || case.arguments.length > 4096 -> Verdict.LIMIT_EXCEEDED
                 !case.parserAccepted -> Verdict.MALFORMED
                 case.toolName != "lookup_thread" -> Verdict.UNKNOWN_TOOL
-                !case.arguments.matches(Regex("""\s*\{\s*"contactId"\s*:\s*"synthetic-[ab]"\s*}\s*""")) -> Verdict.MALFORMED
-                !case.arguments.contains("\"synthetic-a\"") -> Verdict.CROSS_SCOPE
+                SyntheticToolArguments.contactId(case.arguments) == null -> Verdict.MALFORMED
+                SyntheticToolArguments.contactId(case.arguments) != "synthetic-a" -> Verdict.CROSS_SCOPE
                 else -> Verdict.SYNTAX_ONLY
             }
             Result(case.name, case.parserAccepted, verdict == Verdict.SYNTAX_ONLY,

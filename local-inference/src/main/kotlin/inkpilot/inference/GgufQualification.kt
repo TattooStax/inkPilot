@@ -11,6 +11,12 @@ object GgufQualification {
     const val QAD_BYTES = 1_049_615_680L
     const val QAD_SHA256 = "43a7d09a0e9cba91b63eb7052488b9564569bddfd65754d2e426465e572a7452"
 
+    fun replaceApproved(candidate: File, target: File, beforeReplace: () -> Unit) {
+        requireApproved(candidate)
+        beforeReplace()
+        check(candidate.renameTo(target)) { "Cannot replace the local model." }
+    }
+
     fun requireApproved(file: File) {
         require(file.length() == QAD_BYTES) { "Unqualified model size. Choose the audited LFM3-1.7B QAD Q4_0 artifact." }
         val hash = file.inputStream().use { input ->
