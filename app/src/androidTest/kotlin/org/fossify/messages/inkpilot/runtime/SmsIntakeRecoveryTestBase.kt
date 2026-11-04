@@ -56,6 +56,8 @@ abstract class SmsIntakeRecoveryTestBase {
         }
     }
 
+    protected fun openFixtureRepository() = StudioRepository(context, databaseName)
+
     protected fun reopenRepository() {
         repository.close()
         repository = StudioRepository(context, databaseName)

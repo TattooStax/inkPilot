@@ -6,6 +6,7 @@ import android.database.sqlite.SQLiteDatabase
 internal object StudioRevisionSchema {
     fun create(db: SQLiteDatabase) {
         db.execSQL("CREATE TABLE draft_regenerations(event_id TEXT PRIMARY KEY NOT NULL REFERENCES inbound_events(event_id), source_revision INTEGER NOT NULL)")
+        db.execSQL("CREATE TABLE worker_cancellations(token TEXT PRIMARY KEY NOT NULL)")
         db.execSQL("CREATE TABLE intake_checkpoint(id INTEGER PRIMARY KEY CHECK(id = 1), provider_id INTEGER NOT NULL)")
         db.execSQL("INSERT INTO intake_checkpoint VALUES(1, 0)")
     }

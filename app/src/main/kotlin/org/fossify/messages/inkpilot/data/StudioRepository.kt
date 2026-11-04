@@ -37,7 +37,15 @@ class StudioRepository(context: Context, databaseName: String = DATABASE_NAME) :
         db.execSQL("UPDATE intake_checkpoint SET provider_id = MAX(provider_id, ?) WHERE id = 1", arrayOf(providerId))
     }
 
-    fun cancelPending() { invalidateAllPending() }
+    fun cancelWorker(token: String) {
+        require(token.isNotBlank())
+        db.execSQL("INSERT OR IGNORE INTO worker_cancellations(token) VALUES(?)", arrayOf(token))
+    }
+
+    fun holdForWorker(token: String, write: HeldDraftWrite): DraftStoreResult = db.transaction {
+        val stopped = db.rawQuery("SELECT 1 FROM worker_cancellations WHERE token = ?", arrayOf(token)).use { it.moveToFirst() }
+        if (stopped) DraftStoreResult.SourceChanged else db.holdStudioDraft(write)
+    }
 
     fun pendingRequests(limit: Int = 100): List<DraftRequest> = db.pendingStudioRequests(limit)
 

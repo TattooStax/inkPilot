@@ -18,8 +18,12 @@ object SmsIntakeRecovery {
         @Suppress("DEPRECATION")
         val installedAt = app.packageManager.getPackageInfo(app.packageName, 0).firstInstallTime
         StudioRepository(app).use { repository ->
-            if (recoverPages(app, repository, installedAt)) enqueueContinuation(app)
+            recoverAndSchedule(app, repository, installedAt)
         }
+    }
+
+    internal fun recoverAndSchedule(context: Context, repository: StudioRepository, sinceMillis: Long, maxPages: Int = 10) {
+        if (recoverPages(context, repository, sinceMillis, maxPages)) enqueueContinuation(context)
     }
 
     /** True means the bounded wake exhausted its page budget and needs durable continuation. */
@@ -73,9 +77,11 @@ object SmsIntakeRecovery {
 
     internal fun enqueueContinuation(context: Context) {
         androidx.work.WorkManager.getInstance(context).enqueue(
-            androidx.work.OneTimeWorkRequestBuilder<SmsIntakeRecoveryWorker>().build(),
+            androidx.work.OneTimeWorkRequestBuilder<SmsIntakeRecoveryWorker>().addTag(CONTINUATION_TAG).build(),
         )
     }
+
+    internal const val CONTINUATION_TAG = "inkpilot-intake-continuation"
 
     private fun canReadInbox(context: Context): Boolean =
         org.fossify.messages.helpers.SmsRole.isHeld(context) &&

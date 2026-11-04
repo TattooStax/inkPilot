@@ -30,8 +30,6 @@ object AgentRuntime {
         return result
     }
 
-    fun cancelPending(context: Context) { StudioRepository(context).use { it.cancelPending() } }
-
     fun reconcileHistory(context: Context) = SmsProviderHistory.reconcile(context)
 
     fun runPending(context: Context) {
@@ -48,7 +46,10 @@ object AgentRuntime {
     }
 
     /** The worker and instrumentation use the same production path, without a fake inference adapter. */
-    fun processPending(context: Context, cancellation: () -> Boolean = { false }): Int = synchronized(inferenceLock) {
+    fun processPending(context: Context, cancellation: () -> Boolean = { false }): Int =
+        processPendingForWorker(context, null, cancellation)
+
+    internal fun processPendingForWorker(context: Context, workerToken: String?, cancellation: () -> Boolean): Int = synchronized(inferenceLock) {
         val settings = AgentSettings(context)
         StudioRepository(context).use { repository ->
             if (!repository.isDraftingEnabled()) return@synchronized 0
@@ -70,7 +71,8 @@ object AgentRuntime {
                     native.generate(prompt.copy(instructions = prompt.instructions + "\nStudio guide:\n" + repository.soul()), stop)
                 }
                 settings.recordStatus("Drafting locally…")
-                val result = CustomerServiceDrafts(repository, repository, model).draft(
+                val store = if (workerToken == null) repository else WorkerDraftStore(repository, workerToken)
+                val result = CustomerServiceDrafts(store, repository, model).draft(
                     request, DraftCancellation { cancellation() || !repository.isDraftingEnabled() },
                 )
                 when (result) {
@@ -83,7 +85,7 @@ object AgentRuntime {
                     }
                     is DraftOutcome.PersistenceUnconfirmed -> {
                         settings.recordStatus("Draft storage needs reconciliation. Nothing was sent.")
-                        return@synchronized created
+                        requireConfirmedDraftPersistence(store, result.key)
                     }
                     is DraftOutcome.Stopped -> {
                         settings.recordStatus("Draft stopped: ${result.reason.name.lowercase().replace('_', ' ')}.")

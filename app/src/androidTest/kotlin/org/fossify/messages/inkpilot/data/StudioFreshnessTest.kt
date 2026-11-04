@@ -60,12 +60,14 @@ class StudioFreshnessTest : StudioDatabaseTestBase() {
     }
 
     @Test
-    fun cancellationRevisionRejectsInferenceAlreadyInFlight() {
+    fun workerEpochRejectsOldWriteWithoutChangingSemanticRevision() {
         val request = inbound()
         val pending = write(request)
-        repository.cancelPending()
+        repository.cancelWorker("stopped-worker")
         reopen()
-        assertEquals(DraftStoreResult.SourceChanged, repository.holdIfCurrent(pending))
+        assertEquals(request.expectedRevision, repository.readSource(request.eventId)?.revision)
+        assertEquals(DraftStoreResult.SourceChanged, repository.holdForWorker("stopped-worker", pending))
+        assertTrue(repository.holdForWorker("restarted-worker", pending) is DraftStoreResult.Held)
     }
 
     @Test
