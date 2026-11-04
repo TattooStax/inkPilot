@@ -124,11 +124,11 @@ class InShellThreadTest {
                 }
                 SmokeViews.assertText("task9 fixture 150")
                 scenario.onActivity { it.onBackPressedDispatcher.onBackPressed(); it.openRoute(StudioRoute.Thread(thread)) }
-                SmokeViews.assertText("Read-only conversation")
+                SmokeViews.assertText("Client reference images")
                 SmokeViews.assertText("task9 MMS fixture")
                 SmokeViews.assertText("task9 fixture 0")
                 scenario.recreate()
-                SmokeViews.assertText("Read-only conversation")
+                SmokeViews.assertText("Client reference images")
                 SmokeViews.assertText("task9 MMS fixture")
                 resolver.update(created.first(), ContentValues().apply { put("body", "task9 refreshed") }, null, null)
                 SmokeViews.assertText("task9 refreshed")
@@ -138,7 +138,7 @@ class InShellThreadTest {
                 android.os.SystemClock.sleep(1000)
                 SmokeViews.clickDescription("SMS")
                 SmokeViews.assertText("task9 hidden refresh")
-                SmokeViews.assertText("Read-only conversation")
+                SmokeViews.assertText("Client reference images")
                 scenario.onActivity { it.onBackPressedDispatcher.onBackPressed() }
                 SmokeViews.assertText("New message")
             }
