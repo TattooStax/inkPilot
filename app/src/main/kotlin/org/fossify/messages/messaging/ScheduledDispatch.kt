@@ -3,22 +3,36 @@ package org.fossify.messages.messaging
 import android.content.Context
 import org.fossify.messages.extensions.getAddresses
 import org.fossify.messages.extensions.messagingUtils
+import org.fossify.messages.extensions.messagesDB
 import org.fossify.messages.helpers.SmsRole
 import org.fossify.messages.helpers.refreshMessages
 import org.fossify.messages.models.Message
 
-/** No process-local runnable owns dispatch. Commit the claim before any radio handoff. */
-fun Context.dispatchScheduled(message: Message) {
-    val key = message.key()
-    val attachments = message.attachment?.attachments.orEmpty()
-    val addresses = message.participants.getAddresses().distinct()
-    // This app's scheduled provider-backed dispatch requires the SMS role.
-    if (!SmsRole.isHeld(this) || addresses.isEmpty()) return
-    val settings = getSendMessageSettings().apply { subscriptionId = message.subscriptionId }
-    val smsParts = if (!message.isMMS) getSmsManager(message.subscriptionId).divideMessage(message.body).size else 0
-    val count = if (message.isMMS) maxOf(1, attachments.size) else smsParts * addresses.size
+/** Reload and commit the claim before handoff. Never dispatch a stale editor/alarm snapshot. */
+fun Context.dispatchScheduled(snapshot: Message): DispatchOutcome {
+    val key = snapshot.key()
     ScheduledVerdicts(this).use { journal ->
-        if (!journal.claim(key, count)) return
+        var rejection = "This send is already claimed. Check the conversation before sending again."
+        val message = journal.claimPrepared(key) {
+            val current = messagesDB.get(key)?.takeIf { it.threadId == snapshot.threadId } ?: return@claimPrepared null
+            val addresses = current.participants.getAddresses().distinct()
+            val attachments = current.attachment?.attachments.orEmpty()
+            val problem = scheduledPreflight(current.subscriptionId, addresses.isNotEmpty(), SmsRole.isHeld(this)) {
+                attachments.all { attachment -> runCatching {
+                    contentResolver.openInputStream(attachment.getUri())?.use { it.read(); true } == true
+                }.getOrDefault(false) }
+            }
+            if (problem != null) {
+                rejection = problem
+                return@claimPrepared null
+            }
+            val parts = if (current.isMMS) maxOf(1, attachments.size)
+                else getSmsManager(current.subscriptionId).divideMessage(current.body).size * addresses.size
+            current to parts
+        } ?: return DispatchOutcome.Rejected(rejection)
+        val attachments = message.attachment?.attachments.orEmpty()
+        val addresses = message.participants.getAddresses().distinct()
+        val settings = getSendMessageSettings().apply { subscriptionId = message.subscriptionId }
         try {
             if (message.isMMS) {
                 if (attachments.isEmpty()) {
@@ -27,11 +41,18 @@ fun Context.dispatchScheduled(message: Message) {
                     messagingUtils.sendMmsMessage(if (index == attachments.lastIndex) message.body else "", addresses,
                         attachment, settings, scheduledCallback = ScheduledCallback(key, index))
                 }
-            } else addresses.forEachIndexed { index, address ->
-                messagingUtils.sendSmsMessage(message.body, setOf(address), message.subscriptionId,
-                    settings.deliveryReports, scheduledCallback = ScheduledCallback(key, index * smsParts))
+            } else {
+                val parts = getSmsManager(message.subscriptionId).divideMessage(message.body).size
+                addresses.forEachIndexed { index, address ->
+                    messagingUtils.sendSmsMessage(message.body, setOf(address), message.subscriptionId,
+                        settings.deliveryReports, scheduledCallback = ScheduledCallback(key, index * parts))
+                }
             }
-        } catch (_: Exception) { journal.unknown(key) }
+        } catch (_: Exception) {
+            journal.unknown(key)
+            return DispatchOutcome.Unknown(key.alarmIdentity())
+        }
     }
     refreshMessages()
+    return DispatchOutcome.Accepted()
 }

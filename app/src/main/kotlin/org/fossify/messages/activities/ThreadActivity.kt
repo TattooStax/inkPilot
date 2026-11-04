@@ -181,7 +181,11 @@ import org.fossify.messages.helpers.refreshMessages
 import org.fossify.messages.messaging.cancelScheduleSendPendingIntent
 import org.fossify.messages.messaging.isLongMmsMessage
 import org.fossify.messages.messaging.isShortCodeWithLetters
-import org.fossify.messages.messaging.scheduleMessage
+import org.fossify.messages.messaging.queueScheduled
+import org.fossify.messages.messaging.ScheduledQueueResult
+import org.fossify.messages.messaging.ScheduledVerdicts
+import org.fossify.messages.messaging.scheduledStatus
+import org.fossify.messages.messaging.showScheduledActions
 import org.fossify.messages.messaging.submit
 import org.fossify.messages.messaging.ComposerStore
 import org.fossify.messages.messaging.OutgoingMessage
@@ -460,7 +464,6 @@ class ThreadActivity : SimpleActivity() {
             }
             clearExpiredScheduledMessages(threadId, messages)
             messages = messages
-                .filterNot { it.isScheduled && it.millis() < System.currentTimeMillis() }
                 .toSortedMessages()
             if (messages.size > MESSAGES_LIMIT) {
                 messages = messages.takeLast(MESSAGES_LIMIT)
@@ -1582,6 +1585,11 @@ class ThreadActivity : SimpleActivity() {
             ensureBackgroundThread {
                 val messageId = scheduledMessage?.id ?: generateRandomId()
                 val message = buildScheduledMessage(text, subscriptionId, messageId)
+                val queued = queueScheduled(message, scheduledMessage?.key())
+                if (queued == ScheduledQueueResult.CLAIMED) {
+                    runOnUiThread { showErrorToast("This scheduled message was already claimed. Your edit is retained; check the conversation.") }
+                    return@ensureBackgroundThread
+                }
                 if (messages.isEmpty()) {
                     // create a temporary thread until a real message is sent
                     threadId = message.threadId
@@ -1597,8 +1605,11 @@ class ThreadActivity : SimpleActivity() {
                         )
                     )
                 }
-                scheduleMessage(message)
-                insertOrUpdateMessage(message)
+                refreshMessages()
+                if (queued == ScheduledQueueResult.POST_FAILED) {
+                    runOnUiThread { scheduledMessage = message; showErrorToast("Alarm could not be posted. Scheduled message retained; open it to send now or change its time.") }
+                    return@ensureBackgroundThread
+                }
 
                 runOnUiThread {
                     clearCurrentMessage()
@@ -1669,7 +1680,7 @@ class ThreadActivity : SimpleActivity() {
 
     private fun insertOrUpdateMessage(message: Message) {
         val updatedMessages = messages.toSortedMessages().toMutableList()
-        val messageIndex = updatedMessages.indexOfFirst { it.id == message.id }
+        val messageIndex = updatedMessages.indexOfFirst { it.key() == message.key() }
         if (messageIndex != -1) {
             updatedMessages[messageIndex] = message
         } else {
@@ -1846,7 +1857,6 @@ class ThreadActivity : SimpleActivity() {
 
         messages = newMessages.apply {
             val scheduledMessages = messagesDB.getScheduledThreadMessages(threadId)
-                .filterNot { it.isScheduled && it.millis() < System.currentTimeMillis() }
             addAll(scheduledMessages)
             if (config.useRecycleBin) {
                 val recycledMessages = messagesDB.getThreadMessagesFromRecycleBin(threadId).toSet()
@@ -1884,30 +1894,8 @@ class ThreadActivity : SimpleActivity() {
         binding.messageHolder.threadSendMessage.setText(stringId)
     }
 
-    private fun showScheduledMessageInfo(message: Message) {
-        val items = arrayListOf(
-            RadioItem(TYPE_EDIT, getString(R.string.update_message)),
-            RadioItem(TYPE_SEND, getString(R.string.send_now)),
-            RadioItem(TYPE_DELETE, getString(org.fossify.commons.R.string.delete))
-        )
-        RadioGroupDialog(
-            activity = this,
-            items = items,
-            titleId = R.string.scheduled_message
-        ) { any ->
-            when (any as Int) {
-                TYPE_DELETE -> cancelScheduledMessageAndRefresh(message.key())
-                TYPE_EDIT -> editScheduledMessage(message)
-                TYPE_SEND -> {
-                    messages = messages.toSortedMessages()
-                        .filterNot { message.key() == it.key() }
-                    extractAttachments(message)
-                    sendNormalMessage(message.body, message.subscriptionId)
-                    cancelScheduledMessageAndRefresh(message.key())
-                }
-            }
-        }
-    }
+    private fun showScheduledMessageInfo(message: Message) = showScheduledActions(message,
+        onEdit = { editScheduledMessage(message) }, onDelete = { cancelScheduledMessageAndRefresh(message.key()) })
 
     private fun extractAttachments(message: Message) {
         val messageAttachment = message.attachment
@@ -1919,6 +1907,10 @@ class ThreadActivity : SimpleActivity() {
     }
 
     private fun editScheduledMessage(message: Message) {
+        if (ScheduledVerdicts(this).use { it.state(message.key()) != "QUEUED" }) {
+            toast(scheduledStatus(message.key()))
+            return
+        }
         scheduledMessage = message
         clearCurrentMessage()
         binding.messageHolder.threadTypeMessage.setText(message.body)

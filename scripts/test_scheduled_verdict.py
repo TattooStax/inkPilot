@@ -28,7 +28,7 @@ class ScheduledRegressionTest(unittest.TestCase):
         self.assertNotIn('deleteScheduledMessage(', receiver)
         self.assertIn('intent.scheduledKey() ?: return', receiver)
         dispatch = source('messaging/ScheduledDispatch.kt')
-        self.assertLess(dispatch.index('journal.claim(key, count)'), dispatch.index('messagingUtils.sendMmsMessage'))
+        self.assertLess(dispatch.index('journal.claimPrepared(key)'), dispatch.index('messagingUtils.sendMmsMessage'))
         self.assertIn('journal.unknown(key)', dispatch)
 
     def test_expiry_does_not_delete_unresolved_sends(self):
@@ -38,6 +38,18 @@ class ScheduledRegressionTest(unittest.TestCase):
 
     def test_failed_mms_resend_preserves_original(self):
         self.assertIn('originalResentMessageId != -1L && receiverResultCode == Activity.RESULT_OK', source('receivers/MmsSentReceiver.kt'))
+
+    def test_legacy_ui_paths_preserve_uncertain_rows(self):
+        activity = source('activities/ThreadActivity.kt')
+        context = source('extensions/Context.kt')
+        self.assertNotIn('it.isScheduled && it.millis() < System.currentTimeMillis()', activity + context)
+        self.assertIn('queueScheduled(message, scheduledMessage?.key())', activity)
+        self.assertNotIn('scheduleMessage(message)', activity)
+        actions = source('messaging/ScheduledActions.kt')
+        self.assertIn('dispatchScheduled(message)', actions)
+        self.assertNotIn('deleteScheduledMessage', actions)
+        self.assertIn('if (queued)', actions)
+        self.assertIn('activity.scheduledStatus(message.key())', source('adapters/ThreadAdapter.kt'))
 
     def test_production_journal_schema_survives_reopen_and_enforces_unique_claims(self):
         ddl = re.findall(r'db.execSQL\("(CREATE TABLE [^"\n]+)"\)', source('messaging/ScheduledVerdicts.kt'))

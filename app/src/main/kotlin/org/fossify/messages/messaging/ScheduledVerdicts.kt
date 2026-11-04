@@ -22,6 +22,30 @@ class ScheduledVerdicts(context: Context) : SQLiteOpenHelper(context, "scheduled
         }, SQLiteDatabase.CONFLICT_IGNORE) != -1L
     }
 
+    /** Serialize edits and snapshot+claim across alarm/UI callers. No handoff in this transaction. */
+    fun <T> claimPrepared(key: MessageKey, prepare: () -> Pair<T, Int>?): T? {
+        val db = writableDatabase
+        db.beginTransaction()
+        try {
+            if (state(key) != "QUEUED") return null
+            val (value, count) = prepare() ?: return null
+            if (!claim(key, count)) return null
+            db.setTransactionSuccessful()
+            return value
+        } finally { db.endTransaction() }
+    }
+
+    fun editQueued(keys: List<MessageKey>, persist: () -> Unit): Boolean {
+        val db = writableDatabase
+        db.beginTransaction()
+        try {
+            if (keys.any { state(it) != "QUEUED" }) return false
+            persist()
+            db.setTransactionSuccessful()
+            return true
+        } finally { db.endTransaction() }
+    }
+
     fun state(key: MessageKey): String = readableDatabase.rawQuery(
         "SELECT state FROM claims WHERE identity = ?", arrayOf(key.alarmIdentity())
     ).use { if (it.moveToFirst()) it.getString(0) else "QUEUED" }
