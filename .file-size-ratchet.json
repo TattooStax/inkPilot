@@ -43,7 +43,7 @@
     "agent-core/src/test/kotlin/inkpilot/agent/DraftFreshnessTest.kt": 88,
     "agent-core/src/test/kotlin/inkpilot/agent/DraftGuardTest.kt": 89,
     "app/.gitignore": 4,
-    "app/build.gradle.kts": 171,
+    "app/build.gradle.kts": 172,
     "app/detekt-baseline.xml": 231,
     "app/lint-baseline.xml": 2460,
     "app/proguard-rules.pro": 46,
