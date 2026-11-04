@@ -26,7 +26,7 @@ FetchContent_Declare(llama_cpp
     URL_HASH SHA256=93d453d0ad99853b9f1dafeea78fa55da9a838ba71804abcf1aa823537703b79)
 FetchContent_MakeAvailable(llama_cpp)
 
-add_library(inkpilot-engine STATIC inference_engine.cpp inference_generation.cpp)
+add_library(inkpilot-engine STATIC inference_engine.cpp inference_generation.cpp inference_sampling.cpp)
 target_link_libraries(inkpilot-engine PUBLIC llama-common)
 target_include_directories(inkpilot-engine PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 

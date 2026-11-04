@@ -57,4 +57,5 @@ jobs:
           path: |
             agent-core/build/reports/tests/
             transport/build/reports/tests/
+            local-inference/build/reports/tests/
           if-no-files-found: ignore

@@ -23,8 +23,11 @@ Android API 35 x86_64. It:
    cannot be recreated by replay, and captures all five tabs.
 6. Rejects an invalid SIM without consuming the held draft. If the
    emulator has an active virtual SIM, exercises approval/send, provider
-   persistence, and duplicate-approval rejection. Records observed
-   callbacks without claiming real-world recipient delivery.
+   persistence, and duplicate-approval rejection. Requires real terminal
+   callback receipts and matching native provider type/status; an unknown
+   or still-pending attempt fails this proof. A genuine emulator rejection
+   is accepted only with its failure callback and matching failed row.
+   This does not claim real-world recipient delivery.
 
 An additional incoming SMS to a separate synthetic contact must wake
 WorkManager and create its held reply without the test invoking the

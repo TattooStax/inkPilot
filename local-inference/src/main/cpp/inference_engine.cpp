@@ -76,7 +76,8 @@ std::string generate(const std::string & model_path, const std::string & instruc
     user.role = "user";
     user.content = user_data;
     inputs.messages = {system, user};
-    inputs.enable_thinking = false;
+    // Keep the model's thought block and parser aligned; sampling bounds its size.
+    inputs.enable_thinking = true;
     inputs.reasoning_format = COMMON_REASONING_FORMAT_DEEPSEEK;
     inputs.add_bos = llama_vocab_get_add_bos(vocabulary);
     common_chat_session chat(templates.get(), vocabulary, inputs);

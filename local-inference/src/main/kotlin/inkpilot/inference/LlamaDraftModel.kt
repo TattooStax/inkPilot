@@ -39,14 +39,9 @@ class LlamaDraftModel(
                 DraftPromptEncoding.userData(prompt).toByteArray(Charsets.UTF_8),
                 limits.contextTokens, limits.maximumOutputTokens, prompt.maximumReplyCharacters,
                 limits.deadlineMillis, limits.threads, cancellation,
-            ).toString(Charsets.UTF_8).trim()
+            ).toString(Charsets.UTF_8)
             checkCancellation(cancellation)
-            check(output.isNotEmpty() && output.length <= prompt.maximumReplyCharacters) {
-                "The local model did not produce a complete reply within its limits."
-            }
-            check(listOf("<think>", "</think>", "<tool_call>", "<|im_start|>", "<|im_end|>")
-                .none { output.contains(it) }) { "The local model returned internal control text instead of a reply." }
-            return output
+            return DraftReplyValidation.finalText(output, prompt.maximumReplyCharacters)
         } finally {
             // Native model, context, batch and sampler are freed before JNI returns.
             inferenceLock.unlock()

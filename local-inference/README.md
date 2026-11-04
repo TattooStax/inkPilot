@@ -36,8 +36,15 @@ the actual token budget fail rather than dropping customer facts.
 There is no partially truncated success when the output token budget
 is exhausted. UTF-16 reply length is checked again in Kotlin.
 
-The GGUF chat template sets `enable_thinking=false`; final output is
-parsed using the same llama.cpp template session. Tool calls are
+The GGUF chat template opens its normal reasoning block. The upstream
+reasoning-budget sampler caps each reasoning block at one quarter of the
+existing output budget, up to 64 tokens, before closing it with the
+template's actual end tokens. It re-arms for subsequent blocks; all
+reasoning and final text share the same total output/time ceilings.
+This avoids relying on LFM3's advisory
+`enable_thinking=false`, which can reopen a block and misalign parsing.
+Only trusted assistant-prefix tokens initialize the budget sampler.
+Final output is parsed using the same llama.cpp template session. Tool calls are
 rejected. Template control tokens are tokenized only in template-owned
 segments; customer text and memory are treated as user-message data.
 Model and template logs are disabled to keep customer text out of logs.
@@ -58,7 +65,10 @@ SHA-256: `43a7d09a0e9cba91b63eb7052488b9564569bddfd65754d2e426465e572a7452`.
 
 The module's CMake project builds `inkpilot-inference-smoke` on a Linux
 host and the JNI library on Android. The host smoke uses the exact
-same engine, sampler, template and output parser as JNI:
+same engine, sampler, template and output parser as JNI. It covers the
+exact production device-test prompt and two ordinary customer questions,
+with the 2,048/256-token and 120-second production limits. It checks final
+UTF-16 length and the same internal-control markers rejected by Android:
 
 ```sh
 cmake -S local-inference/src/main/cpp -B /tmp/inkpilot-inference -DCMAKE_BUILD_TYPE=Release

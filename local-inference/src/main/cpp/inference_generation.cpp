@@ -33,14 +33,6 @@ void decode(llama_context * context, llama_batch_ext * batch, const llama_token 
     if (result != 0) throw std::runtime_error("Local model decoding failed");
 }
 
-Sampler sampler(const llama_vocab * vocabulary) {
-    Sampler result(llama_sampler_chain_init(llama_sampler_chain_default_params()), llama_sampler_free);
-    llama_sampler_chain_add(result.get(), llama_sampler_init_top_k(50));
-    llama_sampler_chain_add(result.get(), llama_sampler_init_penalties(llama_vocab_n_tokens(vocabulary), 64, 1.1f, 0, 0));
-    llama_sampler_chain_add(result.get(), llama_sampler_init_temp(0.1f));
-    llama_sampler_chain_add(result.get(), llama_sampler_init_dist(42));
-    return result;
-}
 } // namespace
 
 std::string generate_reply(llama_context * context, const llama_vocab * vocabulary,
@@ -55,7 +47,7 @@ std::string generate_reply(llama_context * context, const llama_vocab * vocabula
         decode(context, batch.get(), tokens.data() + start, static_cast<int>(std::min<size_t>(64, tokens.size() - start)),
                static_cast<int>(start), budget);
     }
-    auto sampling = sampler(vocabulary);
+    auto sampling = make_sampler(vocabulary, chat, limits);
     common_chat_input generated;
     bool finished = false;
     for (int index = 0; index < limits.output_tokens; ++index) {

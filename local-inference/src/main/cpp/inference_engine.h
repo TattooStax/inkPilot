@@ -36,6 +36,8 @@ using Context = std::unique_ptr<llama_context, decltype(&llama_free)>;
 using Batch = std::unique_ptr<llama_batch_ext, decltype(&llama_batch_ext_free)>;
 using Sampler = std::unique_ptr<llama_sampler, decltype(&llama_sampler_free)>;
 
+Sampler make_sampler(const llama_vocab * vocabulary, const common_chat_session & chat, const Limits & limits);
+
 std::string generate(const std::string & model_path, const std::string & instructions,
                      const std::string & user_data, const Limits & limits,
                      const std::function<bool()> & cancelled);
