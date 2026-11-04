@@ -53,26 +53,55 @@ class StudioRouteTest {
         }
     }
 
-    @Test fun restoresScrollAfterPanelRecreation() {
+    @Test fun delayedRowsRestoreScrollAcrossRecreationAndResumeRefresh() {
         val instrumentation = androidx.test.platform.app.InstrumentationRegistry.getInstrumentation()
+        val context = instrumentation.targetContext
+        val route = StudioRoute.Tab(StudioTab.SMS)
+        fun create(loading: Boolean) = StudioScrollView(context, loading).apply {
+            addView(android.widget.TextView(context).apply {
+                text = if (loading) "Loading messages…" else (1..100).joinToString("\n")
+            })
+        }
+        fun layout(view: android.view.View) {
+            view.measure(android.view.View.MeasureSpec.makeMeasureSpec(400, android.view.View.MeasureSpec.EXACTLY),
+                android.view.View.MeasureSpec.makeMeasureSpec(200, android.view.View.MeasureSpec.EXACTLY))
+            view.layout(0, 0, 400, 200)
+        }
+        lateinit var panels: StudioCanvasState
         instrumentation.runOnMainSync {
-            val context = instrumentation.targetContext
-            fun create() = android.widget.ScrollView(context).apply {
-                addView(android.widget.TextView(context).apply { text = (1..100).joinToString("\n") })
-            }
-            fun layout(view: android.view.View) {
-                view.measure(android.view.View.MeasureSpec.makeMeasureSpec(400, android.view.View.MeasureSpec.EXACTLY),
-                    android.view.View.MeasureSpec.makeMeasureSpec(200, android.view.View.MeasureSpec.EXACTLY))
-                view.layout(0, 0, 400, 200)
-            }
-            val route = StudioRoute.Tab(StudioTab.CONTACTS)
-            val panels = StudioCanvasState()
-            val original = panels.view(route, ::create)
+            val initial = StudioCanvasState()
+            val original = initial.view(route) { create(false) }
             layout(original)
             original.scrollTo(0, 300)
-            val restored = StudioCanvasState(panels.save()).view(route, ::create)
-            layout(restored)
-            assertEquals(300, restored.scrollY)
+            // Rotation starts a fresh loading panel; rotate again before rows arrive.
+            val recreated = StudioCanvasState(initial.save())
+            val loading = recreated.view(route) { create(true) }
+            layout(loading)
+            assertEquals(0, loading.scrollY)
+            panels = StudioCanvasState(recreated.save())
+        }
+        repeat(2) { pass ->
+            val loaded = java.util.concurrent.CountDownLatch(1)
+            val position = java.util.concurrent.atomic.AtomicInteger(-1)
+            instrumentation.runOnMainSync {
+                if (pass == 1) {
+                    // Same save/clear/re-render sequence as StudioHomeActivity.onResume.
+                    panels.save()
+                    panels.clear()
+                }
+                val scroll = panels.view(route) { create(true) } as StudioScrollView
+                layout(scroll)
+                assertEquals(0, scroll.scrollY)
+                android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+                    (scroll.getChildAt(0) as android.widget.TextView).text = (1..100).joinToString("\n")
+                    scroll.contentReady()
+                    layout(scroll)
+                    position.set(scroll.scrollY)
+                    loaded.countDown()
+                }, 100)
+            }
+            assertTrue("delayed content callback", loaded.await(5, java.util.concurrent.TimeUnit.SECONDS))
+            assertEquals("scroll after delayed load, pass $pass", 300, position.get())
         }
     }
 

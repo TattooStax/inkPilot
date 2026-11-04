@@ -8,7 +8,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.LinearLayout
-import android.widget.ScrollView
 import android.widget.TextView
 import android.widget.Toast
 import java.util.concurrent.Executor
@@ -59,7 +58,7 @@ internal object StudioUi {
         layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(this, 1))
     }
 
-    fun scroll(activity: Activity, column: LinearLayout) = ScrollView(activity).apply {
+    fun scroll(activity: Activity, column: LinearLayout, loading: Boolean = false) = StudioScrollView(activity, loading).apply {
         isFillViewport = true
         addView(column)
     }

@@ -42,6 +42,7 @@ internal class MessagePanel(
         val loading = StudioUi.text(activity, "Loading messages…")
         list.addView(loading)
         body.addView(list)
+        val scroll = StudioUi.scroll(activity, body, loading = true)
         work.load({ activity.getConversations().take(150) }) { conversations ->
             list.removeAllViews()
             if (conversations.isEmpty()) list.addView(StudioUi.text(activity, "No messages yet."))
@@ -59,8 +60,9 @@ internal class MessagePanel(
                 list.addView(row)
                 list.addView(StudioUi.rule(activity))
             }
+            scroll.contentReady()
         }
-        return StudioUi.scroll(activity, body)
+        return scroll
     }
 
     fun phone(): View {

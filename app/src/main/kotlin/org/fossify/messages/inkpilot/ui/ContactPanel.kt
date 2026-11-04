@@ -25,6 +25,7 @@ internal class ContactPanel(
         val list = StudioUi.column(activity, 0).apply { id = R.id.inkpilot_contact_list }
         list.addView(StudioUi.text(activity, "Loading contacts…"))
         body.addView(list)
+        val scroll = StudioUi.scroll(activity, body, loading = true)
         work.load(repository::contacts) { contacts ->
             list.removeAllViews()
             if (contacts.isEmpty()) list.addView(StudioUi.text(activity, "Add a client or receive a message to start."))
@@ -38,8 +39,9 @@ internal class ContactPanel(
                 list.addView(row)
                 list.addView(StudioUi.rule(activity))
             }
+            scroll.contentReady()
         }
-        return StudioUi.scroll(activity, body)
+        return scroll
     }
 
     private fun edit(contact: StudioContact) {
