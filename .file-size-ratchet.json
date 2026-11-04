@@ -11,7 +11,7 @@
     ".github/dependabot.yml": 48,
     ".github/workflows/file-size-ratchet.yml": 15,
     ".github/workflows/inkpilot-build.yml": 61,
-    ".github/workflows/inkpilot-device.yml": 158,
+    ".github/workflows/inkpilot-device.yml": 184,
     ".github/workflows/no-response.yml": 11,
     ".github/workflows/pr-labeler.yml": 10,
     ".github/workflows/pr.yml": 13,
