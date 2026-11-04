@@ -11,6 +11,7 @@ on:
       - '*gradle*'
       - 'scripts/inkpilot-device-*'
       - 'scripts/run-inkpilot-test-class.sh'
+      - 'scripts/inkpilot-shell-baseline.sh'
       - 'scripts/test-run-inkpilot-test-class.py'
       - '.github/workflows/inkpilot-device.yml'
   pull_request:
@@ -91,12 +92,7 @@ jobs:
           emulator-boot-timeout: 300
           disable-animations: true
           emulator-options: -no-window -no-snapshot -noaudio -no-boot-anim -gpu swiftshader_indirect -camera-back none
-          script: |
-            shopt -s nullglob; apks=(app/build/outputs/apk/foss/debug/*.apk); test "${#apks[@]}" -eq 1; adb -s emulator-5554 install -r "${apks[0]}"
-            adb -s emulator-5554 shell cmd role add-role-holder --user 0 android.app.role.SMS app.inkpilot.android.debug
-            for permission in READ_SMS SEND_SMS RECEIVE_SMS READ_CONTACTS READ_PHONE_STATE POST_NOTIFICATIONS; do adb -s emulator-5554 shell pm grant app.inkpilot.android.debug "android.permission.$permission"; done
-            scripts/run-inkpilot-test-class.sh emulator-5554 org.fossify.messages.inkpilot.data.LegacyFirstLaunchTest
-            scripts/run-inkpilot-test-class.sh emulator-5554 org.fossify.messages.inkpilot.smoke.ShellBaselineTest
+          script: bash scripts/inkpilot-shell-baseline.sh
       - name: Upload redacted baseline verdicts
         if: always()
         uses: actions/upload-artifact@v4
