@@ -41,7 +41,7 @@ fun Context.sendMessageCompat(
     subId: Int?,
     attachments: List<Attachment>,
     messageId: Long? = null
-) {
+): DispatchOutcome {
     val settings = getSendMessageSettings()
     if (subId != null) {
         settings.subscriptionId = subId
@@ -56,7 +56,15 @@ fun Context.sendMessageCompat(
         addressCount = addresses.size,
         sendGroupAsMms = settings.group
     )
+    val result: DispatchOutcome
     if (channel == OutboundChannel.MMS) {
+        // Preflight all URIs before the first MMS handoff.
+        for (attachment in attachments) {
+            try {
+                contentResolver.openInputStream(attachment.getUri())?.use { it.read() }
+                    ?: return DispatchOutcome.Rejected("Attachment is unreadable")
+            } catch (_: Exception) { return DispatchOutcome.Rejected("Attachment is unreadable") }
+        }
         // we send all MMS attachments separately to reduces the chances of hitting provider MMS limit.
         if (attachments.isNotEmpty()) {
             val lastIndex = attachments.lastIndex
@@ -72,6 +80,7 @@ fun Context.sendMessageCompat(
         } else {
             messagingUtils.sendMmsMessage(text, addresses, null, settings, messageId)
         }
+        result = DispatchOutcome.Unknown(java.util.UUID.randomUUID().toString())
     } else {
         val outcome = messageTransport.sendSms(
             OutboundSms(
@@ -82,6 +91,8 @@ fun Context.sendMessageCompat(
                 messageId = messageId
             )
         )
+        result = if (outcome is TransportOutcome.Sent) DispatchOutcome.Accepted()
+            else DispatchOutcome.Unknown(java.util.UUID.randomUUID().toString())
         if (outcome is TransportOutcome.Failed) {
             showSmsTransportFailure(outcome)
         }
@@ -90,6 +101,7 @@ fun Context.sendMessageCompat(
         val threadId = getThreadId(addresses.toSet())
         shortcutHelper.reportSendMessageUsage(threadId)
     }
+    return result
 }
 
 /**

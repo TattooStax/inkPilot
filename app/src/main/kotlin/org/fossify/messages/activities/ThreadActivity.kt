@@ -184,6 +184,10 @@ import org.fossify.messages.messaging.cancelScheduleSendPendingIntent
 import org.fossify.messages.messaging.isLongMmsMessage
 import org.fossify.messages.messaging.isShortCodeWithLetters
 import org.fossify.messages.messaging.scheduleMessage
+import org.fossify.messages.messaging.ComposerStore
+import org.fossify.messages.messaging.OutgoingMessage
+import org.fossify.messages.messaging.DispatchOutcome
+import org.fossify.messages.messaging.MessageDispatcher
 import org.fossify.messages.messaging.sendMessageCompat
 import org.fossify.messages.models.Attachment
 import org.fossify.messages.models.AttachmentSelection
@@ -206,6 +210,8 @@ import java.io.File
 class ThreadActivity : SimpleActivity() {
     private var threadId = 0L
     private var currentSIMCardIndex = 0
+    private var restoredSubscriptionId: Int? = null
+    private var restoredRecipient: String? = null
     private var isActivityVisible = false
     private var refreshedSinceSent = false
     private var threadItems: List<ThreadItem> = emptyList()
@@ -297,7 +303,17 @@ class ThreadActivity : SimpleActivity() {
                 }
             }
 
-            val smsDraft = getSmsDraft(threadId)
+            val composer = ComposerStore(this).load(threadId)
+            if (composer != null) {
+                runOnUiThread {
+                    binding.messageHolder.threadTypeMessage.setText(composer.body)
+                    restoredSubscriptionId = composer.subscriptionId
+                    restoredRecipient = composer.recipient
+                    availableSIMCards.indexOfFirst { it.subscriptionId == composer.subscriptionId }.takeIf { it >= 0 }?.let { currentSIMCardIndex = it }
+                    composer.attachmentUris.forEach { addAttachment(it, restoring = true) }
+                }
+            }
+            val smsDraft = if (composer == null) getSmsDraft(threadId) else ""
             if (smsDraft.isNotEmpty()) {
                 runOnUiThread {
                     binding.messageHolder.threadTypeMessage.setText(smsDraft)
@@ -342,13 +358,13 @@ class ThreadActivity : SimpleActivity() {
     }
 
     private fun saveDraftMessage() {
-        val draftMessage = binding.messageHolder.threadTypeMessage.value
-        ensureBackgroundThread {
-            if (draftMessage.isNotEmpty() && getAttachmentSelections().isEmpty()) {
-                saveSmsDraft(draftMessage, threadId)
-            } else {
-                deleteSmsDraft(threadId)
-            }
+        val request = OutgoingMessage(threadId, restoredRecipient ?: participants.getAddresses().joinToString("|"),
+            binding.messageHolder.threadTypeMessage.value, getAttachmentSelections().map { it.uri },
+            restoredSubscriptionId ?: availableSIMCards.getOrNull(currentSIMCardIndex)?.subscriptionId ?: -1)
+        if (request.body.isNotEmpty() || request.attachmentUris.isNotEmpty()) {
+            ComposerStore(this).save(request)
+        } else {
+            ComposerStore(this).clear(threadId)
         }
     }
 
@@ -1076,7 +1092,7 @@ class ThreadActivity : SimpleActivity() {
     @SuppressLint("MissingPermission")
     private fun setupSIMSelector() {
         val availableSIMs = subscriptionManagerCompat().activeSubscriptionInfoList ?: return
-        if (availableSIMs.size > 1) {
+        if (availableSIMs.isNotEmpty()) {
             availableSIMs.forEachIndexed { index, subscriptionInfo ->
                 var label = subscriptionInfo.displayName?.toString() ?: ""
                 if (subscriptionInfo.number?.isNotEmpty() == true) {
@@ -1104,6 +1120,7 @@ class ThreadActivity : SimpleActivity() {
 
             if (availableSIMCards.isNotEmpty()) {
                 binding.messageHolder.threadSelectSimIcon.setOnClickListener {
+                    restoredSubscriptionId = null
                     currentSIMCardIndex = (currentSIMCardIndex + 1) % availableSIMCards.size
                     val currentSIMCard = availableSIMCards[currentSIMCardIndex]
                     @SuppressLint("SetTextI18n")
@@ -1486,21 +1503,26 @@ class ThreadActivity : SimpleActivity() {
 
     private fun getAttachmentSelections() = getAttachmentsAdapter()?.attachments ?: emptyList()
 
-    private fun addAttachment(uri: Uri) {
+    private fun addAttachment(uri: Uri, restoring: Boolean = false) {
+        if (!restoring) {
+            // SAF providers may offer a durable read grant. Non-persistable URIs remain
+            // in the draft and fail closed if their temporary grant expires.
+            runCatching { contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION) }
+        }
         val id = uri.toString()
         if (getAttachmentSelections().any { it.id == id }) {
             toast(R.string.duplicate_item_warning)
             return
         }
 
-        val mimeType = contentResolver.getType(uri)
+        val mimeType = if (restoring) runCatching { contentResolver.getType(uri) }.getOrNull() ?: "application/octet-stream" else contentResolver.getType(uri)
         if (mimeType == null) {
             toast(org.fossify.commons.R.string.unknown_error_occurred)
             return
         }
         val isImage = mimeType.isImageMimeType()
         val isGif = mimeType.isGifMimeType()
-        if (isGif || !isImage) {
+        if (!restoring && (isGif || !isImage)) {
             // is it assumed that images will always be compressed below the max MMS size limit
             val fileSize = getFileSizeFromUri(uri)
             val mmsFileSizeLimit = config.mmsFileSizeLimit
@@ -1529,8 +1551,8 @@ class ThreadActivity : SimpleActivity() {
             id = id,
             uri = uri,
             mimetype = mimeType,
-            filename = getFilenameFromUri(uri),
-            isPending = isImage && !isGif
+            filename = if (restoring) uri.lastPathSegment ?: "attachment" else getFilenameFromUri(uri),
+            isPending = !restoring && isImage && !isGif
         )
         adapter.addAttachment(attachment)
         checkSendMessageAvailability()
@@ -1593,8 +1615,8 @@ class ThreadActivity : SimpleActivity() {
 
         text = removeDiacriticsIfNeeded(text)
 
-        val subscriptionId = availableSIMCards.getOrNull(currentSIMCardIndex)?.subscriptionId
-            ?: SmsManager.getDefaultSmsSubscriptionId()
+        val subscriptionId = restoredSubscriptionId ?: availableSIMCards.getOrNull(currentSIMCardIndex)?.subscriptionId
+            ?: -1
 
         if (isScheduledMessage) {
             sendScheduledMessage(text, subscriptionId)
@@ -1675,10 +1697,33 @@ class ThreadActivity : SimpleActivity() {
     private fun sendNormalMessage(text: String, subscriptionId: Int) {
         val addresses = participants.getAddresses()
         val attachments = buildMessageAttachments()
+        if (restoredRecipient != null && restoredRecipient != addresses.joinToString("|")) {
+            showErrorToast("Draft recipient changed. Reopen the original conversation.")
+            return
+        }
+        if (availableSIMCards.none { it.subscriptionId == subscriptionId }) {
+            showErrorToast("Select an active SIM")
+            return
+        }
 
         try {
             refreshedSinceSent = false
-            sendMessageCompat(text, addresses, subscriptionId, attachments, messageToResend)
+            // Preserve original human text before diacritic conversion or any transport side effect.
+            val request = OutgoingMessage(threadId, addresses.joinToString("|"),
+                binding.messageHolder.threadTypeMessage.value, attachments.map { it.getUri() }, subscriptionId)
+            if (!ComposerStore(this).save(request)) {
+                showErrorToast("Unable to save composer")
+                return
+            }
+            val outcome = MessageDispatcher.local(this) {
+                sendMessageCompat(text, addresses, it.subscriptionId, attachments, messageToResend)
+            }.submit(request)
+            ComposerStore(this).complete(threadId, outcome)
+            if (outcome !is DispatchOutcome.Accepted) {
+                showErrorToast(if (outcome is DispatchOutcome.Rejected) outcome.reason
+                    else "Send status unknown. Draft retained; check conversation before sending again.")
+                return
+            }
             ensureBackgroundThread {
                 val existingMessages = messages.toSortedMessages()
                 val messages = getMessages(threadId, limit = maxOf(1, attachments.size))
@@ -1687,6 +1732,9 @@ class ThreadActivity : SimpleActivity() {
                     insertOrUpdateMessage(message)
                 }
             }
+            ensureBackgroundThread { deleteSmsDraft(threadId) }
+            restoredSubscriptionId = null
+            restoredRecipient = null
             clearCurrentMessage()
 
         } catch (e: Exception) {

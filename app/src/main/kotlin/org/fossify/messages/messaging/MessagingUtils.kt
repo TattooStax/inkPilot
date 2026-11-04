@@ -176,11 +176,9 @@ class MessagingUtils(val context: Context) {
                     }
                     val name = attachment.filename
                     message.addMedia(bytes, mimeType, name, name)
-                }
+                } ?: throw IllegalArgumentException("Attachment is unreadable")
             } catch (e: Exception) {
-                context.showErrorToast(e)
-            } catch (e: Error) {
-                context.showErrorToast(e.localizedMessage ?: context.getString(org.fossify.commons.R.string.unknown_error_occurred))
+                throw e
             }
         }
 
@@ -191,7 +189,7 @@ class MessagingUtils(val context: Context) {
         try {
             transaction.sendNewMessage(message)
         } catch (e: Exception) {
-            context.showErrorToast(e)
+            throw e
         }
     }
 
