@@ -1,0 +1,110 @@
+#!/usr/bin/env python3
+"""Host-only contract tests: the fake adb never contacts a device."""
+import os
+from pathlib import Path
+import shutil
+import subprocess
+import tempfile
+import unittest
+
+ROOT = Path(__file__).resolve().parents[1]
+
+
+class RunnerContract(unittest.TestCase):
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory(dir=os.environ.get('TMPDIR'))
+        self.root = Path(self.temp.name)
+        (self.root / 'scripts').mkdir()
+        for name in ('run-inkpilot-test-class.sh', 'inkpilot-device-result.py'):
+            shutil.copy2(ROOT / 'scripts' / name, self.root / 'scripts' / name)
+        self.app = self.root / 'app/build/outputs/apk/foss/debug/app.apk'
+        self.tests = self.root / 'app/build/outputs/apk/androidTest/foss/debug/test.apk'
+        for apk in (self.app, self.tests):
+            apk.parent.mkdir(parents=True)
+            apk.touch()
+        self.log = self.root / 'adb.log'
+        adb = self.root / 'adb'
+        adb.write_text('''#!/usr/bin/env python3
+import json, os, sys
+with open(os.environ['ADB_LOG'], 'a') as log:
+    log.write(json.dumps(sys.argv[1:]) + '\\n')
+if os.environ.get('ADB_FAIL_COMMAND') in sys.argv[3:]: sys.exit(1)
+if sys.argv[3:] == ['get-state']: print('device')
+if 'instrument' in sys.argv:
+    print(os.environ.get('INSTRUMENT_RESULT', 'OK (1 test)'))
+    sys.exit(int(os.environ.get('ADB_EXIT', '0')))
+''')
+        adb.chmod(0o755)
+        self.env = dict(os.environ, PATH=f'{self.root}:' + os.environ['PATH'], ADB_LOG=str(self.log), TMPDIR=str(self.root))
+
+    def tearDown(self):
+        self.temp.cleanup()
+
+    def run_runner(self, *args):
+        return subprocess.run(['bash', 'scripts/run-inkpilot-test-class.sh', *args],
+                              cwd=self.root, env=self.env, capture_output=True, text=True)
+
+    def calls(self):
+        import json
+        return [json.loads(line) for line in self.log.read_text().splitlines()] if self.log.exists() else []
+
+    def test_rejects_invalid_arguments_before_adb(self):
+        for args in [(), ('emulator-5554',), ('192.168.40.149:5555', 'a.b.Test'),
+                     ('emulator-x', 'a.b.Test'), ('emulator-5554', 'a.b.Test#method'),
+                     ('emulator-5554', 'a.b.Test,a.b.Other'), ('emulator-5554', '-bad'),
+                     ('emulator-5554', 'a.b.Test', 'extra')]:
+            with self.subTest(args=args):
+                self.assertNotEqual(0, self.run_runner(*args).returncode)
+                self.assertEqual([], self.calls())
+
+    def test_missing_or_ambiguous_apks_never_contact_adb(self):
+        self.app.unlink()
+        self.assertNotEqual(0, self.run_runner('emulator-5554', 'a.b.Test').returncode)
+        self.app.touch()
+        self.tests.with_name('extra.apk').touch()
+        self.assertNotEqual(0, self.run_runner('emulator-5554', 'a.b.Test').returncode)
+        self.assertEqual([], self.calls())
+
+    def test_only_exact_serial_installs_and_exact_class(self):
+        result = self.run_runner('emulator-5554', 'a.b.Test')
+        self.assertEqual(0, result.returncode, result.stderr)
+        self.assertEqual([
+            ['-s', 'emulator-5554', 'get-state'],
+            ['-s', 'emulator-5554', 'install', '-r', str(self.app.relative_to(self.root))],
+            ['-s', 'emulator-5554', 'install', '-r', str(self.tests.relative_to(self.root))],
+            ['-s', 'emulator-5554', 'shell', 'am', 'instrument', '-w', '-e', 'class',
+             'a.b.Test', 'app.inkpilot.android.debug.test/androidx.test.runner.AndroidJUnitRunner'],
+        ], self.calls())
+
+    def test_transport_or_install_failure_stops_before_instrumentation(self):
+        for command in ('get-state', 'install'):
+            with self.subTest(command=command):
+                self.env['ADB_FAIL_COMMAND'] = command
+                self.assertNotEqual(0, self.run_runner('emulator-5554', 'a.b.Test').returncode)
+                self.assertFalse(any('instrument' in call for call in self.calls()))
+
+    def test_failed_retry_replaces_previous_passing_evidence(self):
+        self.assertEqual(0, self.run_runner('emulator-5554', 'a.b.Test').returncode)
+        self.env['ADB_FAIL_COMMAND'] = 'install'
+        self.assertNotEqual(0, self.run_runner('emulator-5554', 'a.b.Test').returncode)
+        verdict = self.root / 'app/build/test-class-evidence/a.b.Test/result.txt'
+        self.assertTrue(verdict.read_text().startswith('FAIL '))
+
+    def test_raw_assertion_content_is_not_published(self):
+        self.env['INSTRUMENT_RESULT'] = 'FAILURES!!! synthetic-secret-body'
+        result = self.run_runner('emulator-5554', 'a.b.Test')
+        self.assertNotEqual(0, result.returncode)
+        self.assertNotIn('synthetic-secret-body', result.stdout + result.stderr)
+        verdict = self.root / 'app/build/test-class-evidence/a.b.Test/result.txt'
+        self.assertNotIn('synthetic-secret-body', verdict.read_text())
+
+    def test_failures_are_nonzero(self):
+        for output, code in [('FAILURES!!!', '0'), ('OK (0 tests)', '0'),
+                             ('INSTRUMENTATION_FAILED', '0'), ('', '0'), ('OK (1 test)', '1')]:
+            with self.subTest(output=output, code=code):
+                self.env.update(INSTRUMENT_RESULT=output, ADB_EXIT=code)
+                self.assertNotEqual(0, self.run_runner('emulator-5554', 'a.b.Test').returncode)
+
+
+if __name__ == '__main__':
+    unittest.main()

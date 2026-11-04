@@ -73,7 +73,11 @@ for permission in READ_SMS SEND_SMS RECEIVE_SMS READ_CONTACTS READ_PHONE_STATE P
   adb shell pm grant "$package" "android.permission.$permission"
 done
 
-run_tests sqlite package org.fossify.messages.inkpilot.data
+# First-launch preservation requires a pristine app/provider and runs first in
+# the independent model-free baseline job. Never include it in this broad suite.
+timeout 600 adb shell "am instrument -w -r -e package org.fossify.messages.inkpilot.data -e notClass org.fossify.messages.inkpilot.data.LegacyFirstLaunchTest $runner" \
+  | tee "$evidence/sqlite.txt"
+python3 scripts/inkpilot-device-result.py "$evidence/sqlite.txt"
 run_tests studio package org.fossify.messages.inkpilot.studio
 run_tests recovery package org.fossify.messages.inkpilot.runtime
 run_tests app-lock package org.fossify.messages.inkpilot.ui
