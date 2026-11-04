@@ -85,7 +85,7 @@
     "app/src/androidTest/kotlin/org/fossify/messages/inkpilot/smoke/LocalLoopSmokeTest.kt": 143,
     "app/src/androidTest/kotlin/org/fossify/messages/inkpilot/smoke/NativeSendSmokeTest.kt": 125,
     "app/src/androidTest/kotlin/org/fossify/messages/inkpilot/smoke/RevocablePreviewProvider.kt": 41,
-    "app/src/androidTest/kotlin/org/fossify/messages/inkpilot/smoke/ShellBaselineTest.kt": 139,
+    "app/src/androidTest/kotlin/org/fossify/messages/inkpilot/smoke/ShellBaselineTest.kt": 141,
     "app/src/androidTest/kotlin/org/fossify/messages/inkpilot/smoke/SmokeViews.kt": 59,
     "app/src/androidTest/kotlin/org/fossify/messages/inkpilot/smoke/ThreadReviewRegressionTest.kt": 149,
     "app/src/androidTest/kotlin/org/fossify/messages/inkpilot/smoke/ToolProtocolDeviceTest.kt": 19,
