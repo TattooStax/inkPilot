@@ -55,7 +55,6 @@ import org.fossify.messages.adapters.ConversationsAdapter
 import org.fossify.messages.adapters.SearchResultsAdapter
 import org.fossify.messages.databinding.ActivityMainBinding
 import org.fossify.messages.extensions.checkAndDeleteOldRecycleBinMessages
-import org.fossify.messages.extensions.clearAllMessagesIfNeeded
 import org.fossify.messages.extensions.clearExpiredScheduledMessages
 import org.fossify.messages.extensions.config
 import org.fossify.messages.extensions.conversationsDB
@@ -102,13 +101,11 @@ class MainActivity : SimpleActivity() {
         setupEdgeToEdge(padBottomImeAndSystem = listOf(binding.conversationsList))
 
         checkAndDeleteOldRecycleBinMessages()
-        clearAllMessagesIfNeeded {
-            // SMS-3-TOUCHPOINT 2/3: posture is answered before the
-            // message flow starts, because the answer decides whether
-            // the default SMS role may be requested at all.
-            ensureRolePosture {
-                loadMessages()
-            }
+        // SMS-3-TOUCHPOINT 2/3: posture is answered before the
+        // message flow starts, because the answer decides whether
+        // the default SMS role may be requested at all.
+        ensureRolePosture {
+            loadMessages()
         }
 
         if (checkAppSideloading()) {
