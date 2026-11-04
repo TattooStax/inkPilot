@@ -14,3 +14,6 @@ for permission in READ_SMS SEND_SMS RECEIVE_SMS READ_CONTACTS READ_PHONE_STATE P
 done
 scripts/run-inkpilot-test-class.sh "$serial" org.fossify.messages.inkpilot.data.LegacyFirstLaunchTest
 scripts/run-inkpilot-test-class.sh "$serial" org.fossify.messages.inkpilot.smoke.ShellBaselineTest
+# Model-free, disposable provider/UI regressions run after the clean-install baseline.
+scripts/run-inkpilot-test-class.sh "$serial" org.fossify.messages.inkpilot.smoke.InShellThreadTest
+scripts/run-inkpilot-test-class.sh "$serial" org.fossify.messages.inkpilot.smoke.ThreadReviewRegressionTest
