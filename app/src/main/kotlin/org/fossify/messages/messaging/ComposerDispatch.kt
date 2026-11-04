@@ -6,6 +6,7 @@ import android.net.Uri
 fun ComposerStore.submit(
     request: OutgoingMessage, dispatcher: MessageDispatcher, unavailableUris: Set<Uri> = emptySet()
 ): DispatchOutcome {
+    if (isUnknown(request.threadId)) return DispatchOutcome.Rejected("Previous send outcome unknown. Check the conversation.")
     if (!save(request)) return DispatchOutcome.Rejected("Unable to save composer")
     val outcome = if (request.attachmentUris.any { it in unavailableUris }) {
         DispatchOutcome.Rejected("Attachment unavailable. Remove or reattach it to send.")

@@ -40,6 +40,7 @@ class StudioHomeActivity : AppCompatActivity() {
     private lateinit var panels: StudioCanvasState
     private val tab get() = navigator.selectedTab
     private var smsObserver: SmsRefreshObserver? = null
+    private var attachmentThread = 0L
     private val appLock by lazy { StudioAppLock(this) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -50,6 +51,7 @@ class StudioHomeActivity : AppCompatActivity() {
             isAppearanceLightStatusBars = true
             isAppearanceLightNavigationBars = true
         }
+        attachmentThread = savedInstanceState?.getLong("attachment.thread") ?: 0L
         navigator = StudioNavigator(savedInstanceState)
         panels = StudioCanvasState(savedInstanceState?.getBundle("studio.panels") ?: Bundle())
         if (savedInstanceState == null && intent.getStringExtra("inkpilot_panel") == "drafts") {
@@ -107,11 +109,13 @@ class StudioHomeActivity : AppCompatActivity() {
         if (isDestroyed || isFinishing) return
         if (appLockManager.isLocked()) { canvas.removeAllViews(); return }
         val route = navigator.current
-        val messages = MessagePanel(this, work, ::setupSms, { openAgent("drafts") }, ::openRoute, importImage = ::importMmsImage)
+        val messages = MessagePanel(this, work, ::setupSms, { openAgent("drafts") }, ::openRoute,
+            threadFooter = ::threadFooter, importImage = ::importMmsImage)
         val view = panels.view(route) { when (route) {
-            StudioRoute.Auxiliary("drafts") -> DraftPanel(this, repository, work, ::refreshPanels).view()
+            StudioRoute.Auxiliary("drafts") -> DraftPanel(this, repository, work, ::refreshPanels, ::openRoute).view()
             is StudioRoute.Thread -> messages.thread(route.threadId)
-            is StudioRoute.Compose -> StudioUi.text(this, "New messages will be available in the composer update.")
+            is StudioRoute.Compose -> StudioUi.scroll(this, ThreadComposer(this, work, ::pickAttachment, ::refreshPanels, ::openRoute).view(0, route))
+            is StudioRoute.Draft -> inlineDraft(route.draftId)
             is StudioRoute.ImageLinks -> studio.linkedImages(route.contactId, route.threadId)
             StudioRoute.Soul -> agent.soul()
             StudioRoute.Model -> agent.model()
@@ -175,6 +179,31 @@ class StudioHomeActivity : AppCompatActivity() {
         render()
     }
 
+    private fun pickAttachment(threadId: Long) {
+        attachmentThread = threadId
+        startActivityForResult(Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
+            type = "*/*"; addCategory(Intent.CATEGORY_OPENABLE)
+            putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION)
+        }, 7310)
+    }
+    private fun threadFooter(threadId: Long): android.view.View {
+        val root = StudioUi.column(this, 0)
+        work.load({ repository.drafts().filter { it.threadId == threadId && it.status == "HELD" } }) { drafts ->
+            drafts.forEach { root.addView(InlineDraftReview(this, work, ::refreshPanels).view(it), 0) }
+        }
+        root.addView(ThreadComposer(this, work, ::pickAttachment, ::refreshPanels, ::openRoute).view(threadId))
+        return StudioUi.scroll(this, root).apply { layoutParams = LinearLayout.LayoutParams(-1, StudioUi.dp(root, 280)) }
+    }
+    private fun inlineDraft(id: String): android.view.View {
+        val root = StudioUi.column(this, 0)
+        work.load({ repository.drafts().firstOrNull { it.draftId == id } }) { draft ->
+            if (draft != null) root.addView(MessagePanel(this, work, ::setupSms, { openAgent("drafts") }, ::openRoute, ::threadFooter).thread(draft.threadId))
+            else root.addView(StudioUi.text(this, "Draft is no longer available"))
+        }
+        return root
+    }
+
     private fun setupSms() {
         if (!org.fossify.messages.helpers.SmsRole.isHeld(this)) {
             val intent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
@@ -208,6 +237,7 @@ class StudioHomeActivity : AppCompatActivity() {
         if (intent.getStringExtra("inkpilot_panel") == "drafts") openAgent("drafts")
     }
     override fun onSaveInstanceState(outState: Bundle) {
+        outState.putLong("attachment.thread", attachmentThread)
         navigator.save(outState)
         outState.putBundle("studio.panels", panels.save())
         agent.soulDraft?.let { outState.putString("soul_draft", it) }
@@ -215,7 +245,16 @@ class StudioHomeActivity : AppCompatActivity() {
     }
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == SMS_ROLE_REQUEST) requestSmsPermissions()
+        if (requestCode == 7310 && resultCode == RESULT_OK && data != null) {
+            val uris = buildList {
+                data.data?.let { add(it) }
+                data.clipData?.let { clip -> for (i in 0 until clip.itemCount) add(clip.getItemAt(i).uri) }
+            }.distinct()
+            uris.forEach { uri -> try { contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION) } catch (_: Exception) { } }
+            val store = org.fossify.messages.messaging.ComposerStore(this)
+            store.load(attachmentThread)?.let { store.save(it.copy(attachmentUris = (it.attachmentUris + uris).distinct())) }
+            refreshPanels()
+        } else if (requestCode == SMS_ROLE_REQUEST) requestSmsPermissions()
         else if (!agent.onActivityResult(requestCode, resultCode, data)) studio.onActivityResult(requestCode, resultCode, data)
     }
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {

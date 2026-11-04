@@ -24,5 +24,6 @@ class ComposerStore(context: Context) {
             is DispatchOutcome.Rejected -> Unit
         }
     }
+    fun isUnknown(threadId: Long): Boolean = prefs.contains("unknown:$threadId")
     fun clear(threadId: Long) { check(prefs.edit().remove(threadId.toString()).remove("unknown:$threadId").commit()) }
 }

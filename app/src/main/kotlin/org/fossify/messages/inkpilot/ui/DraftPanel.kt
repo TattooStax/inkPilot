@@ -14,6 +14,7 @@ internal class DraftPanel(
     private val repository: StudioRepository,
     private val work: StudioWork,
     private val refresh: () -> Unit,
+    private val open: (StudioRoute) -> Unit = {},
 ) {
     fun view(): View {
         val body = StudioUi.column(activity)
@@ -34,8 +35,7 @@ internal class DraftPanel(
                 list.addView(StudioUi.text(activity, statusText(draft.status, draft.canReview), 13f))
                 if (draft.status != "HELD" || !draft.canReview) {
                     list.addView(StudioUi.button(activity, "View conversation") {
-                        activity.startActivity(Intent(activity, ThreadActivity::class.java)
-                            .putExtra(THREAD_ID, draft.threadId).putExtra(THREAD_TITLE, draft.displayName))
+                        open(StudioRoute.Thread(draft.threadId))
                     })
                 }
                 if (draft.status == "HELD") {
@@ -46,7 +46,7 @@ internal class DraftPanel(
                         }) { refresh() }
                     })
                     if (draft.canReview) list.addView(StudioUi.button(activity, "Review draft") {
-                        DraftReview(activity, work, refresh).show(draft)
+                        open(StudioRoute.Draft(draft.draftId))
                     }.apply { contentDescription = "Review draft" })
                     list.addView(StudioUi.button(activity, "Dismiss") {
                         work.load({ repository.dismissDraft(draft.draftId) }) { refresh() }
