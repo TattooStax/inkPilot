@@ -101,9 +101,6 @@ class LegacyFirstLaunchTest {
         check(providerId != scheduledId && providerId != recycledId && providerThread != temporaryThread) {
             "Disposable provider IDs collide with local fixture IDs."
         }
-        assertEquals(1, context.contentResolver.update(
-            ContentUris.withAppendedId(Telephony.Threads.CONTENT_URI, providerThread),
-            ContentValues().apply { put(Telephony.Threads.ARCHIVED, 1) }, null, null))
         val scheduled = message(scheduledId, temporaryThread, "Human scheduled fixture",
             ((now + 86_400_000) / 1000).toInt(), scheduled = true)
         val recycled = message(recycledId, providerThread, "Recycled fixture", (now / 1000).toInt())
@@ -113,9 +110,11 @@ class LegacyFirstLaunchTest {
         context.messagesDB.insertRecycleBinEntry(recycle)
         context.draftsDB.insertOrUpdate(draft)
         context.conversationsDB.insertOrUpdate(conversation(providerThread, "+12025550981",
-            (now / 1000).toInt(), archived = true))
+            (now / 1000).toInt()))
+        // Archive is human state in Room. The temporary scheduled thread is
+        // local-only; Android providers need not support an archived column.
         context.conversationsDB.insertOrUpdate(conversation(temporaryThread, "+12025550982",
-            scheduled.date, scheduled = true))
+            scheduled.date, scheduled = true, archived = true))
         // Use the literal retired preference so the regression still covers old installs
         // after its production accessor and constant are removed.
         assertTrue(context.getSharedPrefs().edit().putBoolean("was_db_cleared_4", false).commit())
@@ -141,8 +140,8 @@ class LegacyFirstLaunchTest {
             assertEquals("First inherited launch must preserve the human scheduled message",
                 scheduled, context.messagesDB.getAll().find { it.id == scheduledId })
             assertEquals(draft, context.draftsDB.getDraftById(temporaryThread))
-            assertTrue("Archived native conversation must remain archived",
-                context.conversationsDB.getConversationWithThreadId(providerThread)?.isArchived == true)
+            assertTrue("Archived local conversation must remain archived",
+                context.conversationsDB.getConversationWithThreadId(temporaryThread)?.isArchived == true)
             assertEquals(listOf(recycled), context.messagesDB.getThreadMessagesFromRecycleBin(providerThread))
             assertEquals(1, context.messagesDB.getArchivedCount())
             assertEquals(listOf(recycled), context.messagesDB.getOldRecycleBinMessages(recycle.deletedTS + 1))
