@@ -4,7 +4,6 @@ import android.provider.Telephony
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.Index
-import androidx.room.PrimaryKey
 import org.fossify.commons.models.SimpleContact
 import org.fossify.messages.helpers.THREAD_RECEIVED_MESSAGE
 import org.fossify.messages.helpers.THREAD_SENT_MESSAGE
@@ -13,10 +12,11 @@ import org.fossify.messages.messaging.key
 
 @Entity(
     tableName = "messages",
+    primaryKeys = ["id", "is_mms", "is_scheduled"],
     indices = [Index(value = ["thread_id", "date"])]
 )
 data class Message(
-    @PrimaryKey val id: Long,
+    val id: Long,
     @ColumnInfo(name = "body") val body: String,
     @ColumnInfo(name = "type") val type: Int,
     @ColumnInfo(name = "status") val status: Int,
@@ -56,6 +56,9 @@ data class Message(
 
         fun areContentsTheSame(old: Message, new: Message): Boolean {
             return old.body == new.body &&
+                old.type == new.type && old.status == new.status &&
+                old.read == new.read && old.subscriptionId == new.subscriptionId &&
+                old.participants == new.participants &&
                 old.threadId == new.threadId &&
                 old.date == new.date &&
                 old.isMMS == new.isMMS &&

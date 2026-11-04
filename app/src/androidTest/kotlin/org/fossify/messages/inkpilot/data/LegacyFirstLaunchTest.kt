@@ -26,6 +26,9 @@ import org.fossify.messages.models.Conversation
 import org.fossify.messages.models.Draft
 import org.fossify.messages.models.Message
 import org.fossify.messages.models.RecycleBinMessage
+import org.fossify.messages.messaging.MessageKey
+import org.fossify.messages.messaging.MessageOrigin
+import org.fossify.messages.messaging.key
 import org.fossify.messages.transport.storeRolePosture
 import org.junit.After
 import org.junit.Assert.*
@@ -105,7 +108,7 @@ class LegacyFirstLaunchTest {
             ((now + 86_400_000) / 1000).toInt(), scheduled = true)
         val recycled = message(recycledId, providerThread, "Recycled fixture", (now / 1000).toInt())
         val draft = Draft(temporaryThread, "Unsent human draft", now)
-        val recycle = RecycleBinMessage(recycledId, now)
+        val recycle = RecycleBinMessage(recycled.key(), now)
         context.messagesDB.insertMessages(scheduled, recycled)
         context.messagesDB.insertRecycleBinEntry(recycle)
         context.draftsDB.insertOrUpdate(draft)
@@ -157,9 +160,9 @@ class LegacyFirstLaunchTest {
     fun removeOnlyOwnedFixtures() {
         if (!fixtureStarted) return
         providerUri?.let { context.contentResolver.delete(it, null, null) }
-        providerUri?.let { context.messagesDB.delete(ContentUris.parseId(it)) }
-        context.messagesDB.delete(scheduledId)
-        context.messagesDB.delete(recycledId)
+        providerUri?.let { context.messagesDB.delete(MessageKey(MessageOrigin.SMS, ContentUris.parseId(it))) }
+        context.messagesDB.delete(MessageKey(MessageOrigin.SCHEDULED_SMS, scheduledId))
+        context.messagesDB.delete(MessageKey(MessageOrigin.SMS, recycledId))
         context.draftsDB.delete(temporaryThread)
         context.conversationsDB.deleteThreadId(temporaryThread)
         context.conversationsDB.deleteThreadId(providerThread)

@@ -1,5 +1,6 @@
 package org.fossify.messages.receivers
 
+import org.fossify.messages.messaging.key
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -63,7 +64,7 @@ class ScheduledMessageReceiver : BroadcastReceiver() {
             }
 
             // delete temporary conversation and message as it's already persisted to the telephony db now
-            context.deleteScheduledMessage(messageId)
+            context.deleteScheduledMessage(message.key())
             context.conversationsDB.deleteThreadId(messageId)
             refreshMessages()
             refreshConversations()

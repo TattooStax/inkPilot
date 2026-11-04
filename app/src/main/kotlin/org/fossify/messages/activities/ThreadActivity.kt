@@ -1,5 +1,6 @@
 package org.fossify.messages.activities
 
+import org.fossify.messages.messaging.key
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.AlarmManager
@@ -727,13 +728,13 @@ class ThreadActivity : SimpleActivity() {
         messagesToRemove.forEach { message ->
             val messageId = message.id
             if (message.isScheduled) {
-                deleteScheduledMessage(messageId)
+                deleteScheduledMessage(message.key())
                 cancelScheduleSendPendingIntent(messageId)
             } else {
                 if (toRecycleBin) {
-                    moveMessageToRecycleBin(messageId)
+                    moveMessageToRecycleBin(message.key())
                 } else if (fromRecycleBin) {
-                    restoreMessageFromRecycleBin(messageId)
+                    restoreMessageFromRecycleBin(message.key())
                 } else {
                     deleteMessage(messageId, message.isMMS)
                 }
@@ -1932,14 +1933,14 @@ class ThreadActivity : SimpleActivity() {
             titleId = R.string.scheduled_message
         ) { any ->
             when (any as Int) {
-                TYPE_DELETE -> cancelScheduledMessageAndRefresh(message.id)
+                TYPE_DELETE -> cancelScheduledMessageAndRefresh(message.key())
                 TYPE_EDIT -> editScheduledMessage(message)
                 TYPE_SEND -> {
                     messages = messages.toSortedMessages()
-                        .filterNot { message.id == it.id }
+                        .filterNot { message.key() == it.key() }
                     extractAttachments(message)
                     sendNormalMessage(message.body, message.subscriptionId)
-                    cancelScheduledMessageAndRefresh(message.id)
+                    cancelScheduledMessageAndRefresh(message.key())
                 }
             }
         }
@@ -1962,14 +1963,13 @@ class ThreadActivity : SimpleActivity() {
         scheduledDateTime = DateTime(message.millis())
         showScheduleMessageDialog()
     }
-
-    private fun cancelScheduledMessageAndRefresh(messageId: Long) {
-        messages.firstOrNull { it.id == messageId && it.isScheduled }?.attachment?.attachments?.forEach {
+    private fun cancelScheduledMessageAndRefresh(key: org.fossify.messages.messaging.MessageKey) {
+        messages.firstOrNull { it.key() == key }?.attachment?.attachments?.forEach {
             AudioPlayerManager.release(it.getUri())
         }
         ensureBackgroundThread {
-            deleteScheduledMessage(messageId)
-            cancelScheduleSendPendingIntent(messageId)
+            deleteScheduledMessage(key)
+            cancelScheduleSendPendingIntent(key.id)
             refreshMessages()
         }
     }
@@ -2001,7 +2001,7 @@ class ThreadActivity : SimpleActivity() {
             setOnClickListener {
                 hideScheduleSendUi()
                 if (scheduledMessage != null) {
-                    cancelScheduledMessageAndRefresh(scheduledMessage!!.id)
+                    cancelScheduledMessageAndRefresh(scheduledMessage!!.key())
                     scheduledMessage = null
                 }
             }
