@@ -47,9 +47,11 @@ internal fun SQLiteDatabase.holdStudioDraft(write: HeldDraftWrite): DraftStoreRe
     }
 }
 
-internal fun SQLiteDatabase.reviewStudioDrafts(heldOnly: Boolean = true, limit: Int = 100): List<ReviewDraft> {
+internal fun SQLiteDatabase.reviewStudioDrafts(heldOnly: Boolean = true, limit: Int = 100, threadId: Long? = null, draftId: String? = null): List<ReviewDraft> {
     require(limit in 1..500)
     val condition = if (heldOnly) "d.state = 'HELD'" else "d.state <> 'DISMISSED'"
+    val filter = when { draftId != null -> " AND d.draft_id = ?"; threadId != null -> " AND d.thread_id = ?"; else -> "" }
+    val args = buildList { draftId?.let { add(it) } ?: threadId?.let { add(it.toString()) }; add(limit.toString()) }
     return rawQuery(
         """
             SELECT d.draft_id, d.event_id, d.thread_id, d.contact_id, d.recipient, c.display_name,
@@ -59,8 +61,8 @@ internal fun SQLiteDatabase.reviewStudioDrafts(heldOnly: Boolean = true, limit: 
                    d.state, s.body
             FROM held_drafts d JOIN studio_contacts c ON c.id = d.contact_id
             JOIN inbound_events e ON e.event_id = d.event_id LEFT JOIN send_claims s ON s.draft_id = d.draft_id
-            WHERE $condition ORDER BY d.created_at DESC, d.draft_id LIMIT ?
-        """.trimIndent(), arrayOf(limit.toString()),
+            WHERE $condition$filter ORDER BY d.created_at DESC, d.draft_id LIMIT ?
+        """.trimIndent(), args.toTypedArray(),
     ).use { cursor ->
         buildList {
             while (cursor.moveToNext()) add(ReviewDraft(

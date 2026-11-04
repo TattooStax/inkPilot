@@ -26,7 +26,7 @@ import java.util.concurrent.TimeUnit
 
 private val previewUri = Uri.parse("content://org.fossify.messages.task5.revocable-preview/image.png")
 private const val restartThread = 7654322L
-private fun storedPreview() = OutgoingMessage(restartThread, "+12025550123", "human text with required media", listOf(previewUri), 72)
+private fun storedPreview() = OutgoingMessage(restartThread, "+12025550123", "human text with required media", listOf(previewUri), 72, "task5-preview")
 
 /** Exercises Glide's actual asynchronous onLoadFailed path in a rendered RecyclerView. */
 @RunWith(AndroidJUnit4::class)

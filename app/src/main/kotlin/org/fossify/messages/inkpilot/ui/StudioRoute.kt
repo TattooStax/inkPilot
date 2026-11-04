@@ -8,7 +8,8 @@ internal sealed interface StudioRoute {
     data class Tab(val tab: StudioTab) : StudioRoute
     data class ImageLinks(val contactId: String? = null, val threadId: Long? = null) : StudioRoute
     data class Thread(val threadId: Long) : StudioRoute
-    data class Compose(val recipients: List<String>, val body: String, val mediaUris: List<Uri>) : StudioRoute
+    data class Compose(val recipients: List<String>, val body: String, val mediaUris: List<Uri>,
+        val composerId: Long = -(java.util.UUID.randomUUID().mostSignificantBits and Long.MAX_VALUE).coerceAtLeast(1L)) : StudioRoute
     data class Draft(val draftId: String) : StudioRoute
     data class Settings(val section: String) : StudioRoute
     data object Soul : StudioRoute
@@ -29,6 +30,7 @@ internal fun StudioRoute.encode() = Bundle().apply {
         is StudioRoute.Tab -> putString("value", route.tab.name)
         is StudioRoute.Thread -> putLong("thread", route.threadId)
         is StudioRoute.Compose -> {
+            putLong("composerId", route.composerId)
             putStringArrayList("recipients", ArrayList(route.recipients)); putString("body", route.body)
             putStringArrayList("media", ArrayList(route.mediaUris.map(Uri::toString)))
         }
@@ -45,7 +47,7 @@ internal fun Bundle.decodeRoute(): StudioRoute? = when (getString("kind")) {
     "tab" -> StudioTab.entries.find { it.name == getString("value") }?.let(StudioRoute::Tab)
     "thread" -> if (containsKey("thread")) StudioRoute.Thread(getLong("thread")) else null
     "compose" -> StudioRoute.Compose(getStringArrayList("recipients") ?: emptyList(), getString("body").orEmpty(),
-        getStringArrayList("media").orEmpty().map(Uri::parse))
+        getStringArrayList("media").orEmpty().map(Uri::parse), getLong("composerId", -1L))
     "draft" -> getString("value")?.let(StudioRoute::Draft)
     "settings" -> getString("value")?.let(StudioRoute::Settings)
     "soul" -> StudioRoute.Soul

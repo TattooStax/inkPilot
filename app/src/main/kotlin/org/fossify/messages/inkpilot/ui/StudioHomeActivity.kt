@@ -114,7 +114,7 @@ class StudioHomeActivity : AppCompatActivity() {
         val view = panels.view(route) { when (route) {
             StudioRoute.Auxiliary("drafts") -> DraftPanel(this, repository, work, ::refreshPanels, ::openRoute).view()
             is StudioRoute.Thread -> messages.thread(route.threadId)
-            is StudioRoute.Compose -> StudioUi.scroll(this, ThreadComposer(this, work, ::pickAttachment, ::refreshPanels, ::openRoute).view(0, route))
+            is StudioRoute.Compose -> StudioUi.scroll(this, ThreadComposer(this, work, ::pickAttachment, ::refreshPanels, ::openRoute).view(route.composerId, route))
             is StudioRoute.Draft -> inlineDraft(route.draftId)
             is StudioRoute.ImageLinks -> studio.linkedImages(route.contactId, route.threadId)
             StudioRoute.Soul -> agent.soul()
@@ -189,7 +189,7 @@ class StudioHomeActivity : AppCompatActivity() {
     }
     private fun threadFooter(threadId: Long): android.view.View {
         val root = StudioUi.column(this, 0)
-        work.load({ repository.drafts().filter { it.threadId == threadId && it.status == "HELD" } }) { drafts ->
+        work.load({ repository.draftsForThread(threadId) }) { drafts ->
             drafts.forEach { root.addView(InlineDraftReview(this, work, ::refreshPanels).view(it), 0) }
         }
         root.addView(ThreadComposer(this, work, ::pickAttachment, ::refreshPanels, ::openRoute).view(threadId))
@@ -197,7 +197,7 @@ class StudioHomeActivity : AppCompatActivity() {
     }
     private fun inlineDraft(id: String): android.view.View {
         val root = StudioUi.column(this, 0)
-        work.load({ repository.drafts().firstOrNull { it.draftId == id } }) { draft ->
+        work.load({ repository.draft(id) }) { draft ->
             if (draft != null) root.addView(MessagePanel(this, work, ::setupSms, { openAgent("drafts") }, ::openRoute, ::threadFooter).thread(draft.threadId))
             else root.addView(StudioUi.text(this, "Draft is no longer available"))
         }

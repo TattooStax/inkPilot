@@ -19,6 +19,11 @@ internal class StudioDatabase(context: Context, name: String) : SQLiteOpenHelper
     // Separate short-lived repositories can open the same new database concurrently.
     override fun getWritableDatabase(): SQLiteDatabase = synchronized(openLock) { super.getWritableDatabase() }
 
+    override fun onOpen(db: SQLiteDatabase) {
+        super.onOpen(db)
+        db.execSQL("CREATE INDEX IF NOT EXISTS held_thread_state_created ON held_drafts(thread_id, state, created_at)")
+    }
+
     override fun onCreate(db: SQLiteDatabase) {
         db.execSQL("CREATE TABLE agent_settings (id INTEGER PRIMARY KEY CHECK(id = 1), drafting_enabled INTEGER NOT NULL DEFAULT 0, soul TEXT NOT NULL DEFAULT '')")
         db.execSQL("INSERT INTO agent_settings(id) VALUES(1)")

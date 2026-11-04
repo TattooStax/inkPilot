@@ -97,6 +97,10 @@ class StudioRepository(context: Context, databaseName: String = DATABASE_NAME) :
 
     fun drafts(limit: Int = 100): List<ReviewDraft> = db.reviewStudioDrafts(heldOnly = false, limit = limit)
 
+    fun draftsForThread(threadId: Long): List<ReviewDraft> = db.reviewStudioDrafts(threadId = threadId)
+
+    fun draft(draftId: String): ReviewDraft? = db.reviewStudioDrafts(heldOnly = false, limit = 1, draftId = draftId).firstOrNull()
+
     fun dismissDraft(draftId: String): Boolean = db.dismissStudioDraft(draftId)
 
     fun invalidateAllPending() { db.execSQL("UPDATE studio_contacts SET revision = revision + 1") }
