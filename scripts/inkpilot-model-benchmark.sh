@@ -13,7 +13,9 @@ out=$(realpath -m "$2")
 [[ -f "$model" && ! -L "$model" ]] || { echo 'Model must be an existing regular file.' >&2; exit 2; }
 [[ "$out" != "$root" && "$out" != "$root/"* ]] || { echo 'Keep raw replies outside the repository.' >&2; exit 2; }
 umask 077
+export TMPDIR=${TMPDIR:-$out/tmp}
 mkdir -p "$out"
+mkdir -p "$TMPDIR"
 sha=$(sha256sum "$model" | cut -d' ' -f1)
 python3 - "$root" "$sha" <<'PY'
 import sys
@@ -30,8 +32,11 @@ if [[ -z "$bin" ]]; then
     echo 'Set INKPILOT_LLAMA_SOURCE_DIR to the cached pinned llama.cpp source; no implicit download.' >&2; exit 2;
   }
   cmake_bin=${INKPILOT_CMAKE:-cmake}
+  ninja_bin=${INKPILOT_NINJA:-$(dirname "$cmake_bin")/ninja}
+  [[ -x "$ninja_bin" ]] || { echo 'Set INKPILOT_NINJA to a local Ninja executable.' >&2; exit 2; }
   "$cmake_bin" -S "$root/local-inference/src/main/cpp" -B "$out/host-build" \
-    -DFETCHCONTENT_SOURCE_DIR_LLAMA_CPP="$source_dir" -DCMAKE_BUILD_TYPE=Release -G Ninja
+    -DFETCHCONTENT_SOURCE_DIR_LLAMA_CPP="$source_dir" -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_MAKE_PROGRAM="$ninja_bin" -G Ninja
   "$cmake_bin" --build "$out/host-build" --target inkpilot-model-qualification -j 2
   bin="$out/host-build/inkpilot-model-qualification"
 fi
