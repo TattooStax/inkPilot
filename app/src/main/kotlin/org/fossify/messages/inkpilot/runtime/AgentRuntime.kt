@@ -39,6 +39,7 @@ object AgentRuntime {
                 AgentSettings(context).recordStatus("Inbox recovery will retry. Existing drafts remain available.")
             }
         if (!AgentSettings(context).enabled) return
+        AgentSettings(context).recordStatus("Drafting queued locally. Nothing was sent.")
         WorkManager.getInstance(context).enqueueUniqueWork(
             "inkpilot-local-drafts", ExistingWorkPolicy.APPEND_OR_REPLACE,
             OneTimeWorkRequestBuilder<LocalDraftWorker>().build(),

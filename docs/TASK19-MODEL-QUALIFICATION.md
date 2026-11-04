@@ -15,7 +15,8 @@ Known host files, rehashed before use:
 | LFM3-1.7B Q4_K_M | `3793e1e6e2266919d6e015287221b41100175a98eddaba92e111aed3b05c93c4` | Host run pending; phone UNTESTED, origin not independently verified |
 
 The script refuses other hashes and performs no model download. Set
-`INKPILOT_LLAMA_SOURCE_DIR` to the cached pinned llama.cpp source, then run
+`INKPILOT_LLAMA_SOURCE_DIR` to the cached pinned llama.cpp source and, if
+needed, `INKPILOT_CMAKE`/`INKPILOT_NINJA` to the installed build tools. Run
 `scripts/inkpilot-model-benchmark.sh MODEL.gguf /private/output` on a host
 with the Android CMake/Ninja toolchain available. `--smoke` runs only three
 cases and cannot produce a full report. The full report contains case IDs,
