@@ -15,7 +15,8 @@ import java.io.Closeable
 /** Synchronous database operations; callers must use a background thread. */
 class StudioRepository(context: Context, databaseName: String = DATABASE_NAME) :
     HeldDraftStore, ContactMemoryReader, Closeable {
-    private val helper = StudioDatabase(context.applicationContext, databaseName)
+    internal val applicationContext: Context = context.applicationContext
+    private val helper = StudioDatabase(applicationContext, databaseName)
     internal val database get() = helper.getWritableDatabase()
     private val db get() = database
 

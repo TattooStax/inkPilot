@@ -1,0 +1,151 @@
+package org.fossify.messages.inkpilot.studio
+
+import android.content.Context
+import androidx.test.core.app.ApplicationProvider
+import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.work.WorkInfo
+import androidx.work.WorkManager
+import java.util.concurrent.TimeUnit
+import java.time.LocalDateTime
+import java.time.ZoneId
+import java.util.UUID
+import org.fossify.messages.inkpilot.data.StudioRepository
+import org.junit.After
+import org.junit.Assert.*
+import org.junit.Before
+import org.junit.Test
+import org.junit.runner.RunWith
+
+@RunWith(AndroidJUnit4::class)
+class StudioAvailabilityTest {
+    private val context = ApplicationProvider.getApplicationContext<Context>()
+    private val name = "studio-availability-${UUID.randomUUID()}.db"
+    private lateinit var repository: StudioRepository
+    private lateinit var store: StudioCalendarStore
+    private var a = 0L
+    private var b = 0L
+    private val zone = "America/Chicago"
+    private fun at(local: String) = LocalDateTime.parse(local).atZone(ZoneId.of(zone)).toInstant().toEpochMilli()
+    private fun booking(staff: Long, start: String, room: String = ""): CalendarProposal {
+        val epoch = at(start)
+        return CalendarProposal("Consult", "appointment", staff, epoch, epoch + 3_600_000, zone, room)
+    }
+
+    @Before fun setUp() {
+        repository = StudioRepository(context, name)
+        store = StudioCalendarStore(repository) { _, _, _ -> }
+        a = store.addStaff("A"); b = store.addStaff("B")
+    }
+    @After fun tearDown() { repository.close(); context.deleteDatabase(name) }
+
+    @Test fun optionalRoomDoesNotInventConflictsAndSharedRoomDoes() {
+        assertTrue(store.schedule(booking(a, "2027-06-01T10:00")) is ScheduleResult.Saved)
+        assertTrue(store.schedule(booking(b, "2027-06-01T10:00")) is ScheduleResult.Saved)
+        assertTrue(store.schedule(booking(a, "2027-06-01T12:00", "Front")) is ScheduleResult.Saved)
+        assertTrue(store.schedule(booking(b, "2027-06-01T12:00", "front")) is ScheduleResult.Conflict)
+    }
+
+    @Test fun scopedAvailabilityNeverExposesAnotherClientTitle() {
+        val entry = booking(a, "2027-06-01T10:00").copy(title = "Private client consultation")
+        assertTrue(store.schedule(entry) is ScheduleResult.Saved)
+        val check = CalendarAvailability(store).propose(null, a, "", entry.startsAt, entry.endsAt, zone) as CalendarAvailability.Conflict
+        assertEquals("Staff unavailable.", check.reason)
+        assertTrue(store.availability(null, 9999, "", entry.startsAt, entry.endsAt, zone) is CalendarAvailability.Conflict)
+        assertTrue(store.availability("missing-client", b, "", entry.startsAt, entry.endsAt, zone) is CalendarAvailability.Conflict)
+    }
+
+    @Test fun hoursTimeOffAndBoundariesAreCheckedBeforeWriting() {
+        store.setWeeklyHours(a, 2, 9 * 60, 17 * 60) // Tuesday, 2027-06-01.
+        assertTrue(store.schedule(booking(a, "2027-06-01T08:00")) is ScheduleResult.Unavailable)
+        assertTrue(store.schedule(booking(a, "2027-06-01T09:00")) is ScheduleResult.Saved)
+        store.addTimeOff(a, at("2027-06-01T12:00"), at("2027-06-01T13:00"), "Lunch")
+        assertTrue(store.schedule(booking(a, "2027-06-01T12:00")) is ScheduleResult.Unavailable)
+        assertTrue(store.schedule(booking(a, "2027-06-01T13:00")) is ScheduleResult.Saved)
+    }
+
+    @Test fun availabilityChangesCannotInvalidateExistingBookings() {
+        val entry = booking(a, "2027-06-01T10:00")
+        assertTrue(store.schedule(entry) is ScheduleResult.Saved)
+        assertThrows(IllegalStateException::class.java) {
+            store.setWeeklyHours(a, 2, 12 * 60, 17 * 60)
+        }
+        assertTrue(store.hours(a).isEmpty())
+        assertThrows(IllegalStateException::class.java) {
+            store.addTimeOff(a, entry.startsAt, entry.endsAt, "Vacation")
+        }
+        assertTrue(store.timeOff(a).isEmpty())
+    }
+
+    @Test fun dstAmbiguityAndSubminuteDurationsAreRejected() {
+        val overlap = booking(a, "2027-11-07T01:30")
+        assertThrows(IllegalArgumentException::class.java) { store.schedule(overlap) }
+        val gap = LocalDateTime.parse("2027-03-14T02:30")
+        assertEquals(0, ZoneId.of(zone).rules.getValidOffsets(gap).size)
+        val normal = booking(a, "2027-06-01T10:00")
+        assertThrows(IllegalArgumentException::class.java) { store.schedule(normal.copy(endsAt = normal.startsAt + 30_000)) }
+        assertThrows(IllegalArgumentException::class.java) { store.schedule(normal.copy(startsAt = normal.startsAt + 1)) }
+    }
+
+    @Test fun editAndReminderVersionSurviveReopenAndOldVersionCannotDeliver() {
+        val first = booking(a, "2027-06-01T10:00").copy(reminderAt = at("2027-06-01T09:30"))
+        val saved = store.schedule(first) as ScheduleResult.Saved
+        val changed = booking(a, "2027-06-01T11:00").copy(reminderAt = at("2027-06-01T10:30"))
+        assertTrue(store.edit(saved.id, changed) is ScheduleResult.Saved)
+        repository.close()
+        repository = StudioRepository(context, name); store = StudioCalendarStore(repository) { _, _, _ -> }
+        assertNull(store.dueReminder(saved.id, 0, at("2027-06-01T11:00")))
+        val row = store.entries(at("2027-06-01T11:00"), at("2027-06-01T12:00")).single()
+        assertEquals(1L, row.revision)
+        assertEquals(changed.reminderAt, row.reminderAt)
+        assertEquals(saved.id, store.dueReminder(saved.id, 1, at("2027-06-01T11:00"))?.id)
+        assertTrue(store.markReminderDelivered(saved.id, 1))
+        assertNull(store.dueReminder(saved.id, 1, at("2027-06-01T11:00")))
+        store.setStatus(saved.id, "cancelled")
+        assertNull(store.dueReminder(saved.id, 1, at("2027-06-01T11:00")))
+    }
+
+    @Test fun reminderWorkIsVersionedUniqueAndQueuedDurably() {
+        val scheduler = CalendarReminderScheduler(context)
+        val id = 8_000_000L + System.nanoTime() % 1_000_000
+        val name = CalendarReminderScheduler.name(id, 3)
+        val manager = WorkManager.getInstance(context)
+        try {
+            scheduler.schedule(id, 3, System.currentTimeMillis() + 86_400_000)!!.result.get(15, TimeUnit.SECONDS)
+            scheduler.schedule(id, 3, System.currentTimeMillis() + 86_400_000)!!.result.get(15, TimeUnit.SECONDS)
+            val work = manager.getWorkInfosForUniqueWork(name).get(15, TimeUnit.SECONDS)
+            assertEquals(1, work.size)
+            assertEquals(WorkInfo.State.ENQUEUED, work.single().state)
+        } finally {
+            manager.cancelUniqueWork(name).result.get(15, TimeUnit.SECONDS)
+        }
+    }
+
+    @Test fun frozenV4MigrationPreservesCalendarAndImageLinks() {
+        repository.close(); context.deleteDatabase(name)
+        val old = context.openOrCreateDatabase(name, Context.MODE_PRIVATE, null)
+        try {
+            old.execSQL("CREATE TABLE studio_contacts(id TEXT PRIMARY KEY, number TEXT NOT NULL, display_name TEXT NOT NULL)")
+            old.execSQL("CREATE TABLE studio_staff(id INTEGER PRIMARY KEY, name TEXT NOT NULL)")
+            old.execSQL("CREATE TABLE studio_calendar(id INTEGER PRIMARY KEY, title TEXT NOT NULL, kind TEXT NOT NULL, staff_id INTEGER NOT NULL, starts_at INTEGER NOT NULL, ends_at INTEGER NOT NULL, zone_id TEXT NOT NULL, room TEXT NOT NULL, status TEXT NOT NULL)")
+            old.execSQL("CREATE TABLE studio_images(id INTEGER PRIMARY KEY, filename TEXT NOT NULL, display_name TEXT NOT NULL, imported_at INTEGER NOT NULL)")
+            old.execSQL("CREATE TABLE image_links(image_id INTEGER,contact_id TEXT,project_id TEXT,staff_id INTEGER,appointment_id INTEGER,source_origin TEXT,source_id INTEGER,thread_id INTEGER,PRIMARY KEY(image_id,contact_id,source_origin,source_id))")
+            old.execSQL("INSERT INTO studio_contacts VALUES('client','+12025550101','Synthetic')")
+            old.execSQL("INSERT INTO studio_staff VALUES(71,'A')")
+            old.execSQL("INSERT INTO studio_calendar VALUES(72,'Original','task',71,1800000000000,1800003600000,'America/Chicago','','scheduled')")
+            old.execSQL("INSERT INTO studio_images VALUES(73,'old.png','Old',1)")
+            old.execSQL("INSERT INTO image_links VALUES(73,'client','project',71,72,'MMS',74,75)")
+            old.version = 4
+        } finally { old.close() }
+        repository = StudioRepository(context, name); store = StudioCalendarStore(repository) { _, _, _ -> }
+        assertEquals(5, repository.database.version)
+        val row = store.entries(1_800_000_000_000, 1_800_003_600_000).single()
+        assertEquals("Original", row.title)
+        assertEquals(72L, row.id)
+        assertEquals(0L, row.revision)
+        repository.database.rawQuery("SELECT image_id,contact_id,appointment_id,source_id FROM image_links", null).use {
+            assertTrue(it.moveToFirst())
+            assertEquals(73L, it.getLong(0)); assertEquals("client", it.getString(1))
+            assertEquals(72L, it.getLong(2)); assertEquals(74L, it.getLong(3))
+        }
+    }
+}

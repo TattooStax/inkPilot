@@ -76,18 +76,23 @@ class StudioImageLinksTest {
     }
 
     @Test fun v3MigrationPreservesRecordsAndMemberships() {
-        val contact = repository.upsertContact("+12025550148", "Synthetic migration")
-        val store = StudioAlbumStore(repository)
-        val album = store.albums().first().id
-        val id = store.addOriginal(album, "synthetic-old.image", "Old")
-        repository.database.execSQL("DROP TABLE image_links")
-        repository.database.execSQL("DROP TABLE image_original_sources")
-        repository.database.version = 3
-        repository.close(); repository = StudioRepository(context, name)
-        assertEquals(4, repository.database.version)
-        assertEquals(contact.id, repository.contact(contact.id)?.id)
-        assertEquals(id, StudioAlbumStore(repository).images(album).single().id)
-        assertTrue(StudioAlbumStore(repository).linkedImages(contactId = contact.id).isEmpty())
+        repository.close(); context.deleteDatabase(name)
+        org.fossify.messages.inkpilot.data.StudioV1Fixture(context, name).use { fixture ->
+            val db = fixture.writableDatabase
+            org.fossify.messages.inkpilot.data.StudioRevisionSchema.upgrade(db)
+            org.fossify.messages.inkpilot.data.StudioIdentitySchema.create(db)
+            db.execSQL("INSERT INTO studio_contacts(id,number,display_name) VALUES('synthetic-contact','+12025550148','Synthetic migration')")
+            val album = db.rawQuery("SELECT id FROM studio_albums LIMIT 1", null).use { it.moveToFirst(); it.getLong(0) }
+            db.execSQL("INSERT INTO studio_images(id,filename,display_name,imported_at) VALUES(35,'synthetic-old.image','Old',1)")
+            db.execSQL("INSERT INTO studio_album_images(album_id,image_id) VALUES(?,35)", arrayOf(album))
+            db.version = 3
+        }
+        repository = StudioRepository(context, name)
+        assertEquals(5, repository.database.version)
+        assertEquals("synthetic-contact", repository.contact("synthetic-contact")?.id)
+        val album = StudioAlbumStore(repository).albums().first().id
+        assertEquals(35L, StudioAlbumStore(repository).images(album).single().id)
+        assertTrue(StudioAlbumStore(repository).linkedImages(contactId = "synthetic-contact").isEmpty())
     }
 
     @Test fun linkedGalleryPagesWithoutDuplicates() {

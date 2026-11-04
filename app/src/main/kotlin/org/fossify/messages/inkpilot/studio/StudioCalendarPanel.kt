@@ -12,16 +12,19 @@ import java.time.format.DateTimeFormatter
 internal class StudioCalendarPanel(private val host: StudioPanelHost, private val store: StudioCalendarStore) {
     private var day = LocalDate.now()
     private var content = host.column()
+    private var renderGeneration = 0L
     private val dateFormat = DateTimeFormatter.ofPattern("EEE, MMM d")
     private val timeFormat = DateTimeFormatter.ofPattern("h:mm a")
 
     fun view(): View {
         content = host.column()
         render()
+        host.load({ store.reconcileReminders() }) {}
         return host.body(content)
     }
 
     private fun render() {
+        val generation = ++renderGeneration
         content.removeAllViews()
         content.addView(host.text("Calendar", 22f))
         val dates = LinearLayout(host.activity)
@@ -34,10 +37,11 @@ internal class StudioCalendarPanel(private val host: StudioPanelHost, private va
         dates.addView(host.button("›") { day = day.plusDays(1); render() })
         content.addView(dates)
         content.addView(host.button("Add appointment or task") {
-            host.load({ store.staff() }) { staff ->
-                if (staff.isEmpty()) addStaff() else CalendarEditor(host, store, day, staff, ::render).show()
+            host.load({ store.staff() to store.contacts() }) { (staff, contacts) ->
+                if (staff.isEmpty()) addStaff() else CalendarEditor(host, store, day, staff, contacts, ::render).show()
             }
         })
+        content.addView(host.button("Staff hours and time off") { chooseStaffForAvailability() })
         content.addView(host.button("Add staff member") { addStaff() })
         content.addView(host.text("Local studio calendar · ${ZoneId.systemDefault().id}", 13f))
         val entries = host.column()
@@ -46,6 +50,7 @@ internal class StudioCalendarPanel(private val host: StudioPanelHost, private va
         val start = day.atStartOfDay(zone).toInstant().toEpochMilli()
         val end = day.plusDays(1).atStartOfDay(zone).toInstant().toEpochMilli()
         host.load({ store.entries(start, end) }) { rows ->
+            if (generation != renderGeneration) return@load
             if (rows.isEmpty()) entries.addView(host.text("Nothing scheduled for this day."))
             rows.forEach { entry ->
                 val from = Instant.ofEpochMilli(entry.startsAt).atZone(zone).format(timeFormat)
@@ -63,8 +68,7 @@ internal class StudioCalendarPanel(private val host: StudioPanelHost, private va
             .setPositiveButton("Save", null).setNegativeButton("Cancel", null).create()
         dialog.setOnShowListener {
             dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
-                val value = name.text.toString()
-                host.load({ store.addStaff(value) }) { dialog.dismiss(); render() }
+                host.load({ store.addStaff(name.text.toString()) }) { dialog.dismiss(); render() }
             }
         }
         dialog.show()
@@ -72,19 +76,113 @@ internal class StudioCalendarPanel(private val host: StudioPanelHost, private va
 
     private fun details(entry: CalendarEntry) {
         val message = "${entry.staffName}\n${entry.kind.replaceFirstChar { it.uppercase() }}" +
-            (if (entry.room.isBlank()) "" else "\n${entry.room}") + "\n${entry.status.replaceFirstChar { it.uppercase() }}"
-        val dialog = AlertDialog.Builder(host.activity).setTitle(entry.title).setMessage(message).setNegativeButton("Close", null)
-        if (entry.status == "scheduled") {
-            dialog.setPositiveButton("Complete") { _, _ ->
-                host.load({ store.setStatus(entry.id, "completed") }) { render() }
-            }
-            dialog.setNeutralButton("Cancel entry") { _, _ ->
-                AlertDialog.Builder(host.activity).setTitle("Cancel ${entry.title}?")
-                    .setPositiveButton("Cancel entry") { _, _ ->
-                        host.load({ store.setStatus(entry.id, "cancelled") }) { render() }
-                    }.setNegativeButton("Keep", null).show()
-            }
+            (if (entry.room.isBlank()) "" else "\n${entry.room}") +
+            (if (entry.reminderAt == null) "" else "\nReminder set") +
+            "\n${entry.status.replaceFirstChar { it.uppercase() }}"
+        if (entry.status != "scheduled") {
+            AlertDialog.Builder(host.activity).setTitle(entry.title).setMessage(message)
+                .setPositiveButton("Close", null).show()
+            return
         }
+        AlertDialog.Builder(host.activity).setTitle(entry.title).setMessage(message)
+            .setItems(arrayOf("Edit", "Mark completed", "Cancel entry")) { _, which ->
+                when (which) {
+                    0 -> host.load({ store.staff() to store.contacts() }) { (staff, contacts) ->
+                        CalendarEditor(host, store, day, staff, contacts, ::render, entry).show()
+                    }
+                    1 -> host.load({ store.setStatus(entry.id, "completed") }) { render() }
+                    2 -> AlertDialog.Builder(host.activity).setTitle("Cancel ${entry.title}?")
+                        .setPositiveButton("Cancel entry") { _, _ ->
+                            host.load({ store.setStatus(entry.id, "cancelled") }) { render() }
+                        }.setNegativeButton("Keep", null).show()
+                }
+            }.setNegativeButton("Close", null).show()
+    }
+
+    private fun chooseStaffForAvailability() {
+        host.load({ store.staff() }) { staff ->
+            if (staff.isEmpty()) { addStaff(); return@load }
+            AlertDialog.Builder(host.activity).setTitle("Staff member")
+                .setItems(staff.map { it.name }.toTypedArray()) { _, index -> availability(staff[index]) }.show()
+        }
+    }
+
+    private fun availability(staff: StudioStaff) {
+        host.load({ store.hours(staff.id) to store.timeOff(staff.id) }) { (hours, off) ->
+            val rows = buildList {
+                add("Set weekly hours")
+                add("Add time off")
+                hours.forEach { add("Remove ${weekday(it.weekday)} ${clock(it.opensMinute)}–${clock(it.closesMinute)}") }
+                off.forEach { add("Remove time off: ${it.label} · ${Instant.ofEpochMilli(it.startsAt).atZone(ZoneId.systemDefault()).toLocalDate()}") }
+            }
+            AlertDialog.Builder(host.activity).setTitle("${staff.name} · availability")
+                .setMessage(if (hours.isEmpty()) "Hours unset: bookings are allowed unless time off or another entry conflicts."
+                    else "Unlisted weekdays are unavailable.")
+                .setItems(rows.toTypedArray()) { _, index ->
+                    when {
+                        index == 0 -> setHours(staff)
+                        index == 1 -> addTimeOff(staff)
+                        index - 2 < hours.size -> host.load({
+                            store.clearWeeklyHours(staff.id, hours[index - 2].weekday)
+                        }) { availability(staff) }
+                        else -> host.load({ store.removeTimeOff(off[index - 2 - hours.size].id) }) { availability(staff) }
+                    }
+                }.setNegativeButton("Close", null).show()
+        }
+    }
+
+    private fun setHours(staff: StudioStaff) {
+        val fields = host.column()
+        val weekday = host.field("Weekday: 1=Mon through 7=Sun")
+        val opens = host.field("Open HH:mm (24-hour)", "09:00")
+        val closes = host.field("Close HH:mm (24-hour)", "17:00")
+        fields.addView(weekday); fields.addView(opens); fields.addView(closes)
+        val dialog = AlertDialog.Builder(host.activity).setTitle("${staff.name} · weekly hours")
+            .setView(host.body(fields)).setPositiveButton("Save", null).setNegativeButton("Cancel", null).create()
+        dialog.setOnShowListener { dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+            val dayNumber = weekday.text.toString().toIntOrNull()
+            val from = minutes(opens.text.toString()); val until = minutes(closes.text.toString())
+            if (dayNumber !in 1..7 || from == null || until == null || until <= from) {
+                host.onError("Use weekday 1–7 and valid same-day opening and closing times."); return@setOnClickListener
+            }
+            host.load({ store.setWeeklyHours(staff.id, dayNumber!!, from, until) }) {
+                dialog.dismiss(); availability(staff); render()
+            }
+        } }
         dialog.show()
+    }
+
+    private fun addTimeOff(staff: StudioStaff) {
+        val fields = host.column()
+        val from = host.field("First day YYYY-MM-DD")
+        val until = host.field("Last day YYYY-MM-DD")
+        val label = host.field("Reason (optional)")
+        fields.addView(from); fields.addView(until); fields.addView(label)
+        val dialog = AlertDialog.Builder(host.activity).setTitle("${staff.name} · time off")
+            .setView(host.body(fields)).setPositiveButton("Save", null).setNegativeButton("Cancel", null).create()
+        dialog.setOnShowListener { dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+            val range = runCatching {
+                val start = LocalDate.parse(from.text.toString()).atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
+                val end = LocalDate.parse(until.text.toString()).plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
+                start to end
+            }.getOrNull()
+            if (range == null || range.second <= range.first) {
+                host.onError("Enter a valid first and last day."); return@setOnClickListener
+            }
+            host.load({ store.addTimeOff(staff.id, range.first, range.second, label.text.toString()) }) {
+                dialog.dismiss(); availability(staff); render()
+            }
+        } }
+        dialog.show()
+    }
+
+    private fun weekday(value: Int) = listOf("Mon","Tue","Wed","Thu","Fri","Sat","Sun")[value - 1]
+    private fun clock(minute: Int) = "%02d:%02d".format(minute / 60, minute % 60)
+    private fun minutes(value: String): Int? {
+        val parts = value.split(":")
+        if (parts.size != 2) return null
+        val hour = parts[0].toIntOrNull() ?: return null
+        val minute = parts[1].toIntOrNull() ?: return null
+        return if (hour in 0..23 && minute in 0..59) hour * 60 + minute else null
     }
 }
