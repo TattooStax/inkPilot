@@ -1,0 +1,747 @@
+path	line	trigger	source_excerpt
+app/src/main/kotlin/org/fossify/messages/App.kt	27	receiver/lifecycle	contentResolver.registerContentObserver(it, true, contactsObserver)
+app/src/main/kotlin/org/fossify/messages/App.kt	27	carrier/provider	contentResolver.registerContentObserver(it, true, contactsObserver)
+app/src/main/kotlin/org/fossify/messages/App.kt	33	background/work	ensureBackgroundThread {
+app/src/main/kotlin/org/fossify/messages/activities/ArchivedConversationsActivity.kt	49	receiver/lifecycle	override fun onResume() {
+app/src/main/kotlin/org/fossify/messages/activities/ArchivedConversationsActivity.kt	50	receiver/lifecycle	super.onResume()
+app/src/main/kotlin/org/fossify/messages/activities/ArchivedConversationsActivity.kt	62	UI/listener	binding.archiveToolbar.setOnMenuItemClickListener { menuItem ->
+app/src/main/kotlin/org/fossify/messages/activities/ArchivedConversationsActivity.kt	62	event/callback	binding.archiveToolbar.setOnMenuItemClickListener { menuItem ->
+app/src/main/kotlin/org/fossify/messages/activities/ArchivedConversationsActivity.kt	65	UI/listener	else -> return@setOnMenuItemClickListener false
+app/src/main/kotlin/org/fossify/messages/activities/ArchivedConversationsActivity.kt	67	UI/listener	return@setOnMenuItemClickListener true
+app/src/main/kotlin/org/fossify/messages/activities/ArchivedConversationsActivity.kt	78	background/work	ensureBackgroundThread {
+app/src/main/kotlin/org/fossify/messages/activities/ArchivedConversationsActivity.kt	85	background/work	runOnUiThread {
+app/src/main/kotlin/org/fossify/messages/activities/ArchivedConversationsActivity.kt	164	external intent	startActivity(this)
+app/src/main/kotlin/org/fossify/messages/activities/ArchivedConversationsActivity.kt	168	event/callback	@Subscribe(threadMode = ThreadMode.MAIN)
+app/src/main/kotlin/org/fossify/messages/activities/ConversationDetailsActivity.kt	56	background/work	ensureBackgroundThread {
+app/src/main/kotlin/org/fossify/messages/activities/ConversationDetailsActivity.kt	64	background/work	runOnUiThread {
+app/src/main/kotlin/org/fossify/messages/activities/ConversationDetailsActivity.kt	72	receiver/lifecycle	override fun onResume() {
+app/src/main/kotlin/org/fossify/messages/activities/ConversationDetailsActivity.kt	73	receiver/lifecycle	super.onResume()
+app/src/main/kotlin/org/fossify/messages/activities/ConversationDetailsActivity.kt	94	UI/listener	customNotificationsHolder.setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/activities/ConversationDetailsActivity.kt	94	event/callback	customNotificationsHolder.setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/activities/ConversationDetailsActivity.kt	107	UI/listener	customNotificationsButton.setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/activities/ConversationDetailsActivity.kt	107	event/callback	customNotificationsButton.setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/activities/ConversationDetailsActivity.kt	111	external intent	startActivity(this)
+app/src/main/kotlin/org/fossify/messages/activities/ConversationDetailsActivity.kt	153	UI/listener	setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/activities/ConversationDetailsActivity.kt	153	event/callback	setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/activities/ConversationDetailsActivity.kt	159	background/work	ensureBackgroundThread {
+app/src/main/kotlin/org/fossify/messages/activities/MainActivity.kt	119	receiver/lifecycle	override fun onResume() {
+app/src/main/kotlin/org/fossify/messages/activities/MainActivity.kt	120	receiver/lifecycle	super.onResume()
+app/src/main/kotlin/org/fossify/messages/activities/MainActivity.kt	148	receiver/lifecycle	override fun onPause() {
+app/src/main/kotlin/org/fossify/messages/activities/MainActivity.kt	149	receiver/lifecycle	super.onPause()
+app/src/main/kotlin/org/fossify/messages/activities/MainActivity.kt	188	UI/listener	binding.mainMenu.requireToolbar().setOnMenuItemClickListener { menuItem ->
+app/src/main/kotlin/org/fossify/messages/activities/MainActivity.kt	188	event/callback	binding.mainMenu.requireToolbar().setOnMenuItemClickListener { menuItem ->
+app/src/main/kotlin/org/fossify/messages/activities/MainActivity.kt	194	UI/listener	else -> return@setOnMenuItemClickListener false
+app/src/main/kotlin/org/fossify/messages/activities/MainActivity.kt	196	UI/listener	return@setOnMenuItemClickListener true
+app/src/main/kotlin/org/fossify/messages/activities/MainActivity.kt	220	receiver/lifecycle	override fun onActivityResult(requestCode: Int, resultCode: Int, resultData: Intent?) {
+app/src/main/kotlin/org/fossify/messages/activities/MainActivity.kt	221	receiver/lifecycle	super.onActivityResult(requestCode, resultCode, resultData)
+app/src/main/kotlin/org/fossify/messages/activities/MainActivity.kt	319	UI/listener	binding.noConversationsPlaceholder2.setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/activities/MainActivity.kt	319	event/callback	binding.noConversationsPlaceholder2.setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/activities/MainActivity.kt	323	UI/listener	binding.conversationsFab.setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/activities/MainActivity.kt	323	event/callback	binding.conversationsFab.setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/activities/MainActivity.kt	329	background/work	ensureBackgroundThread {
+app/src/main/kotlin/org/fossify/messages/activities/MainActivity.kt	342	background/work	runOnUiThread {
+app/src/main/kotlin/org/fossify/messages/activities/MainActivity.kt	356	background/work	ensureBackgroundThread {
+app/src/main/kotlin/org/fossify/messages/activities/MainActivity.kt	407	background/work	runOnUiThread {
+app/src/main/kotlin/org/fossify/messages/activities/MainActivity.kt	511	external intent	startActivity(this)
+app/src/main/kotlin/org/fossify/messages/activities/MainActivity.kt	518	external intent	startActivity(this)
+app/src/main/kotlin/org/fossify/messages/activities/MainActivity.kt	568	background/work	ensureBackgroundThread {
+app/src/main/kotlin/org/fossify/messages/activities/MainActivity.kt	630	background/work	runOnUiThread {
+app/src/main/kotlin/org/fossify/messages/activities/MainActivity.kt	642	external intent	startActivity(this)
+app/src/main/kotlin/org/fossify/messages/activities/MainActivity.kt	655	external intent	startActivity(Intent(applicationContext, RecycleBinConversationsActivity::class.java))
+app/src/main/kotlin/org/fossify/messages/activities/MainActivity.kt	660	external intent	startActivity(Intent(applicationContext, ArchivedConversationsActivity::class.java))
+app/src/main/kotlin/org/fossify/messages/activities/MainActivity.kt	665	external intent	startActivity(Intent(applicationContext, SettingsActivity::class.java))
+app/src/main/kotlin/org/fossify/messages/activities/MainActivity.kt	714	event/callback	@Subscribe(threadMode = ThreadMode.MAIN)
+app/src/main/kotlin/org/fossify/messages/activities/ManageBlockedKeywordsActivity.kt	52	UI/listener	setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/activities/ManageBlockedKeywordsActivity.kt	52	event/callback	setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/activities/ManageBlockedKeywordsActivity.kt	58	receiver/lifecycle	override fun onResume() {
+app/src/main/kotlin/org/fossify/messages/activities/ManageBlockedKeywordsActivity.kt	59	receiver/lifecycle	super.onResume()
+app/src/main/kotlin/org/fossify/messages/activities/ManageBlockedKeywordsActivity.kt	64	UI/listener	binding.blockKeywordsToolbar.setOnMenuItemClickListener { menuItem ->
+app/src/main/kotlin/org/fossify/messages/activities/ManageBlockedKeywordsActivity.kt	64	event/callback	binding.blockKeywordsToolbar.setOnMenuItemClickListener { menuItem ->
+app/src/main/kotlin/org/fossify/messages/activities/ManageBlockedKeywordsActivity.kt	87	receiver/lifecycle	registerForActivityResult(ActivityResultContracts.CreateDocument("text/plain")) { uri ->
+app/src/main/kotlin/org/fossify/messages/activities/ManageBlockedKeywordsActivity.kt	89	carrier/provider	val outputStream = uri?.let { contentResolver.openOutputStream(it) }
+app/src/main/kotlin/org/fossify/messages/activities/ManageBlockedKeywordsActivity.kt	99	receiver/lifecycle	registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+app/src/main/kotlin/org/fossify/messages/activities/ManageBlockedKeywordsActivity.kt	131	carrier/provider	val inputStream = contentResolver.openInputStream(uri)
+app/src/main/kotlin/org/fossify/messages/activities/ManageBlockedKeywordsActivity.kt	145	background/work	ensureBackgroundThread {
+app/src/main/kotlin/org/fossify/messages/activities/ManageBlockedKeywordsActivity.kt	158	background/work	ensureBackgroundThread {
+app/src/main/kotlin/org/fossify/messages/activities/ManageBlockedKeywordsActivity.kt	199	background/work	ensureBackgroundThread {
+app/src/main/kotlin/org/fossify/messages/activities/ManageBlockedKeywordsActivity.kt	201	background/work	runOnUiThread {
+app/src/main/kotlin/org/fossify/messages/activities/NewConversationActivity.kt	80	receiver/lifecycle	override fun onResume() {
+app/src/main/kotlin/org/fossify/messages/activities/NewConversationActivity.kt	81	receiver/lifecycle	super.onResume()
+app/src/main/kotlin/org/fossify/messages/activities/NewConversationActivity.kt	112	UI/listener	binding.newConversationConfirm.setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/activities/NewConversationActivity.kt	112	event/callback	binding.newConversationConfirm.setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/activities/NewConversationActivity.kt	117	UI/listener	return@setOnClickListener
+app/src/main/kotlin/org/fossify/messages/activities/NewConversationActivity.kt	122	UI/listener	binding.noContactsPlaceholder2.setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/activities/NewConversationActivity.kt	122	event/callback	binding.noContactsPlaceholder2.setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/activities/NewConversationActivity.kt	164	background/work	runOnUiThread {
+app/src/main/kotlin/org/fossify/messages/activities/NewConversationActivity.kt	215	background/work	ensureBackgroundThread {
+app/src/main/kotlin/org/fossify/messages/activities/NewConversationActivity.kt	218	background/work	runOnUiThread {
+app/src/main/kotlin/org/fossify/messages/activities/NewConversationActivity.kt	239	UI/listener	root.setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/activities/NewConversationActivity.kt	239	event/callback	root.setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/activities/NewConversationActivity.kt	249	event/callback	callback()
+app/src/main/kotlin/org/fossify/messages/activities/NewConversationActivity.kt	289	external intent	startActivity(this)
+app/src/main/kotlin/org/fossify/messages/activities/RecycleBinConversationsActivity.kt	48	receiver/lifecycle	override fun onResume() {
+app/src/main/kotlin/org/fossify/messages/activities/RecycleBinConversationsActivity.kt	49	receiver/lifecycle	super.onResume()
+app/src/main/kotlin/org/fossify/messages/activities/RecycleBinConversationsActivity.kt	61	UI/listener	binding.recycleBinToolbar.setOnMenuItemClickListener { menuItem ->
+app/src/main/kotlin/org/fossify/messages/activities/RecycleBinConversationsActivity.kt	61	event/callback	binding.recycleBinToolbar.setOnMenuItemClickListener { menuItem ->
+app/src/main/kotlin/org/fossify/messages/activities/RecycleBinConversationsActivity.kt	64	UI/listener	else -> return@setOnMenuItemClickListener false
+app/src/main/kotlin/org/fossify/messages/activities/RecycleBinConversationsActivity.kt	66	UI/listener	return@setOnMenuItemClickListener true
+app/src/main/kotlin/org/fossify/messages/activities/RecycleBinConversationsActivity.kt	77	background/work	ensureBackgroundThread {
+app/src/main/kotlin/org/fossify/messages/activities/RecycleBinConversationsActivity.kt	85	background/work	runOnUiThread {
+app/src/main/kotlin/org/fossify/messages/activities/RecycleBinConversationsActivity.kt	105	background/work	ensureBackgroundThread {
+app/src/main/kotlin/org/fossify/messages/activities/RecycleBinConversationsActivity.kt	165	external intent	startActivity(this)
+app/src/main/kotlin/org/fossify/messages/activities/RecycleBinConversationsActivity.kt	169	event/callback	@Subscribe(threadMode = ThreadMode.MAIN)
+app/src/main/kotlin/org/fossify/messages/activities/SettingsActivity.kt	74	receiver/lifecycle	registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+app/src/main/kotlin/org/fossify/messages/activities/SettingsActivity.kt	92	receiver/lifecycle	registerForActivityResult(ActivityResultContracts.CreateDocument(messagesFileType)) { uri ->
+app/src/main/kotlin/org/fossify/messages/activities/SettingsActivity.kt	112	receiver/lifecycle	override fun onResume() {
+app/src/main/kotlin/org/fossify/messages/activities/SettingsActivity.kt	113	receiver/lifecycle	super.onResume()
+app/src/main/kotlin/org/fossify/messages/activities/SettingsActivity.kt	163	UI/listener	settingsPairCompanionHolder.setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/activities/SettingsActivity.kt	163	event/callback	settingsPairCompanionHolder.setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/activities/SettingsActivity.kt	186	UI/listener	binding.settingsDisconnectCompanionHolder.setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/activities/SettingsActivity.kt	186	event/callback	binding.settingsDisconnectCompanionHolder.setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/activities/SettingsActivity.kt	198	UI/listener	binding.settingsExportMessagesHolder.setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/activities/SettingsActivity.kt	198	event/callback	binding.settingsExportMessagesHolder.setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/activities/SettingsActivity.kt	206	UI/listener	binding.settingsImportMessagesHolder.setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/activities/SettingsActivity.kt	206	event/callback	binding.settingsImportMessagesHolder.setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/activities/SettingsActivity.kt	211	receiver/lifecycle	override fun onPause() {
+app/src/main/kotlin/org/fossify/messages/activities/SettingsActivity.kt	212	receiver/lifecycle	super.onPause()
+app/src/main/kotlin/org/fossify/messages/activities/SettingsActivity.kt	217	UI/listener	settingsColorCustomizationHolder.setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/activities/SettingsActivity.kt	217	event/callback	settingsColorCustomizationHolder.setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/activities/SettingsActivity.kt	223	UI/listener	settingsCustomizeNotificationsHolder.setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/activities/SettingsActivity.kt	223	event/callback	settingsCustomizeNotificationsHolder.setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/activities/SettingsActivity.kt	234	UI/listener	settingsUseEnglishHolder.setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/activities/SettingsActivity.kt	234	event/callback	settingsUseEnglishHolder.setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/activities/SettingsActivity.kt	245	UI/listener	settingsLanguageHolder.setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/activities/SettingsActivity.kt	245	event/callback	settingsLanguageHolder.setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/activities/SettingsActivity.kt	257	UI/listener	settingsManageBlockedNumbersHolder.setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/activities/SettingsActivity.kt	257	event/callback	settingsManageBlockedNumbersHolder.setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/activities/SettingsActivity.kt	259	external intent	startActivity(this)
+app/src/main/kotlin/org/fossify/messages/activities/SettingsActivity.kt	268	UI/listener	settingsManageBlockedKeywordsHolder.setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/activities/SettingsActivity.kt	268	event/callback	settingsManageBlockedKeywordsHolder.setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/activities/SettingsActivity.kt	270	external intent	startActivity(this)
+app/src/main/kotlin/org/fossify/messages/activities/SettingsActivity.kt	276	UI/listener	settingsChangeDateTimeFormatHolder.setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/activities/SettingsActivity.kt	276	event/callback	settingsChangeDateTimeFormatHolder.setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/activities/SettingsActivity.kt	285	UI/listener	settingsFontSizeHolder.setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/activities/SettingsActivity.kt	285	event/callback	settingsFontSizeHolder.setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/activities/SettingsActivity.kt	305	UI/listener	settingsShowCharacterCounterHolder.setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/activities/SettingsActivity.kt	305	event/callback	settingsShowCharacterCounterHolder.setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/activities/SettingsActivity.kt	313	UI/listener	settingsUseSimpleCharactersHolder.setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/activities/SettingsActivity.kt	313	event/callback	settingsUseSimpleCharactersHolder.setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/activities/SettingsActivity.kt	321	UI/listener	settingsSendOnEnterHolder.setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/activities/SettingsActivity.kt	321	event/callback	settingsSendOnEnterHolder.setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/activities/SettingsActivity.kt	329	UI/listener	settingsEnableDeliveryReportsHolder.setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/activities/SettingsActivity.kt	329	event/callback	settingsEnableDeliveryReportsHolder.setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/activities/SettingsActivity.kt	337	UI/listener	settingsSendLongMessageMmsHolder.setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/activities/SettingsActivity.kt	337	event/callback	settingsSendLongMessageMmsHolder.setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/activities/SettingsActivity.kt	345	UI/listener	settingsSendGroupMessageMmsHolder.setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/activities/SettingsActivity.kt	345	event/callback	settingsSendGroupMessageMmsHolder.setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/activities/SettingsActivity.kt	353	UI/listener	settingsKeepConversationsArchivedHolder.setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/activities/SettingsActivity.kt	353	event/callback	settingsKeepConversationsArchivedHolder.setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/activities/SettingsActivity.kt	361	UI/listener	settingsLockScreenVisibilityHolder.setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/activities/SettingsActivity.kt	361	event/callback	settingsLockScreenVisibilityHolder.setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/activities/SettingsActivity.kt	385	UI/listener	settingsMmsFileSizeLimitHolder.setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/activities/SettingsActivity.kt	385	event/callback	settingsMmsFileSizeLimitHolder.setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/activities/SettingsActivity.kt	410	UI/listener	settingsUseRecycleBinHolder.setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/activities/SettingsActivity.kt	410	event/callback	settingsUseRecycleBinHolder.setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/activities/SettingsActivity.kt	422	background/work	ensureBackgroundThread {
+app/src/main/kotlin/org/fossify/messages/activities/SettingsActivity.kt	424	background/work	runOnUiThread {
+app/src/main/kotlin/org/fossify/messages/activities/SettingsActivity.kt	434	UI/listener	settingsEmptyRecycleBinHolder.setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/activities/SettingsActivity.kt	434	event/callback	settingsEmptyRecycleBinHolder.setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/activities/SettingsActivity.kt	445	background/work	ensureBackgroundThread {
+app/src/main/kotlin/org/fossify/messages/activities/SettingsActivity.kt	462	UI/listener	settingsAppPasswordProtectionHolder.setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/activities/SettingsActivity.kt	462	event/callback	settingsAppPasswordProtectionHolder.setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/activities/SplashActivity.kt	8	external intent	startActivity(Intent(this, org.fossify.messages.inkpilot.ui.StudioHomeActivity::class.java))
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	235	receiver/lifecycle	override fun onNewIntent(intent: Intent) {
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	236	receiver/lifecycle	super.onNewIntent(intent)
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	238	external intent	startActivity(intent)
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	278	receiver/lifecycle	override fun onResume() {
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	279	receiver/lifecycle	super.onResume()
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	290	background/work	ensureBackgroundThread {
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	294	background/work	runOnUiThread {
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	301	background/work	runOnUiThread {
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	315	receiver/lifecycle	override fun onPause() {
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	316	receiver/lifecycle	super.onPause()
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	345	background/work	ensureBackgroundThread {
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	384	UI/listener	binding.threadToolbar.setOnMenuItemClickListener { menuItem ->
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	384	event/callback	binding.threadToolbar.setOnMenuItemClickListener { menuItem ->
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	385	UI/listener	if (participants.isEmpty()) return@setOnMenuItemClickListener true
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	386	UI/listener	return@setOnMenuItemClickListener handleMenuItemAction(menuItem)
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	410	receiver/lifecycle	override fun onActivityResult(requestCode: Int, resultCode: Int, resultData: Intent?) {
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	411	receiver/lifecycle	super.onActivityResult(requestCode, resultCode, resultData)
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	434	background/work	ensureBackgroundThread {
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	459	background/work	runOnUiThread {
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	468	event/callback	callback()
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	478	external intent	startActivity(this)
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	485	background/work	ensureBackgroundThread {
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	506	background/work	runOnUiThread { callback() }
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	506	event/callback	runOnUiThread { callback() }
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	507	background/work	return@ensureBackgroundThread
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	540	background/work	return@ensureBackgroundThread
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	565	background/work	runOnUiThread {
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	568	event/callback	callback()
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	610	background/work	runOnUiThread {
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	626	background/work	runOnUiThread {
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	630	UI/listener	binding.addContactOrNumber.setOnItemClickListener { _, _, position, _ ->
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	630	event/callback	binding.addContactOrNumber.setOnItemClickListener { _, _, position, _ ->
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	648	background/work	runOnUiThread {
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	649	UI/listener	binding.confirmInsertedNumber.setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	649	event/callback	binding.confirmInsertedNumber.setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	712	background/work	runOnUiThread {
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	761	background/work	ensureBackgroundThread {
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	762	background/work	if (loadingOlderMessages) return@ensureBackgroundThread
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	780	background/work	runOnUiThread {
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	805	background/work	ensureBackgroundThread {
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	808	background/work	runOnUiThread {
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	852	background/work	ensureBackgroundThread {
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	877	UI/listener	threadSendMessage.setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	877	event/callback	threadSendMessage.setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	881	UI/listener	threadSendMessage.setOnLongClickListener {
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	881	event/callback	threadSendMessage.setOnLongClickListener {
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	905	event/callback	threadTypeMessage.setOnEditorActionListener { _, action, _ ->
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	913	event/callback	threadTypeMessage.setOnKeyListener { _, keyCode, event ->
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	922	UI/listener	confirmManageContacts.setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	922	event/callback	confirmManageContacts.setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	940	external intent	startActivity(this)
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	946	UI/listener	threadAddAttachment.setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	946	event/callback	threadAddAttachment.setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	969	UI/listener	scrollToBottomFab.setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	969	event/callback	scrollToBottomFab.setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	983	event/callback	callback()
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	994	event/callback	callback()
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	1016	background/work	runOnUiThread {
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	1033	background/work	runOnUiThread {
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	1055	UI/listener	setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	1055	event/callback	setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	1105	UI/listener	binding.messageHolder.threadSelectSimIcon.setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	1105	event/callback	binding.messageHolder.threadSelectSimIcon.setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	1147	carrier/provider	val defaultSmsSubscriptionId = SmsManager.getDefaultSmsSubscriptionId()
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	1166	background/work	ensureBackgroundThread {
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	1179	background/work	ensureBackgroundThread {
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	1185	background/work	runOnUiThread {
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	1195	background/work	ensureBackgroundThread {
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	1197	background/work	runOnUiThread {
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	1206	background/work	ensureBackgroundThread {
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	1208	background/work	runOnUiThread {
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	1216	background/work	ensureBackgroundThread {
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	1218	background/work	runOnUiThread {
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	1268	UI/listener	selectedContactRemove.setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	1268	event/callback	selectedContactRemove.setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	1291	background/work	ensureBackgroundThread {
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	1294	background/work	runOnUiThread {
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	1314	background/work	ensureBackgroundThread {
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	1316	background/work	runOnUiThread {
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	1402	external intent	startActivityForResult(intent, requestCode)
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	1454	background/work	ensureBackgroundThread {
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	1468	background/work	runOnUiThread {
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	1495	carrier/provider	val mimeType = contentResolver.getType(uri)
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	1539	carrier/provider	applicationContext.contentResolver.takePersistableUriPermission(
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	1543	background/work	ensureBackgroundThread {
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	1547	background/work	?: return@ensureBackgroundThread
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	1596	carrier/provider	?: SmsManager.getDefaultSmsSubscriptionId()
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	1640	background/work	ensureBackgroundThread {
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	1661	background/work	runOnUiThread {
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	1681	background/work	ensureBackgroundThread {
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	1717	background/work	runOnUiThread {
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	1856	event/callback	@Subscribe(threadMode = ThreadMode.ASYNC)
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	1899	background/work	runOnUiThread {
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	1970	background/work	ensureBackgroundThread {
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	1994	UI/listener	setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	1994	event/callback	setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	2001	UI/listener	setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	2001	event/callback	setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	2110	UI/listener	choosePhoto.setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	2110	event/callback	choosePhoto.setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	2113	UI/listener	chooseVideo.setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	2113	event/callback	chooseVideo.setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	2116	UI/listener	takePhoto.setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	2116	event/callback	takePhoto.setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	2119	UI/listener	recordVideo.setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	2119	event/callback	recordVideo.setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	2122	UI/listener	recordAudio.setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	2122	event/callback	recordAudio.setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	2125	UI/listener	pickFile.setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	2125	event/callback	pickFile.setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	2128	UI/listener	pickContact.setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	2128	event/callback	pickContact.setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	2131	UI/listener	scheduleMessage.setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	2131	event/callback	scheduleMessage.setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	2178	event/callback	ViewCompat.setOnApplyWindowInsetsListener(
+app/src/main/kotlin/org/fossify/messages/activities/VCardViewerActivity.kt	37	background/work	runOnUiThread {
+app/src/main/kotlin/org/fossify/messages/activities/VCardViewerActivity.kt	44	receiver/lifecycle	override fun onResume() {
+app/src/main/kotlin/org/fossify/messages/activities/VCardViewerActivity.kt	45	receiver/lifecycle	super.onResume()
+app/src/main/kotlin/org/fossify/messages/activities/VCardViewerActivity.kt	50	UI/listener	binding.vcardToolbar.setOnMenuItemClickListener { menuItem ->
+app/src/main/kotlin/org/fossify/messages/activities/VCardViewerActivity.kt	50	event/callback	binding.vcardToolbar.setOnMenuItemClickListener { menuItem ->
+app/src/main/kotlin/org/fossify/messages/activities/VCardViewerActivity.kt	54	carrier/provider	val mimetype = contentResolver.getType(vCardUri)
+app/src/main/kotlin/org/fossify/messages/activities/VCardViewerActivity.kt	58	external intent	startActivity(intent)
+app/src/main/kotlin/org/fossify/messages/activities/VCardViewerActivity.kt	61	UI/listener	else -> return@setOnMenuItemClickListener false
+app/src/main/kotlin/org/fossify/messages/activities/VCardViewerActivity.kt	63	UI/listener	return@setOnMenuItemClickListener true
+app/src/main/kotlin/org/fossify/messages/adapters/ArchivedConversationsAdapter.kt	42	background/work	ensureBackgroundThread {
+app/src/main/kotlin/org/fossify/messages/adapters/ArchivedConversationsAdapter.kt	67	background/work	ensureBackgroundThread {
+app/src/main/kotlin/org/fossify/messages/adapters/ArchivedConversationsAdapter.kt	84	background/work	activity.runOnUiThread {
+app/src/main/kotlin/org/fossify/messages/adapters/AttachmentsAdapter.kt	113	external intent	activity.startActivity(intent)
+app/src/main/kotlin/org/fossify/messages/adapters/AttachmentsAdapter.kt	165	UI/listener	mediaAttachmentHolder.setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/adapters/AttachmentsAdapter.kt	165	event/callback	mediaAttachmentHolder.setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/adapters/AttachmentsAdapter.kt	172	UI/listener	setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/adapters/AttachmentsAdapter.kt	172	event/callback	setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/adapters/AttachmentsAdapter.kt	183	background/work	activity.runOnUiThread {
+app/src/main/kotlin/org/fossify/messages/adapters/AttachmentsAdapter.kt	256	event/callback	callback(binding, adapterPosition)
+app/src/main/kotlin/org/fossify/messages/adapters/BaseConversationsAdapter.kt	81	background/work	ensureBackgroundThread {
+app/src/main/kotlin/org/fossify/messages/adapters/BaseConversationsAdapter.kt	84	background/work	activity.runOnUiThread {
+app/src/main/kotlin/org/fossify/messages/adapters/ConversationsAdapter.kt	109	background/work	ensureBackgroundThread {
+app/src/main/kotlin/org/fossify/messages/adapters/ConversationsAdapter.kt	114	background/work	activity.runOnUiThread {
+app/src/main/kotlin/org/fossify/messages/adapters/ConversationsAdapter.kt	142	background/work	ensureBackgroundThread {
+app/src/main/kotlin/org/fossify/messages/adapters/ConversationsAdapter.kt	156	background/work	ensureBackgroundThread {
+app/src/main/kotlin/org/fossify/messages/adapters/ConversationsAdapter.kt	180	background/work	activity.runOnUiThread {
+app/src/main/kotlin/org/fossify/messages/adapters/ConversationsAdapter.kt	211	background/work	activity.runOnUiThread {
+app/src/main/kotlin/org/fossify/messages/adapters/ConversationsAdapter.kt	226	background/work	ensureBackgroundThread {
+app/src/main/kotlin/org/fossify/messages/adapters/ConversationsAdapter.kt	228	background/work	activity.runOnUiThread {
+app/src/main/kotlin/org/fossify/messages/adapters/ConversationsAdapter.kt	246	background/work	ensureBackgroundThread {
+app/src/main/kotlin/org/fossify/messages/adapters/ConversationsAdapter.kt	262	background/work	ensureBackgroundThread {
+app/src/main/kotlin/org/fossify/messages/adapters/ConversationsAdapter.kt	309	background/work	activity.runOnUiThread {
+app/src/main/kotlin/org/fossify/messages/adapters/RecycleBinConversationsAdapter.kt	42	background/work	ensureBackgroundThread {
+app/src/main/kotlin/org/fossify/messages/adapters/RecycleBinConversationsAdapter.kt	70	background/work	ensureBackgroundThread {
+app/src/main/kotlin/org/fossify/messages/adapters/RecycleBinConversationsAdapter.kt	96	background/work	activity.runOnUiThread {
+app/src/main/kotlin/org/fossify/messages/adapters/ThreadAdapter.kt	295	background/work	ensureBackgroundThread {
+app/src/main/kotlin/org/fossify/messages/adapters/ThreadAdapter.kt	320	background/work	ensureBackgroundThread {
+app/src/main/kotlin/org/fossify/messages/adapters/ThreadAdapter.kt	340	external intent	activity.startActivity(this)
+app/src/main/kotlin/org/fossify/messages/adapters/ThreadAdapter.kt	376	UI/listener	setOnLongClickListener {
+app/src/main/kotlin/org/fossify/messages/adapters/ThreadAdapter.kt	376	event/callback	setOnLongClickListener {
+app/src/main/kotlin/org/fossify/messages/adapters/ThreadAdapter.kt	381	UI/listener	setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/adapters/ThreadAdapter.kt	381	event/callback	setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/adapters/ThreadAdapter.kt	424	UI/listener	threadMessageSenderPhoto.setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/adapters/ThreadAdapter.kt	424	event/callback	threadMessageSenderPhoto.setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/adapters/ThreadAdapter.kt	533	UI/listener	imageView.attachmentImage.setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/adapters/ThreadAdapter.kt	533	event/callback	imageView.attachmentImage.setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/adapters/ThreadAdapter.kt	540	UI/listener	imageView.root.setOnLongClickListener {
+app/src/main/kotlin/org/fossify/messages/adapters/ThreadAdapter.kt	540	event/callback	imageView.root.setOnLongClickListener {
+app/src/main/kotlin/org/fossify/messages/adapters/ThreadAdapter.kt	574	external intent	activity.startActivity(intent)
+app/src/main/kotlin/org/fossify/messages/adapters/VCardViewerAdapter.kt	104	UI/listener	root.setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/adapters/VCardViewerAdapter.kt	104	event/callback	root.setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/adapters/VCardViewerAdapter.kt	157	UI/listener	root.setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/adapters/VCardViewerAdapter.kt	157	event/callback	root.setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/dialogs/AddBlockedKeywordDialog.kt	26	UI/listener	alertDialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/dialogs/AddBlockedKeywordDialog.kt	26	event/callback	alertDialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/dialogs/AddBlockedKeywordDialog.kt	36	event/callback	callback()
+app/src/main/kotlin/org/fossify/messages/dialogs/DeleteConfirmationDialog.kt	35	event/callback	callback(binding.skipTheRecycleBinCheckbox.isChecked)
+app/src/main/kotlin/org/fossify/messages/dialogs/ExportBlockedKeywordsDialog.kt	43	UI/listener	exportBlockedKeywordsFolder.setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/dialogs/ExportBlockedKeywordsDialog.kt	43	event/callback	exportBlockedKeywordsFolder.setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/dialogs/ExportBlockedKeywordsDialog.kt	62	UI/listener	alertDialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/dialogs/ExportBlockedKeywordsDialog.kt	62	event/callback	alertDialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/dialogs/ExportBlockedKeywordsDialog.kt	71	UI/listener	return@setOnClickListener
+app/src/main/kotlin/org/fossify/messages/dialogs/ExportBlockedKeywordsDialog.kt	74	background/work	ensureBackgroundThread {
+app/src/main/kotlin/org/fossify/messages/dialogs/ExportBlockedKeywordsDialog.kt	77	event/callback	callback(file)
+app/src/main/kotlin/org/fossify/messages/dialogs/ExportMessagesDialog.kt	52	UI/listener	alertDialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/dialogs/ExportMessagesDialog.kt	52	event/callback	alertDialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/dialogs/ExportMessagesDialog.kt	58	event/callback	filename.isAValidFilename() -> callback(filename)
+app/src/main/kotlin/org/fossify/messages/dialogs/ExportMessagesDialog.kt	89	background/work	ensureBackgroundThread {
+app/src/main/kotlin/org/fossify/messages/dialogs/ExportMessagesDialog.kt	102	carrier/provider	activity.contentResolver.openOutputStream(uri)!!.buffered()
+app/src/main/kotlin/org/fossify/messages/dialogs/ExportMessagesDialog.kt	115	carrier/provider	DocumentsContract.deleteDocument(activity.contentResolver, uri)
+app/src/main/kotlin/org/fossify/messages/dialogs/GroupMessageSendDialog.kt	26	event/callback	dialog.setOnDismissListener {
+app/src/main/kotlin/org/fossify/messages/dialogs/ImportMessagesDialog.kt	45	UI/listener	positiveButton.setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/dialogs/ImportMessagesDialog.kt	45	event/callback	positiveButton.setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/dialogs/ImportMessagesDialog.kt	47	UI/listener	return@setOnClickListener
+app/src/main/kotlin/org/fossify/messages/dialogs/ImportMessagesDialog.kt	52	UI/listener	return@setOnClickListener
+app/src/main/kotlin/org/fossify/messages/dialogs/ImportMessagesDialog.kt	72	background/work	ensureBackgroundThread {
+app/src/main/kotlin/org/fossify/messages/dialogs/ManageBlockedKeywordsAdapter.kt	87	UI/listener	overflowMenuIcon.setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/dialogs/ManageBlockedKeywordsAdapter.kt	87	event/callback	overflowMenuIcon.setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/dialogs/ManageBlockedKeywordsAdapter.kt	100	UI/listener	setOnMenuItemClickListener { item ->
+app/src/main/kotlin/org/fossify/messages/dialogs/ManageBlockedKeywordsAdapter.kt	100	event/callback	setOnMenuItemClickListener { item ->
+app/src/main/kotlin/org/fossify/messages/dialogs/ManageBlockedKeywordsAdapter.kt	123	event/callback	callback()
+app/src/main/kotlin/org/fossify/messages/dialogs/RenameConversationDialog.kt	40	UI/listener	setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/dialogs/RenameConversationDialog.kt	40	event/callback	setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/dialogs/RenameConversationDialog.kt	44	UI/listener	return@setOnClickListener
+app/src/main/kotlin/org/fossify/messages/dialogs/RenameConversationDialog.kt	47	event/callback	callback(newTitle)
+app/src/main/kotlin/org/fossify/messages/dialogs/ScheduleMessageDialog.kt	50	UI/listener	binding.editDate.setOnClickListener { showDatePicker() }
+app/src/main/kotlin/org/fossify/messages/dialogs/ScheduleMessageDialog.kt	50	event/callback	binding.editDate.setOnClickListener { showDatePicker() }
+app/src/main/kotlin/org/fossify/messages/dialogs/ScheduleMessageDialog.kt	51	UI/listener	binding.editTime.setOnClickListener { showTimePicker() }
+app/src/main/kotlin/org/fossify/messages/dialogs/ScheduleMessageDialog.kt	51	event/callback	binding.editTime.setOnClickListener { showTimePicker() }
+app/src/main/kotlin/org/fossify/messages/dialogs/ScheduleMessageDialog.kt	82	UI/listener	dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/dialogs/ScheduleMessageDialog.kt	82	event/callback	dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/dialogs/ScheduleMessageDialog.kt	84	event/callback	callback(dateTime)
+app/src/main/kotlin/org/fossify/messages/dialogs/ScheduleMessageDialog.kt	89	event/callback	dialog.setOnDismissListener {
+app/src/main/kotlin/org/fossify/messages/dialogs/ScheduleMessageDialog.kt	115	UI/listener	setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/dialogs/ScheduleMessageDialog.kt	115	event/callback	setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/dialogs/ScheduleMessageDialog.kt	139	event/callback	timePicker.addOnPositiveButtonClickListener {
+app/src/main/kotlin/org/fossify/messages/dialogs/ScheduleMessageDialog.kt	157	UI/listener	setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/dialogs/ScheduleMessageDialog.kt	157	event/callback	setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/extensions/Activity.kt	34	external intent	startActivity(this)
+app/src/main/kotlin/org/fossify/messages/extensions/Activity.kt	53	external intent	startActivity(this)
+app/src/main/kotlin/org/fossify/messages/extensions/Activity.kt	96	background/work	ensureBackgroundThread {
+app/src/main/kotlin/org/fossify/messages/extensions/Activity.kt	106	background/work	runOnUiThread {
+app/src/main/kotlin/org/fossify/messages/extensions/Activity.kt	116	external intent	startActivity(this)
+app/src/main/kotlin/org/fossify/messages/extensions/Context.kt	312	carrier/provider	val cursor = contentResolver.query(uri, projection, selection, selectionArgs, null)
+app/src/main/kotlin/org/fossify/messages/extensions/Context.kt	472	carrier/provider	val cursor = contentResolver.query(uri, projection, selection, selectionArgs, sortOrder)
+app/src/main/kotlin/org/fossify/messages/extensions/Context.kt	476	event/callback	callback(cursor)
+app/src/main/kotlin/org/fossify/messages/extensions/Context.kt	588	carrier/provider	val cursor = contentResolver.query(uri, projection, selection, selectionArgs, sortOrder)
+app/src/main/kotlin/org/fossify/messages/extensions/Context.kt	609	carrier/provider	val cursor = contentResolver.query(uri, projection, selection, selectionArgs, null)
+app/src/main/kotlin/org/fossify/messages/extensions/Context.kt	724	carrier/provider	val cursor = contentResolver.query(uri, projection, selection, selectionArgs, null)
+app/src/main/kotlin/org/fossify/messages/extensions/Context.kt	803	carrier/provider	val cursor = contentResolver.query(uri, projection, null, null, null)
+app/src/main/kotlin/org/fossify/messages/extensions/Context.kt	844	carrier/provider	val newUri = contentResolver.insert(uri, contentValues)
+app/src/main/kotlin/org/fossify/messages/extensions/Context.kt	852	background/work	ensureBackgroundThread {
+app/src/main/kotlin/org/fossify/messages/extensions/Context.kt	858	background/work	return@ensureBackgroundThread
+app/src/main/kotlin/org/fossify/messages/extensions/Context.kt	889	carrier/provider	contentResolver.delete(uri, selection, selectionArgs)
+app/src/main/kotlin/org/fossify/messages/extensions/Context.kt	896	carrier/provider	contentResolver.delete(uri, selection, selectionArgs)
+app/src/main/kotlin/org/fossify/messages/extensions/Context.kt	920	background/work	ensureBackgroundThread {
+app/src/main/kotlin/org/fossify/messages/extensions/Context.kt	976	carrier/provider	contentResolver.update(uri, values, selection, selectionArgs)
+app/src/main/kotlin/org/fossify/messages/extensions/Context.kt	1000	carrier/provider	contentResolver.delete(uri, selection, selectionArgs)
+app/src/main/kotlin/org/fossify/messages/extensions/Context.kt	1023	carrier/provider	contentResolver.update(uri, contentValues, selection, selectionArgs)
+app/src/main/kotlin/org/fossify/messages/extensions/Context.kt	1036	carrier/provider	contentResolver.update(Sms.CONTENT_URI, smsValues, smsSelection, smsArgs)
+app/src/main/kotlin/org/fossify/messages/extensions/Context.kt	1044	carrier/provider	contentResolver.update(Mms.CONTENT_URI, mmsValues, mmsSelection, mmsArgs)
+app/src/main/kotlin/org/fossify/messages/extensions/Context.kt	1058	carrier/provider	contentResolver.update(uri, contentValues, selection, selectionArgs)
+app/src/main/kotlin/org/fossify/messages/extensions/Context.kt	1119	event/callback	callback(privateContact)
+app/src/main/kotlin/org/fossify/messages/extensions/Context.kt	1121	event/callback	callback(contact)
+app/src/main/kotlin/org/fossify/messages/extensions/Context.kt	1212	carrier/provider	contentResolver.delete(uri, selection, null)
+app/src/main/kotlin/org/fossify/messages/extensions/Context.kt	1223	carrier/provider	contentResolver.openAssetFileDescriptor(uri, "r")
+app/src/main/kotlin/org/fossify/messages/extensions/Context.kt	1236	carrier/provider	return contentResolver.query(uri, arrayOf(OpenableColumns.SIZE), null, null, null)
+app/src/main/kotlin/org/fossify/messages/extensions/Context.kt	1261	background/work	ensureBackgroundThread {
+app/src/main/kotlin/org/fossify/messages/extensions/Context.kt	1267	event/callback	callback()
+app/src/main/kotlin/org/fossify/messages/extensions/Context.kt	1293	background/work	ensureBackgroundThread {
+app/src/main/kotlin/org/fossify/messages/extensions/Context.kt	1389	carrier/provider	contentResolver.openInputStream(src)?.use { input ->
+app/src/main/kotlin/org/fossify/messages/extensions/Context.kt	1390	carrier/provider	contentResolver.openOutputStream(dst, "rwt")?.use { out ->
+app/src/main/kotlin/org/fossify/messages/extensions/RecyclerView.kt	9	event/callback	addOnScrollListener(object : RecyclerView.OnScrollListener() {
+app/src/main/kotlin/org/fossify/messages/extensions/SimpleContact.kt	41	carrier/provider	val stream = context.contentResolver.openInputStream(photoUri.toUri())
+app/src/main/kotlin/org/fossify/messages/helpers/AttachmentPreviews.kt	47	UI/listener	setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/helpers/AttachmentPreviews.kt	47	event/callback	setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/helpers/AttachmentPreviews.kt	66	background/work	ensureBackgroundThread {
+app/src/main/kotlin/org/fossify/messages/helpers/AttachmentPreviews.kt	90	UI/listener	root.setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/helpers/AttachmentPreviews.kt	90	event/callback	root.setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/helpers/AttachmentPreviews.kt	94	UI/listener	root.setOnLongClickListener {
+app/src/main/kotlin/org/fossify/messages/helpers/AttachmentPreviews.kt	94	event/callback	root.setOnLongClickListener {
+app/src/main/kotlin/org/fossify/messages/helpers/AttachmentPreviews.kt	110	UI/listener	setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/helpers/AttachmentPreviews.kt	110	event/callback	setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/helpers/AttachmentPreviews.kt	182	event/callback	root.addOnAttachStateChangeListener(audioListener)
+app/src/main/kotlin/org/fossify/messages/helpers/AttachmentPreviews.kt	195	UI/listener	root.setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/helpers/AttachmentPreviews.kt	195	event/callback	root.setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/helpers/AttachmentPreviews.kt	202	UI/listener	playButton.setOnClickListener { root.performClick() }
+app/src/main/kotlin/org/fossify/messages/helpers/AttachmentPreviews.kt	202	event/callback	playButton.setOnClickListener { root.performClick() }
+app/src/main/kotlin/org/fossify/messages/helpers/AttachmentPreviews.kt	203	UI/listener	progressBar.setOnClickListener { root.performClick() }
+app/src/main/kotlin/org/fossify/messages/helpers/AttachmentPreviews.kt	203	event/callback	progressBar.setOnClickListener { root.performClick() }
+app/src/main/kotlin/org/fossify/messages/helpers/AttachmentPreviews.kt	207	event/callback	callback()
+app/src/main/kotlin/org/fossify/messages/helpers/AttachmentPreviews.kt	211	UI/listener	root.setOnLongClickListener(longClickListener)
+app/src/main/kotlin/org/fossify/messages/helpers/AttachmentPreviews.kt	211	event/callback	root.setOnLongClickListener(longClickListener)
+app/src/main/kotlin/org/fossify/messages/helpers/AttachmentPreviews.kt	212	UI/listener	playButton.setOnLongClickListener(longClickListener)
+app/src/main/kotlin/org/fossify/messages/helpers/AttachmentPreviews.kt	212	event/callback	playButton.setOnLongClickListener(longClickListener)
+app/src/main/kotlin/org/fossify/messages/helpers/AttachmentPreviews.kt	213	UI/listener	progressBar.setOnLongClickListener(longClickListener)
+app/src/main/kotlin/org/fossify/messages/helpers/AttachmentPreviews.kt	213	event/callback	progressBar.setOnLongClickListener(longClickListener)
+app/src/main/kotlin/org/fossify/messages/helpers/AttachmentPreviews.kt	214	event/callback	progressBar.setOnTouchListener { view, event ->
+app/src/main/kotlin/org/fossify/messages/helpers/AttachmentPreviews.kt	224	event/callback	progressBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+app/src/main/kotlin/org/fossify/messages/helpers/AttachmentPreviews.kt	258	UI/listener	setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/helpers/AttachmentPreviews.kt	258	event/callback	setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/helpers/AttachmentPreviews.kt	287	background/work	activity.runOnUiThread {
+app/src/main/kotlin/org/fossify/messages/helpers/AttachmentPreviews.kt	291	background/work	return@runOnUiThread
+app/src/main/kotlin/org/fossify/messages/helpers/AttachmentPreviews.kt	324	UI/listener	vcardAttachmentHolder.setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/helpers/AttachmentPreviews.kt	324	event/callback	vcardAttachmentHolder.setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/helpers/AttachmentPreviews.kt	327	UI/listener	vcardAttachmentHolder.setOnLongClickListener {
+app/src/main/kotlin/org/fossify/messages/helpers/AttachmentPreviews.kt	327	event/callback	vcardAttachmentHolder.setOnLongClickListener {
+app/src/main/kotlin/org/fossify/messages/helpers/AudioPlayerManager.kt	44	event/callback	.setOnAudioFocusChangeListener({ focusChange ->
+app/src/main/kotlin/org/fossify/messages/helpers/AudioPlayerManager.kt	53	receiver/lifecycle	override fun onReceive(context: Context, intent: Intent) {
+app/src/main/kotlin/org/fossify/messages/helpers/AudioPlayerManager.kt	109	background/work	ensureBackgroundThread {
+app/src/main/kotlin/org/fossify/messages/helpers/AudioPlayerManager.kt	172	event/callback	setOnPreparedListener {
+app/src/main/kotlin/org/fossify/messages/helpers/AudioPlayerManager.kt	178	event/callback	setOnCompletionListener {
+app/src/main/kotlin/org/fossify/messages/helpers/AudioPlayerManager.kt	183	event/callback	setOnErrorListener { _, _, _ ->
+app/src/main/kotlin/org/fossify/messages/helpers/AudioPlayerManager.kt	201	receiver/lifecycle	ContextCompat.registerReceiver(
+app/src/main/kotlin/org/fossify/messages/helpers/ImageCompressor.kt	25	carrier/provider	private val contentResolver = context.contentResolver
+app/src/main/kotlin/org/fossify/messages/helpers/ImageCompressor.kt	37	background/work	ensureBackgroundThread {
+app/src/main/kotlin/org/fossify/messages/helpers/ImageCompressor.kt	41	carrier/provider	val mimeType = contentResolver.getType(uri)!!
+app/src/main/kotlin/org/fossify/messages/helpers/ImageCompressor.kt	43	carrier/provider	val byteArray = contentResolver.openInputStream(uri)?.readBytes()!!
+app/src/main/kotlin/org/fossify/messages/helpers/MessagesImporter.kt	33	carrier/provider	val fileType = activity.contentResolver.getType(uri).orEmpty()
+app/src/main/kotlin/org/fossify/messages/helpers/MessagesImporter.kt	51	carrier/provider	activity.contentResolver.openInputStream(uri)!!.buffered().use { inputStream ->
+app/src/main/kotlin/org/fossify/messages/helpers/MessagesImporter.kt	84	background/work	ensureBackgroundThread {
+app/src/main/kotlin/org/fossify/messages/helpers/MessagesImporter.kt	204	carrier/provider	activity.contentResolver.openInputStream(uri)
+app/src/main/kotlin/org/fossify/messages/helpers/MessagesReader.kt	40	event/callback	callback(smsMessages + mmsMessages)
+app/src/main/kotlin/org/fossify/messages/helpers/MessagesReader.kt	262	carrier/provider	val stream = context.contentResolver.openInputStream(partUri) ?: return ""
+app/src/main/kotlin/org/fossify/messages/helpers/MessagesWriter.kt	22	carrier/provider	private val contentResolver = context.contentResolver
+app/src/main/kotlin/org/fossify/messages/helpers/MessagesWriter.kt	31	carrier/provider	contentResolver.insert(Sms.CONTENT_URI, contentValues)
+app/src/main/kotlin/org/fossify/messages/helpers/MessagesWriter.kt	60	carrier/provider	contentResolver.insert(Mms.CONTENT_URI, contentValues)
+app/src/main/kotlin/org/fossify/messages/helpers/MessagesWriter.kt	138	carrier/provider	contentResolver.insert(addressUri, contentValues)
+app/src/main/kotlin/org/fossify/messages/helpers/MessagesWriter.kt	148	carrier/provider	val partUri = contentResolver.insert(uri, contentValues)
+app/src/main/kotlin/org/fossify/messages/helpers/MessagesWriter.kt	152	carrier/provider	contentResolver.openOutputStream(partUri).use {
+app/src/main/kotlin/org/fossify/messages/helpers/NotificationHelper.kt	62	external intent	PendingIntent.getActivity(
+app/src/main/kotlin/org/fossify/messages/helpers/NotificationHelper.kt	66	external intent	PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE
+app/src/main/kotlin/org/fossify/messages/helpers/NotificationHelper.kt	74	external intent	PendingIntent.getBroadcast(
+app/src/main/kotlin/org/fossify/messages/helpers/NotificationHelper.kt	78	external intent	PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+app/src/main/kotlin/org/fossify/messages/helpers/NotificationHelper.kt	87	external intent	PendingIntent.getBroadcast(
+app/src/main/kotlin/org/fossify/messages/helpers/NotificationHelper.kt	91	external intent	PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+app/src/main/kotlin/org/fossify/messages/helpers/NotificationHelper.kt	108	external intent	PendingIntent.getBroadcast(
+app/src/main/kotlin/org/fossify/messages/helpers/NotificationHelper.kt	112	external intent	PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE
+app/src/main/kotlin/org/fossify/messages/helpers/NotificationHelper.kt	152	event/callback	setOnlyAlertOnce(alertOnlyOnce)
+app/src/main/kotlin/org/fossify/messages/helpers/NotificationHelper.kt	176	background/work	ensureBackgroundThread {
+app/src/main/kotlin/org/fossify/messages/helpers/NotificationHelper.kt	185	background/work	ensureBackgroundThread {
+app/src/main/kotlin/org/fossify/messages/helpers/NotificationHelper.kt	205	external intent	val contentPendingIntent = PendingIntent.getActivity(
+app/src/main/kotlin/org/fossify/messages/helpers/NotificationHelper.kt	209	external intent	PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE
+app/src/main/kotlin/org/fossify/messages/helpers/VCardParser.kt	13	background/work	ensureBackgroundThread {
+app/src/main/kotlin/org/fossify/messages/helpers/VCardParser.kt	15	carrier/provider	context.contentResolver.openInputStream(uri)?.use { inputStream ->
+app/src/main/kotlin/org/fossify/messages/helpers/VCardParser.kt	25	event/callback	callback(vCards)
+app/src/main/kotlin/org/fossify/messages/inkpilot/runtime/AgentRuntime.kt	32	background/work	WorkManager.getInstance(context).enqueueUniqueWork(
+app/src/main/kotlin/org/fossify/messages/inkpilot/runtime/AgentRuntime.kt	34	background/work	OneTimeWorkRequestBuilder<LocalDraftWorker>().build(),
+app/src/main/kotlin/org/fossify/messages/inkpilot/runtime/CheckedSmsSender.kt	26	carrier/provider	val manager = SmsManager.getSmsManagerForSubscriptionId(subscriptionId)
+app/src/main/kotlin/org/fossify/messages/inkpilot/runtime/CheckedSmsSender.kt	44	carrier/provider	manager.sendTextMessage(claim.recipient, null, claim.body, sent[0], null)
+app/src/main/kotlin/org/fossify/messages/inkpilot/runtime/CheckedSmsSender.kt	46	carrier/provider	manager.sendMultipartTextMessage(claim.recipient, null, parts, sent, null)
+app/src/main/kotlin/org/fossify/messages/inkpilot/runtime/CheckedSmsSender.kt	64	external intent	private fun resultIntent(draftId: String, part: Int): PendingIntent {
+app/src/main/kotlin/org/fossify/messages/inkpilot/runtime/CheckedSmsSender.kt	70	external intent	return PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+app/src/main/kotlin/org/fossify/messages/inkpilot/runtime/DraftNotifications.kt	17	external intent	val pending = PendingIntent.getActivity(context, 1, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+app/src/main/kotlin/org/fossify/messages/inkpilot/runtime/LocalDraftWorker.kt	8	background/work	override fun doWork(): Result = try {
+app/src/main/kotlin/org/fossify/messages/inkpilot/runtime/ModelFiles.kt	21	carrier/provider	context.contentResolver.openInputStream(uri).use { input ->
+app/src/main/kotlin/org/fossify/messages/inkpilot/runtime/ModelFiles.kt	60	carrier/provider	context.contentResolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)?.use {
+app/src/main/kotlin/org/fossify/messages/inkpilot/runtime/SmsIntakeRecovery.kt	39	carrier/provider	context.contentResolver.query(
+app/src/main/kotlin/org/fossify/messages/inkpilot/runtime/SmsProviderHistory.kt	30	carrier/provider	val uri = context.contentResolver.insert(Telephony.Sms.CONTENT_URI, values)
+app/src/main/kotlin/org/fossify/messages/inkpilot/runtime/SmsProviderHistory.kt	45	carrier/provider	if (context.contentResolver.update(uri, values, null, null) > 0) true
+app/src/main/kotlin/org/fossify/messages/inkpilot/runtime/SmsProviderHistory.kt	46	carrier/provider	else context.contentResolver.query(uri, arrayOf(Telephony.Sms._ID), null, null, null)?.use { !it.moveToFirst() } == true
+app/src/main/kotlin/org/fossify/messages/inkpilot/runtime/StudioSmsResultReceiver.kt	11	receiver/lifecycle	override fun onReceive(context: Context, intent: Intent) {
+app/src/main/kotlin/org/fossify/messages/inkpilot/runtime/StudioSmsResultReceiver.kt	16	receiver/lifecycle	val pending = goAsync()
+app/src/main/kotlin/org/fossify/messages/inkpilot/runtime/StudioSmsResultReceiver.kt	17	background/work	ensureBackgroundThread {
+app/src/main/kotlin/org/fossify/messages/inkpilot/studio/CalendarEditor.kt	35	UI/listener	dateButton.setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/inkpilot/studio/CalendarEditor.kt	35	event/callback	dateButton.setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/inkpilot/studio/CalendarEditor.kt	42	UI/listener	timeButton.setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/inkpilot/studio/CalendarEditor.kt	42	event/callback	timeButton.setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/inkpilot/studio/CalendarEditor.kt	53	event/callback	dialog.setOnShowListener {
+app/src/main/kotlin/org/fossify/messages/inkpilot/studio/CalendarEditor.kt	54	UI/listener	dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/inkpilot/studio/CalendarEditor.kt	54	event/callback	dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/inkpilot/studio/CalendarEditor.kt	57	UI/listener	host.onError("Choose a duration between one minute and 24 hours."); return@setOnClickListener
+app/src/main/kotlin/org/fossify/messages/inkpilot/studio/CalendarEditor.kt	63	UI/listener	host.onError("That time falls within a daylight-saving change. Choose another time."); return@setOnClickListener
+app/src/main/kotlin/org/fossify/messages/inkpilot/studio/StudioAlbumsPanel.kt	48	external intent	host.activity.startActivityForResult(Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
+app/src/main/kotlin/org/fossify/messages/inkpilot/studio/StudioAlbumsPanel.kt	65	UI/listener	setOnClickListener { preview(image, album) }
+app/src/main/kotlin/org/fossify/messages/inkpilot/studio/StudioAlbumsPanel.kt	65	event/callback	setOnClickListener { preview(image, album) }
+app/src/main/kotlin/org/fossify/messages/inkpilot/studio/StudioAlbumsPanel.kt	81	UI/listener	more.setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/inkpilot/studio/StudioAlbumsPanel.kt	81	event/callback	more.setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/inkpilot/studio/StudioAlbumsPanel.kt	112	event/callback	dialog.setOnShowListener {
+app/src/main/kotlin/org/fossify/messages/inkpilot/studio/StudioAlbumsPanel.kt	113	UI/listener	dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/inkpilot/studio/StudioAlbumsPanel.kt	113	event/callback	dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/inkpilot/studio/StudioCalendarPanel.kt	64	event/callback	dialog.setOnShowListener {
+app/src/main/kotlin/org/fossify/messages/inkpilot/studio/StudioCalendarPanel.kt	65	UI/listener	dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/inkpilot/studio/StudioCalendarPanel.kt	65	event/callback	dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/inkpilot/studio/StudioImageFiles.kt	16	carrier/provider	require(context.contentResolver.getType(uri)?.startsWith("image/") == true) { "Choose an image." }
+app/src/main/kotlin/org/fossify/messages/inkpilot/studio/StudioImageFiles.kt	17	carrier/provider	val name = context.contentResolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)?.use {
+app/src/main/kotlin/org/fossify/messages/inkpilot/studio/StudioImageFiles.kt	23	carrier/provider	context.contentResolver.openInputStream(uri).use { input ->
+app/src/main/kotlin/org/fossify/messages/inkpilot/studio/StudioPanelHost.kt	38	UI/listener	text = label; isAllCaps = false; setTextColor(accent); setOnClickListener { action() }
+app/src/main/kotlin/org/fossify/messages/inkpilot/studio/StudioPanelHost.kt	38	event/callback	text = label; isAllCaps = false; setTextColor(accent); setOnClickListener { action() }
+app/src/main/kotlin/org/fossify/messages/inkpilot/studio/StudioPanelHost.kt	48	background/work	fun onUi(action: () -> Unit) = activity.runOnUiThread {
+app/src/main/kotlin/org/fossify/messages/inkpilot/studio/StudioPanelHost.kt	53	background/work	executor.execute {
+app/src/main/kotlin/org/fossify/messages/inkpilot/studio/StudioPanels.kt	24	receiver/lifecycle	fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?): Boolean {
+app/src/main/kotlin/org/fossify/messages/inkpilot/ui/AgentPanel.kt	34	external intent	activity.startActivityForResult(Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
+app/src/main/kotlin/org/fossify/messages/inkpilot/ui/AgentPanel.kt	58	event/callback	enabled.setOnCheckedChangeListener { _, checked ->
+app/src/main/kotlin/org/fossify/messages/inkpilot/ui/AgentPanel.kt	81	UI/listener	addTextChangedListener(object : TextWatcher {
+app/src/main/kotlin/org/fossify/messages/inkpilot/ui/AgentPanel.kt	101	receiver/lifecycle	fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?): Boolean {
+app/src/main/kotlin/org/fossify/messages/inkpilot/ui/ContactPanel.kt	37	UI/listener	row.setOnClickListener { edit(contact) }
+app/src/main/kotlin/org/fossify/messages/inkpilot/ui/ContactPanel.kt	37	event/callback	row.setOnClickListener { edit(contact) }
+app/src/main/kotlin/org/fossify/messages/inkpilot/ui/ContactPanel.kt	69	external intent	runCatching { activity.startActivity(Intent(Intent.ACTION_DIAL, Uri.fromParts("tel", contact.number, null))) }
+app/src/main/kotlin/org/fossify/messages/inkpilot/ui/ContactPanel.kt	95	event/callback	dialog.setOnShowListener {
+app/src/main/kotlin/org/fossify/messages/inkpilot/ui/ContactPanel.kt	96	UI/listener	dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/inkpilot/ui/ContactPanel.kt	96	event/callback	dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/inkpilot/ui/ContactPanel.kt	97	UI/listener	if (number.text.isBlank()) { number.error = "Enter a phone number"; return@setOnClickListener }
+app/src/main/kotlin/org/fossify/messages/inkpilot/ui/DraftPanel.kt	37	external intent	activity.startActivity(Intent(activity, ThreadActivity::class.java)
+app/src/main/kotlin/org/fossify/messages/inkpilot/ui/DraftReview.kt	38	event/callback	dialog.setOnShowListener {
+app/src/main/kotlin/org/fossify/messages/inkpilot/ui/DraftReview.kt	39	UI/listener	dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/inkpilot/ui/DraftReview.kt	39	event/callback	dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/inkpilot/ui/DraftReview.kt	41	UI/listener	if (reply.isEmpty()) { editor.error = "Write a reply"; return@setOnClickListener }
+app/src/main/kotlin/org/fossify/messages/inkpilot/ui/MessagePanel.kt	39	external intent	activity.startActivity(Intent(activity, NewConversationActivity::class.java))
+app/src/main/kotlin/org/fossify/messages/inkpilot/ui/MessagePanel.kt	55	UI/listener	row.setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/inkpilot/ui/MessagePanel.kt	55	event/callback	row.setOnClickListener {
+app/src/main/kotlin/org/fossify/messages/inkpilot/ui/MessagePanel.kt	56	external intent	activity.startActivity(Intent(activity, ThreadActivity::class.java)
+app/src/main/kotlin/org/fossify/messages/inkpilot/ui/MessagePanel.kt	80	external intent	runCatching { activity.startActivity(intent) }.onFailure { StudioUi.error(activity, "No phone dialer is available.") }
+app/src/main/kotlin/org/fossify/messages/inkpilot/ui/SmsRefreshObserver.kt	25	receiver/lifecycle	context.contentResolver.registerContentObserver(Telephony.MmsSms.CONTENT_URI, true, observer)
+app/src/main/kotlin/org/fossify/messages/inkpilot/ui/SmsRefreshObserver.kt	25	carrier/provider	context.contentResolver.registerContentObserver(Telephony.MmsSms.CONTENT_URI, true, observer)
+app/src/main/kotlin/org/fossify/messages/inkpilot/ui/SmsRefreshObserver.kt	26	receiver/lifecycle	context.contentResolver.registerContentObserver(Telephony.Sms.CONTENT_URI, true, observer)
+app/src/main/kotlin/org/fossify/messages/inkpilot/ui/SmsRefreshObserver.kt	26	carrier/provider	context.contentResolver.registerContentObserver(Telephony.Sms.CONTENT_URI, true, observer)
+app/src/main/kotlin/org/fossify/messages/inkpilot/ui/SmsRefreshObserver.kt	32	carrier/provider	if (registered) context.contentResolver.unregisterContentObserver(observer)
+app/src/main/kotlin/org/fossify/messages/inkpilot/ui/StudioAppLock.kt	11	receiver/lifecycle	fun onResume(): Boolean {
+app/src/main/kotlin/org/fossify/messages/inkpilot/ui/StudioHomeActivity.kt	76	event/callback	ViewCompat.setOnApplyWindowInsetsListener(root) { view, insets ->
+app/src/main/kotlin/org/fossify/messages/inkpilot/ui/StudioHomeActivity.kt	134	external intent	startActivityForResult(intent, SMS_ROLE_REQUEST)
+app/src/main/kotlin/org/fossify/messages/inkpilot/ui/StudioHomeActivity.kt	145	receiver/lifecycle	override fun onResume() {
+app/src/main/kotlin/org/fossify/messages/inkpilot/ui/StudioHomeActivity.kt	146	receiver/lifecycle	super.onResume()
+app/src/main/kotlin/org/fossify/messages/inkpilot/ui/StudioHomeActivity.kt	147	receiver/lifecycle	if (appLock.onResume()) { render(); smsObserver?.start() }
+app/src/main/kotlin/org/fossify/messages/inkpilot/ui/StudioHomeActivity.kt	150	receiver/lifecycle	override fun onPause() { smsObserver?.stop(); super.onPause() }
+app/src/main/kotlin/org/fossify/messages/inkpilot/ui/StudioHomeActivity.kt	151	receiver/lifecycle	override fun onNewIntent(intent: Intent) {
+app/src/main/kotlin/org/fossify/messages/inkpilot/ui/StudioHomeActivity.kt	152	receiver/lifecycle	super.onNewIntent(intent)
+app/src/main/kotlin/org/fossify/messages/inkpilot/ui/StudioHomeActivity.kt	161	receiver/lifecycle	override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+app/src/main/kotlin/org/fossify/messages/inkpilot/ui/StudioHomeActivity.kt	162	receiver/lifecycle	super.onActivityResult(requestCode, resultCode, data)
+app/src/main/kotlin/org/fossify/messages/inkpilot/ui/StudioHomeActivity.kt	164	receiver/lifecycle	else if (!agent.onActivityResult(requestCode, resultCode, data)) studio.onActivityResult(requestCode, resultCode, data)
+app/src/main/kotlin/org/fossify/messages/inkpilot/ui/StudioHomeActivity.kt	172	background/work	executor.execute { repository.close() }
+app/src/main/kotlin/org/fossify/messages/inkpilot/ui/StudioNavigation.kt	44	UI/listener	setOnClickListener { choose(tab) }
+app/src/main/kotlin/org/fossify/messages/inkpilot/ui/StudioNavigation.kt	44	event/callback	setOnClickListener { choose(tab) }
+app/src/main/kotlin/org/fossify/messages/inkpilot/ui/StudioNavigation.kt	61	external intent	activity.startActivity(Intent(activity, SettingsActivity::class.java))
+app/src/main/kotlin/org/fossify/messages/inkpilot/ui/StudioUi.kt	54	UI/listener	setOnClickListener { action() }
+app/src/main/kotlin/org/fossify/messages/inkpilot/ui/StudioUi.kt	54	event/callback	setOnClickListener { action() }
+app/src/main/kotlin/org/fossify/messages/inkpilot/ui/StudioUi.kt	76	background/work	executor.execute {
+app/src/main/kotlin/org/fossify/messages/inkpilot/ui/StudioUi.kt	78	background/work	activity.runOnUiThread {
+app/src/main/kotlin/org/fossify/messages/messaging/Messaging.kt	89	background/work	ensureBackgroundThread {
+app/src/main/kotlin/org/fossify/messages/messaging/MessagingUtils.kt	66	carrier/provider	val count = context.contentResolver.update(
+app/src/main/kotlin/org/fossify/messages/messaging/MessagingUtils.kt	75	carrier/provider	response = context.contentResolver.insert(Sms.CONTENT_URI, values)
+app/src/main/kotlin/org/fossify/messages/messaging/MessagingUtils.kt	123	carrier/provider	val resolver = context.contentResolver
+app/src/main/kotlin/org/fossify/messages/messaging/MessagingUtils.kt	170	carrier/provider	context.contentResolver.openInputStream(uri)?.use {
+app/src/main/kotlin/org/fossify/messages/messaging/ScheduledMessage.kt	17	external intent	fun Context.getScheduleSendPendingIntent(message: Message): PendingIntent {
+app/src/main/kotlin/org/fossify/messages/messaging/ScheduledMessage.kt	22	external intent	val flags = PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+app/src/main/kotlin/org/fossify/messages/messaging/ScheduledMessage.kt	23	external intent	return PendingIntent.getBroadcast(this, message.id.toInt(), intent, flags)
+app/src/main/kotlin/org/fossify/messages/messaging/ScheduledMessage.kt	36	external intent	val flags = PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+app/src/main/kotlin/org/fossify/messages/messaging/ScheduledMessage.kt	37	external intent	PendingIntent.getBroadcast(this, messageId.toInt(), intent, flags).cancel()
+app/src/main/kotlin/org/fossify/messages/messaging/SendingErrors.kt	23	carrier/provider	SmsManager.RESULT_ERROR_RADIO_OFF -> R.string.error_radio_turned_off
+app/src/main/kotlin/org/fossify/messages/messaging/SendingErrors.kt	24	carrier/provider	SmsManager.RESULT_ERROR_NO_SERVICE,
+app/src/main/kotlin/org/fossify/messages/messaging/SendingErrors.kt	25	carrier/provider	SmsManager.RESULT_RIL_NO_NETWORK_FOUND -> R.string.error_service_is_unavailable
+app/src/main/kotlin/org/fossify/messages/messaging/SendingErrors.kt	26	carrier/provider	SmsManager.RESULT_RADIO_NOT_AVAILABLE,
+app/src/main/kotlin/org/fossify/messages/messaging/SendingErrors.kt	27	carrier/provider	SmsManager.RESULT_RIL_RADIO_NOT_AVAILABLE -> R.string.sms_error_radio_unavailable
+app/src/main/kotlin/org/fossify/messages/messaging/SendingErrors.kt	29	carrier/provider	SmsManager.RESULT_ERROR_NULL_PDU,
+app/src/main/kotlin/org/fossify/messages/messaging/SendingErrors.kt	30	carrier/provider	SmsManager.RESULT_ENCODING_ERROR,
+app/src/main/kotlin/org/fossify/messages/messaging/SendingErrors.kt	31	carrier/provider	SmsManager.RESULT_RIL_ENCODING_ERR -> R.string.sms_error_encoding
+app/src/main/kotlin/org/fossify/messages/messaging/SendingErrors.kt	33	carrier/provider	SmsManager.RESULT_ERROR_LIMIT_EXCEEDED,
+app/src/main/kotlin/org/fossify/messages/messaging/SendingErrors.kt	34	carrier/provider	SmsManager.RESULT_RIL_REQUEST_RATE_LIMITED -> R.string.sms_error_limit_exceeded
+app/src/main/kotlin/org/fossify/messages/messaging/SendingErrors.kt	36	carrier/provider	SmsManager.RESULT_ERROR_FDN_CHECK_FAILURE -> R.string.sms_error_fixed_dialing
+app/src/main/kotlin/org/fossify/messages/messaging/SendingErrors.kt	37	carrier/provider	SmsManager.RESULT_ERROR_SHORT_CODE_NOT_ALLOWED,
+app/src/main/kotlin/org/fossify/messages/messaging/SendingErrors.kt	38	carrier/provider	SmsManager.RESULT_ERROR_SHORT_CODE_NEVER_ALLOWED -> R.string.sms_error_short_code_not_allowed
+app/src/main/kotlin/org/fossify/messages/messaging/SendingErrors.kt	40	carrier/provider	SmsManager.RESULT_NETWORK_REJECT,
+app/src/main/kotlin/org/fossify/messages/messaging/SendingErrors.kt	41	carrier/provider	SmsManager.RESULT_RIL_NETWORK_REJECT -> R.string.sms_error_network_rejected
+app/src/main/kotlin/org/fossify/messages/messaging/SendingErrors.kt	43	carrier/provider	SmsManager.RESULT_INVALID_ARGUMENTS,
+app/src/main/kotlin/org/fossify/messages/messaging/SendingErrors.kt	44	carrier/provider	SmsManager.RESULT_RIL_INVALID_ARGUMENTS -> R.string.sms_error_invalid_arguments
+app/src/main/kotlin/org/fossify/messages/messaging/SendingErrors.kt	46	carrier/provider	SmsManager.RESULT_INVALID_STATE,
+app/src/main/kotlin/org/fossify/messages/messaging/SendingErrors.kt	47	carrier/provider	SmsManager.RESULT_RIL_INVALID_STATE,
+app/src/main/kotlin/org/fossify/messages/messaging/SendingErrors.kt	48	carrier/provider	SmsManager.RESULT_RIL_INVALID_MODEM_STATE -> R.string.sms_error_invalid_state
+app/src/main/kotlin/org/fossify/messages/messaging/SendingErrors.kt	50	carrier/provider	SmsManager.RESULT_NO_MEMORY,
+app/src/main/kotlin/org/fossify/messages/messaging/SendingErrors.kt	51	carrier/provider	SmsManager.RESULT_RIL_NO_MEMORY -> R.string.sms_error_no_memory
+app/src/main/kotlin/org/fossify/messages/messaging/SendingErrors.kt	53	carrier/provider	SmsManager.RESULT_INVALID_SMS_FORMAT,
+app/src/main/kotlin/org/fossify/messages/messaging/SendingErrors.kt	54	carrier/provider	SmsManager.RESULT_RIL_INVALID_SMS_FORMAT -> R.string.sms_error_invalid_format
+app/src/main/kotlin/org/fossify/messages/messaging/SendingErrors.kt	56	carrier/provider	SmsManager.RESULT_SYSTEM_ERROR,
+app/src/main/kotlin/org/fossify/messages/messaging/SendingErrors.kt	57	carrier/provider	SmsManager.RESULT_INTERNAL_ERROR,
+app/src/main/kotlin/org/fossify/messages/messaging/SendingErrors.kt	58	carrier/provider	SmsManager.RESULT_REMOTE_EXCEPTION,
+app/src/main/kotlin/org/fossify/messages/messaging/SendingErrors.kt	59	carrier/provider	SmsManager.RESULT_RIL_SYSTEM_ERR,
+app/src/main/kotlin/org/fossify/messages/messaging/SendingErrors.kt	60	carrier/provider	SmsManager.RESULT_RIL_INTERNAL_ERR -> R.string.sms_error_system
+app/src/main/kotlin/org/fossify/messages/messaging/SendingErrors.kt	62	carrier/provider	SmsManager.RESULT_MODEM_ERROR,
+app/src/main/kotlin/org/fossify/messages/messaging/SendingErrors.kt	63	carrier/provider	SmsManager.RESULT_RIL_MODEM_ERR -> R.string.sms_error_modem
+app/src/main/kotlin/org/fossify/messages/messaging/SendingErrors.kt	65	carrier/provider	SmsManager.RESULT_NETWORK_ERROR,
+app/src/main/kotlin/org/fossify/messages/messaging/SendingErrors.kt	66	carrier/provider	SmsManager.RESULT_RIL_NETWORK_ERR -> R.string.sms_error_network
+app/src/main/kotlin/org/fossify/messages/messaging/SendingErrors.kt	68	carrier/provider	SmsManager.RESULT_INVALID_SMSC_ADDRESS,
+app/src/main/kotlin/org/fossify/messages/messaging/SendingErrors.kt	69	carrier/provider	SmsManager.RESULT_RIL_INVALID_SMSC_ADDRESS -> R.string.sms_error_service_center
+app/src/main/kotlin/org/fossify/messages/messaging/SendingErrors.kt	71	carrier/provider	SmsManager.RESULT_OPERATION_NOT_ALLOWED,
+app/src/main/kotlin/org/fossify/messages/messaging/SendingErrors.kt	72	carrier/provider	SmsManager.RESULT_RIL_OPERATION_NOT_ALLOWED -> R.string.sms_error_not_allowed
+app/src/main/kotlin/org/fossify/messages/messaging/SendingErrors.kt	74	carrier/provider	SmsManager.RESULT_NO_RESOURCES,
+app/src/main/kotlin/org/fossify/messages/messaging/SendingErrors.kt	75	carrier/provider	SmsManager.RESULT_RIL_NO_RESOURCES,
+app/src/main/kotlin/org/fossify/messages/messaging/SendingErrors.kt	76	carrier/provider	SmsManager.RESULT_SMS_SEND_RETRY_FAILED,
+app/src/main/kotlin/org/fossify/messages/messaging/SendingErrors.kt	77	carrier/provider	SmsManager.RESULT_RIL_SMS_SEND_FAIL_RETRY -> R.string.message_send_retry_later
+app/src/main/kotlin/org/fossify/messages/messaging/SendingErrors.kt	79	carrier/provider	SmsManager.RESULT_CANCELLED,
+app/src/main/kotlin/org/fossify/messages/messaging/SendingErrors.kt	80	carrier/provider	SmsManager.RESULT_RIL_CANCELLED,
+app/src/main/kotlin/org/fossify/messages/messaging/SendingErrors.kt	81	carrier/provider	SmsManager.RESULT_UNEXPECTED_EVENT_STOP_SENDING -> R.string.sms_error_cancelled
+app/src/main/kotlin/org/fossify/messages/messaging/SendingErrors.kt	83	carrier/provider	SmsManager.RESULT_REQUEST_NOT_SUPPORTED,
+app/src/main/kotlin/org/fossify/messages/messaging/SendingErrors.kt	84	carrier/provider	SmsManager.RESULT_RIL_REQUEST_NOT_SUPPORTED -> R.string.sms_error_not_supported
+app/src/main/kotlin/org/fossify/messages/messaging/SendingErrors.kt	86	carrier/provider	SmsManager.RESULT_NO_BLUETOOTH_SERVICE,
+app/src/main/kotlin/org/fossify/messages/messaging/SendingErrors.kt	87	carrier/provider	SmsManager.RESULT_INVALID_BLUETOOTH_ADDRESS,
+app/src/main/kotlin/org/fossify/messages/messaging/SendingErrors.kt	88	carrier/provider	SmsManager.RESULT_BLUETOOTH_DISCONNECTED -> R.string.sms_error_bluetooth
+app/src/main/kotlin/org/fossify/messages/messaging/SendingErrors.kt	90	carrier/provider	SmsManager.RESULT_SMS_BLOCKED_DURING_EMERGENCY -> R.string.sms_error_emergency
+app/src/main/kotlin/org/fossify/messages/messaging/SendingErrors.kt	91	carrier/provider	SmsManager.RESULT_NO_DEFAULT_SMS_APP -> R.string.sms_error_no_sim_selected
+app/src/main/kotlin/org/fossify/messages/messaging/SendingErrors.kt	92	carrier/provider	SmsManager.RESULT_USER_NOT_ALLOWED -> R.string.sms_error_user_not_allowed
+app/src/main/kotlin/org/fossify/messages/messaging/SendingErrors.kt	93	carrier/provider	SmsManager.RESULT_RIL_NETWORK_NOT_READY -> R.string.sms_error_network_not_ready
+app/src/main/kotlin/org/fossify/messages/messaging/SendingErrors.kt	94	carrier/provider	SmsManager.RESULT_RIL_SIM_ABSENT -> R.string.sms_error_sim_missing
+app/src/main/kotlin/org/fossify/messages/messaging/SendingErrors.kt	95	carrier/provider	SmsManager.RESULT_RIL_NO_SUBSCRIPTION,
+app/src/main/kotlin/org/fossify/messages/messaging/SendingErrors.kt	96	carrier/provider	SmsManager.RESULT_RIL_SUBSCRIPTION_NOT_AVAILABLE -> R.string.message_send_sim_unavailable
+app/src/main/kotlin/org/fossify/messages/messaging/SendingErrors.kt	98	carrier/provider	SmsManager.RESULT_RIL_SIMULTANEOUS_SMS_AND_CALL_NOT_ALLOWED,
+app/src/main/kotlin/org/fossify/messages/messaging/SendingErrors.kt	99	carrier/provider	SmsManager.RESULT_RIL_BLOCKED_DUE_TO_CALL -> R.string.sms_error_call_in_progress
+app/src/main/kotlin/org/fossify/messages/messaging/SendingErrors.kt	101	carrier/provider	SmsManager.RESULT_RIL_ACCESS_BARRED -> R.string.sms_error_access_barred
+app/src/main/kotlin/org/fossify/messages/messaging/SendingErrors.kt	120	carrier/provider	SmsManager.MMS_ERROR_INVALID_APN -> R.string.mms_error_invalid_apn
+app/src/main/kotlin/org/fossify/messages/messaging/SendingErrors.kt	121	carrier/provider	SmsManager.MMS_ERROR_UNABLE_CONNECT_MMS -> R.string.mms_error_connection
+app/src/main/kotlin/org/fossify/messages/messaging/SendingErrors.kt	122	carrier/provider	SmsManager.MMS_ERROR_HTTP_FAILURE -> R.string.mms_error_http
+app/src/main/kotlin/org/fossify/messages/messaging/SendingErrors.kt	123	carrier/provider	SmsManager.MMS_ERROR_IO_ERROR -> R.string.mms_error_io
+app/src/main/kotlin/org/fossify/messages/messaging/SendingErrors.kt	124	carrier/provider	SmsManager.MMS_ERROR_RETRY -> R.string.message_send_retry_later
+app/src/main/kotlin/org/fossify/messages/messaging/SendingErrors.kt	125	carrier/provider	SmsManager.MMS_ERROR_CONFIGURATION_ERROR -> R.string.mms_error_configuration
+app/src/main/kotlin/org/fossify/messages/messaging/SendingErrors.kt	126	carrier/provider	SmsManager.MMS_ERROR_NO_DATA_NETWORK -> R.string.mms_error_no_network
+app/src/main/kotlin/org/fossify/messages/messaging/SendingErrors.kt	127	carrier/provider	SmsManager.MMS_ERROR_INVALID_SUBSCRIPTION_ID -> R.string.message_send_sim_unavailable
+app/src/main/kotlin/org/fossify/messages/messaging/SendingErrors.kt	128	carrier/provider	SmsManager.RESULT_NO_DEFAULT_SMS_APP -> R.string.sms_error_no_sim_selected
+app/src/main/kotlin/org/fossify/messages/messaging/SendingErrors.kt	129	carrier/provider	SmsManager.MMS_ERROR_INACTIVE_SUBSCRIPTION -> R.string.mms_error_sim_inactive
+app/src/main/kotlin/org/fossify/messages/messaging/SendingErrors.kt	130	carrier/provider	SmsManager.MMS_ERROR_DATA_DISABLED -> R.string.mms_error_data_disabled
+app/src/main/kotlin/org/fossify/messages/messaging/SendingErrors.kt	131	carrier/provider	SmsManager.MMS_ERROR_MMS_DISABLED_BY_CARRIER -> R.string.mms_error_carrier_disabled
+app/src/main/kotlin/org/fossify/messages/messaging/SmsManager.kt	6	carrier/provider	private var smsManagerInstance: SmsManager? = null
+app/src/main/kotlin/org/fossify/messages/messaging/SmsManager.kt	10	carrier/provider	fun getSmsManager(subId: Int): SmsManager {
+app/src/main/kotlin/org/fossify/messages/messaging/SmsManager.kt	14	carrier/provider	smsManagerInstance = SmsManager.getSmsManagerForSubscriptionId(subId)
+app/src/main/kotlin/org/fossify/messages/messaging/SmsManager.kt	18	carrier/provider	smsManagerInstance ?: SmsManager.getDefault()
+app/src/main/kotlin/org/fossify/messages/messaging/SmsManager.kt	20	carrier/provider	SmsManager.getDefault()
+app/src/main/kotlin/org/fossify/messages/messaging/SmsSender.kt	58	external intent	val deliveryIntents = ArrayList<PendingIntent?>(messageCount)
+app/src/main/kotlin/org/fossify/messages/messaging/SmsSender.kt	59	external intent	val sentIntents = ArrayList<PendingIntent>(messageCount)
+app/src/main/kotlin/org/fossify/messages/messaging/SmsSender.kt	61	external intent	var flags = PendingIntent.FLAG_UPDATE_CURRENT
+app/src/main/kotlin/org/fossify/messages/messaging/SmsSender.kt	63	external intent	flags = flags or PendingIntent.FLAG_MUTABLE
+app/src/main/kotlin/org/fossify/messages/messaging/SmsSender.kt	71	external intent	PendingIntent.getBroadcast(
+app/src/main/kotlin/org/fossify/messages/messaging/SmsSender.kt	82	external intent	PendingIntent.getBroadcast(
+app/src/main/kotlin/org/fossify/messages/messaging/SmsSender.kt	94	carrier/provider	smsManager.sendTextMessage(
+app/src/main/kotlin/org/fossify/messages/messaging/SmsSender.kt	103	carrier/provider	smsManager.sendMultipartTextMessage(
+app/src/main/kotlin/org/fossify/messages/receivers/DeleteSmsReceiver.kt	18	receiver/lifecycle	override fun onReceive(context: Context, intent: Intent) {
+app/src/main/kotlin/org/fossify/messages/receivers/DeleteSmsReceiver.kt	23	background/work	ensureBackgroundThread {
+app/src/main/kotlin/org/fossify/messages/receivers/DirectReplyReceiver.kt	21	receiver/lifecycle	override fun onReceive(context: Context, intent: Intent) {
+app/src/main/kotlin/org/fossify/messages/receivers/DirectReplyReceiver.kt	39	background/work	ensureBackgroundThread {
+app/src/main/kotlin/org/fossify/messages/receivers/MarkAsReadReceiver.kt	15	receiver/lifecycle	override fun onReceive(context: Context, intent: Intent) {
+app/src/main/kotlin/org/fossify/messages/receivers/MarkAsReadReceiver.kt	20	background/work	ensureBackgroundThread {
+app/src/main/kotlin/org/fossify/messages/receivers/MmsReceiver.kt	61	background/work	ensureBackgroundThread {
+app/src/main/kotlin/org/fossify/messages/receivers/MmsSentReceiver.kt	31	carrier/provider	intent.getIntExtra(SmsManager.EXTRA_MMS_HTTP_STATUS, 0)
+app/src/main/kotlin/org/fossify/messages/receivers/MmsSentReceiver.kt	43	carrier/provider	context.contentResolver.update(uri, values, null, null)
+app/src/main/kotlin/org/fossify/messages/receivers/RescheduleAlarmsReceiver.kt	13	receiver/lifecycle	override fun onReceive(context: Context, intent: Intent) {
+app/src/main/kotlin/org/fossify/messages/receivers/RescheduleAlarmsReceiver.kt	14	receiver/lifecycle	val pendingResult = goAsync()
+app/src/main/kotlin/org/fossify/messages/receivers/RescheduleAlarmsReceiver.kt	15	background/work	ensureBackgroundThread {
+app/src/main/kotlin/org/fossify/messages/receivers/ScheduledMessageReceiver.kt	24	receiver/lifecycle	override fun onReceive(context: Context, intent: Intent) {
+app/src/main/kotlin/org/fossify/messages/receivers/ScheduledMessageReceiver.kt	32	receiver/lifecycle	val pendingResult = goAsync()
+app/src/main/kotlin/org/fossify/messages/receivers/ScheduledMessageReceiver.kt	33	background/work	ensureBackgroundThread {
+app/src/main/kotlin/org/fossify/messages/receivers/SendStatusReceiver.kt	15	receiver/lifecycle	override fun onReceive(context: Context, intent: Intent) {
+app/src/main/kotlin/org/fossify/messages/receivers/SendStatusReceiver.kt	17	background/work	ensureBackgroundThread {
+app/src/main/kotlin/org/fossify/messages/receivers/SmsReceivedReceiver.kt	41	receiver/lifecycle	override fun onReceive(context: Context, intent: Intent) {
+app/src/main/kotlin/org/fossify/messages/receivers/SmsReceivedReceiver.kt	48	receiver/lifecycle	val pending = goAsync()
+app/src/main/kotlin/org/fossify/messages/receivers/SmsReceivedReceiver.kt	49	background/work	ensureBackgroundThread {
+app/src/main/kotlin/org/fossify/messages/receivers/SmsReceivedReceiver.kt	52	background/work	if (parts.isEmpty()) return@ensureBackgroundThread
+app/src/main/kotlin/org/fossify/messages/receivers/SmsReceivedReceiver.kt	55	background/work	if (address.isBlank()) return@ensureBackgroundThread
+app/src/main/kotlin/org/fossify/messages/receivers/SmsReceivedReceiver.kt	58	background/work	if (isMessageFilteredOut(appContext, body)) return@ensureBackgroundThread
+app/src/main/kotlin/org/fossify/messages/receivers/SmsReceivedReceiver.kt	59	background/work	if (appContext.isNumberBlocked(address)) return@ensureBackgroundThread
+app/src/main/kotlin/org/fossify/messages/receivers/SmsReceivedReceiver.kt	64	background/work	if (result == ContactLookupResult.NotFound) return@ensureBackgroundThread
+app/src/main/kotlin/org/fossify/messages/receivers/SmsReceiver.kt	35	receiver/lifecycle	override fun onReceive(context: Context, intent: Intent) {
+app/src/main/kotlin/org/fossify/messages/receivers/SmsReceiver.kt	36	receiver/lifecycle	val pending = goAsync()
+app/src/main/kotlin/org/fossify/messages/receivers/SmsReceiver.kt	39	background/work	ensureBackgroundThread {
+app/src/main/kotlin/org/fossify/messages/receivers/SmsReceiver.kt	42	background/work	if (parts.isEmpty()) return@ensureBackgroundThread
+app/src/main/kotlin/org/fossify/messages/receivers/SmsReceiver.kt	46	background/work	if (address.isBlank()) return@ensureBackgroundThread
+app/src/main/kotlin/org/fossify/messages/receivers/SmsReceiver.kt	51	background/work	if (isMessageFilteredOut(appContext, body)) return@ensureBackgroundThread
+app/src/main/kotlin/org/fossify/messages/receivers/SmsReceiver.kt	52	background/work	if (appContext.isNumberBlocked(address)) return@ensureBackgroundThread
+app/src/main/kotlin/org/fossify/messages/receivers/SmsReceiver.kt	57	background/work	if (result == ContactLookupResult.NotFound) return@ensureBackgroundThread
+app/src/main/kotlin/org/fossify/messages/receivers/SmsStatusDeliveredReceiver.kt	63	carrier/provider	val resolver = context.contentResolver
+app/src/main/kotlin/org/fossify/messages/receivers/SmsStatusDeliveredReceiver.kt	92	background/work	ensureBackgroundThread {
+app/src/main/kotlin/org/fossify/messages/receivers/SmsStatusSentReceiver.kt	47	background/work	ensureBackgroundThread {
+app/src/main/kotlin/org/fossify/messages/receivers/SmsStatusSentReceiver.kt	68	background/work	ensureBackgroundThread {
+app/src/main/kotlin/org/fossify/messages/transport/DefaultSmsRoleSetup.kt	59	external intent	startActivityForResult(roleManager.createRequestRoleIntent(RoleManager.ROLE_SMS), requestCode)
+app/src/main/kotlin/org/fossify/messages/transport/DefaultSmsRoleSetup.kt	65	external intent	startActivityForResult(intent, requestCode)
+app/src/main/kotlin/org/fossify/messages/transport/DefaultSmsRoleSetup.kt	68	external intent	startActivityForResult(Intent(Settings.ACTION_MANAGE_DEFAULT_APPS_SETTINGS), requestCode)
+app/src/main/kotlin/org/fossify/messages/transport/DrainRetrySchedule.kt	60	background/work	val heldRequest = PeriodicWorkRequestBuilder<HeldDrainWorker>(
+app/src/main/kotlin/org/fossify/messages/transport/DrainRetrySchedule.kt	63	background/work	val pendingRequest = PeriodicWorkRequestBuilder<PendingReportDrainWorker>(
+app/src/main/kotlin/org/fossify/messages/transport/DrainRetrySchedule.kt	67	background/work	workManager.enqueueUniquePeriodicWork(
+app/src/main/kotlin/org/fossify/messages/transport/DrainRetrySchedule.kt	70	background/work	workManager.enqueueUniquePeriodicWork(
+app/src/main/kotlin/org/fossify/messages/transport/HeartbeatAlarmReceiver.kt	37	receiver/lifecycle	override fun onReceive(context: Context, intent: Intent?) {
+app/src/main/kotlin/org/fossify/messages/transport/HeartbeatAlarmReceiver.kt	48	receiver/lifecycle	val pendingResult = goAsync()
+app/src/main/kotlin/org/fossify/messages/transport/HeartbeatAlarmReceiver.kt	49	background/work	ensureBackgroundThread {
+app/src/main/kotlin/org/fossify/messages/transport/HeartbeatAlarmReceiver.kt	59	external intent	private fun Context.heartbeatAlarmIntent(): PendingIntent {
+app/src/main/kotlin/org/fossify/messages/transport/HeartbeatAlarmReceiver.kt	60	external intent	return PendingIntent.getBroadcast(
+app/src/main/kotlin/org/fossify/messages/transport/HeartbeatAlarmReceiver.kt	64	external intent	PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+app/src/main/kotlin/org/fossify/messages/transport/HeartbeatBootReceiver.kt	48	receiver/lifecycle	override fun onReceive(context: Context, intent: Intent?) {
+app/src/main/kotlin/org/fossify/messages/transport/HeartbeatBootReceiver.kt	64	receiver/lifecycle	val pendingResult = goAsync()
+app/src/main/kotlin/org/fossify/messages/transport/HeartbeatBootReceiver.kt	65	background/work	ensureBackgroundThread {
+app/src/main/kotlin/org/fossify/messages/transport/HeartbeatNotification.kt	40	external intent	val contentIntent = PendingIntent.getActivity(
+app/src/main/kotlin/org/fossify/messages/transport/HeartbeatNotification.kt	44	external intent	PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+app/src/main/kotlin/org/fossify/messages/transport/HeartbeatNotification.kt	51	event/callback	.setOngoing(true)
+app/src/main/kotlin/org/fossify/messages/transport/HeartbeatNotification.kt	52	event/callback	.setOnlyAlertOnce(true)
+app/src/main/kotlin/org/fossify/messages/transport/HeartbeatService.kt	68	background/work	ensureBackgroundThread {
+app/src/main/kotlin/org/fossify/messages/transport/HeldArrival.kt	108	background/work	val request = OneTimeWorkRequestBuilder<HeldDrainWorker>()
+app/src/main/kotlin/org/fossify/messages/transport/HeldArrival.kt	113	background/work	WorkManager.getInstance(this).enqueueUniqueWork(
+app/src/main/kotlin/org/fossify/messages/transport/HeldDrainWorker.kt	30	background/work	override fun doWork(): Result {
+app/src/main/kotlin/org/fossify/messages/transport/LocalMessageTransport.kt	114	carrier/provider	smsManager.sendTextMessage(destination, null, message.text, sentIntent, null)
+app/src/main/kotlin/org/fossify/messages/transport/LocalMessageTransport.kt	117	carrier/provider	smsManager.sendMultipartTextMessage(
+app/src/main/kotlin/org/fossify/messages/transport/LocalMessageTransport.kt	133	external intent	private fun sentResultIntent(destination: String): PendingIntent {
+app/src/main/kotlin/org/fossify/messages/transport/LocalMessageTransport.kt	137	external intent	val flags = PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+app/src/main/kotlin/org/fossify/messages/transport/LocalMessageTransport.kt	138	external intent	return PendingIntent.getBroadcast(context, 0, intent, flags)
+app/src/main/kotlin/org/fossify/messages/transport/OutboundPickupSchedule.kt	71	background/work	val periodicRequest = PeriodicWorkRequestBuilder<OutboundPickupWorker>(
+app/src/main/kotlin/org/fossify/messages/transport/OutboundPickupSchedule.kt	74	background/work	WorkManager.getInstance(this).enqueueUniquePeriodicWork(
+app/src/main/kotlin/org/fossify/messages/transport/OutboundPickupSchedule.kt	81	background/work	val request = OneTimeWorkRequestBuilder<OutboundPickupWorker>()
+app/src/main/kotlin/org/fossify/messages/transport/OutboundPickupSchedule.kt	86	background/work	WorkManager.getInstance(this).enqueueUniqueWork(
+app/src/main/kotlin/org/fossify/messages/transport/OutboundPickupWorker.kt	32	background/work	override fun doWork(): Result {
+app/src/main/kotlin/org/fossify/messages/transport/OutboundSendResultReceiver.kt	65	receiver/lifecycle	override fun onReceive(context: Context, intent: Intent) {
+app/src/main/kotlin/org/fossify/messages/transport/OutboundWorkSender.kt	113	carrier/provider	smsManager.sendTextMessage(destination, null, work.body, sentIntent, null)
+app/src/main/kotlin/org/fossify/messages/transport/OutboundWorkSender.kt	119	carrier/provider	smsManager.sendMultipartTextMessage(destination, null, parts, sentIntents, null)
+app/src/main/kotlin/org/fossify/messages/transport/OutboundWorkSender.kt	196	external intent	): PendingIntent {
+app/src/main/kotlin/org/fossify/messages/transport/OutboundWorkSender.kt	208	external intent	var flags = PendingIntent.FLAG_UPDATE_CURRENT
+app/src/main/kotlin/org/fossify/messages/transport/OutboundWorkSender.kt	210	external intent	flags = flags or PendingIntent.FLAG_MUTABLE
+app/src/main/kotlin/org/fossify/messages/transport/OutboundWorkSender.kt	212	external intent	return PendingIntent.getBroadcast(this, 0, intent, flags)
+app/src/main/kotlin/org/fossify/messages/transport/PairingDisconnect.kt	71	background/work	ensureBackgroundThread {
+app/src/main/kotlin/org/fossify/messages/transport/PairingDisconnect.kt	74	background/work	runOnUiThread {
+app/src/main/kotlin/org/fossify/messages/transport/PairingSetup.kt	55	receiver/lifecycle	return registerForActivityResult(ScanContract()) { result ->
+app/src/main/kotlin/org/fossify/messages/transport/PairingSetup.kt	56	receiver/lifecycle	val contents = result.contents ?: return@registerForActivityResult
+app/src/main/kotlin/org/fossify/messages/transport/PairingSetup.kt	96	background/work	ensureBackgroundThread {
+app/src/main/kotlin/org/fossify/messages/transport/PairingSetup.kt	118	background/work	runOnUiThread {
+app/src/main/kotlin/org/fossify/messages/transport/PendingReportDrainWorker.kt	37	background/work	override fun doWork(): Result {
+app/src/main/kotlin/org/fossify/messages/transport/PendingReportVerdict.kt	118	background/work	val request = OneTimeWorkRequestBuilder<PendingReportDrainWorker>()
+app/src/main/kotlin/org/fossify/messages/transport/PendingReportVerdict.kt	123	background/work	WorkManager.getInstance(this).enqueueUniqueWork(
+app/src/main/kotlin/org/fossify/messages/transport/PermissionsOnlySendResultReceiver.kt	26	receiver/lifecycle	override fun onReceive(context: Context, intent: Intent) {

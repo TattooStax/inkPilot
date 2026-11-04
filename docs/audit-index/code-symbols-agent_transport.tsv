@@ -1,0 +1,710 @@
+path	line	kind	symbol	scope	area
+agent-core/build.gradle.kts		no_named_symbol			agent core
+agent-core/src/main/kotlin/inkpilot/agent/CustomerServiceDrafts.kt	6	class	CustomerServiceDrafts	inkpilot.agent	agent core
+agent-core/src/main/kotlin/inkpilot/agent/CustomerServiceDrafts.kt	12	method	draft	inkpilot.agent.CustomerServiceDrafts	agent core
+agent-core/src/main/kotlin/inkpilot/agent/CustomerServiceDrafts.kt	69	method	validateSource	inkpilot.agent.CustomerServiceDrafts	agent core
+agent-core/src/main/kotlin/inkpilot/agent/CustomerServiceDrafts.kt	79	method	validReceipt	inkpilot.agent.CustomerServiceDrafts	agent core
+agent-core/src/main/kotlin/inkpilot/agent/CustomerServiceDrafts.kt	85	method	stopped	inkpilot.agent.CustomerServiceDrafts	agent core
+agent-core/src/main/kotlin/inkpilot/agent/DraftContext.kt	4	class	DraftRequest	inkpilot.agent	agent core
+agent-core/src/main/kotlin/inkpilot/agent/DraftContext.kt	17	class	DraftSource	inkpilot.agent	agent core
+agent-core/src/main/kotlin/inkpilot/agent/DraftContext.kt	27	class	ContactMemory	inkpilot.agent	agent core
+agent-core/src/main/kotlin/inkpilot/agent/DraftContext.kt	29	interface	ContactMemoryReader	inkpilot.agent	agent core
+agent-core/src/main/kotlin/inkpilot/agent/DraftContext.kt	31	method	read	inkpilot.agent.ContactMemoryReader	agent core
+agent-core/src/main/kotlin/inkpilot/agent/DraftContext.kt	35	class	DraftLimits	inkpilot.agent	agent core
+agent-core/src/main/kotlin/inkpilot/agent/DraftContext.kt	47	interface	DraftCancellation	inkpilot.agent	agent core
+agent-core/src/main/kotlin/inkpilot/agent/DraftContext.kt	48	method	isCancelled	inkpilot.agent.DraftCancellation	agent core
+agent-core/src/main/kotlin/inkpilot/agent/DraftContext.kt	50	object	Companion	inkpilot.agent.DraftCancellation	agent core
+agent-core/src/main/kotlin/inkpilot/agent/DraftOutcome.kt	3	class	DraftStopReason	inkpilot.agent	agent core
+agent-core/src/main/kotlin/inkpilot/agent/DraftOutcome.kt	16	class	DraftFailureStage	inkpilot.agent	agent core
+agent-core/src/main/kotlin/inkpilot/agent/DraftOutcome.kt	18	interface	DraftOutcome	inkpilot.agent	agent core
+agent-core/src/main/kotlin/inkpilot/agent/DraftOutcome.kt	19	class	Held	inkpilot.agent.DraftOutcome	agent core
+agent-core/src/main/kotlin/inkpilot/agent/DraftOutcome.kt	20	class	Stopped	inkpilot.agent.DraftOutcome	agent core
+agent-core/src/main/kotlin/inkpilot/agent/DraftOutcome.kt	21	class	Failed	inkpilot.agent.DraftOutcome	agent core
+agent-core/src/main/kotlin/inkpilot/agent/DraftOutcome.kt	24	class	PersistenceUnconfirmed	inkpilot.agent.DraftOutcome	agent core
+agent-core/src/main/kotlin/inkpilot/agent/HeldDraftStore.kt	3	class	DraftKind	inkpilot.agent	agent core
+agent-core/src/main/kotlin/inkpilot/agent/HeldDraftStore.kt	5	class	DraftKey	inkpilot.agent	agent core
+agent-core/src/main/kotlin/inkpilot/agent/HeldDraftStore.kt	7	class	HeldDraftWrite	inkpilot.agent	agent core
+agent-core/src/main/kotlin/inkpilot/agent/HeldDraftStore.kt	16	class	HeldDraftReceipt	inkpilot.agent	agent core
+agent-core/src/main/kotlin/inkpilot/agent/HeldDraftStore.kt	26	class	DraftDisposition	inkpilot.agent	agent core
+agent-core/src/main/kotlin/inkpilot/agent/HeldDraftStore.kt	28	interface	DraftStoreResult	inkpilot.agent	agent core
+agent-core/src/main/kotlin/inkpilot/agent/HeldDraftStore.kt	29	class	Held	inkpilot.agent.DraftStoreResult	agent core
+agent-core/src/main/kotlin/inkpilot/agent/HeldDraftStore.kt	30	object	SourceChanged	inkpilot.agent.DraftStoreResult	agent core
+agent-core/src/main/kotlin/inkpilot/agent/HeldDraftStore.kt	31	object	StaffPaused	inkpilot.agent.DraftStoreResult	agent core
+agent-core/src/main/kotlin/inkpilot/agent/HeldDraftStore.kt	35	interface	HeldDraftStore	inkpilot.agent	agent core
+agent-core/src/main/kotlin/inkpilot/agent/HeldDraftStore.kt	36	method	readSource	inkpilot.agent.HeldDraftStore	agent core
+agent-core/src/main/kotlin/inkpilot/agent/HeldDraftStore.kt	38	method	findHeldDraft	inkpilot.agent.HeldDraftStore	agent core
+agent-core/src/main/kotlin/inkpilot/agent/HeldDraftStore.kt	53	method	holdIfCurrent	inkpilot.agent.HeldDraftStore	agent core
+agent-core/src/main/kotlin/inkpilot/agent/LocalDraftModel.kt	4	class	DraftPrompt	inkpilot.agent	agent core
+agent-core/src/main/kotlin/inkpilot/agent/LocalDraftModel.kt	11	interface	LocalDraftModel	inkpilot.agent	agent core
+agent-core/src/main/kotlin/inkpilot/agent/LocalDraftModel.kt	17	method	generate	inkpilot.agent.LocalDraftModel	agent core
+agent-core/src/test/kotlin/inkpilot/agent/CustomerServiceDraftsTest.kt	7	class	CustomerServiceDraftsTest	inkpilot.agent	agent core
+agent-core/src/test/kotlin/inkpilot/agent/CustomerServiceDraftsTest.kt	9	method	one local inference creates a held reply bound to the authoritative recipient	inkpilot.agent.CustomerServiceDraftsTest	agent core
+agent-core/src/test/kotlin/inkpilot/agent/CustomerServiceDraftsTest.kt	28	method	replay through a new coordinator returns the existing receipt without another inference	inkpilot.agent.CustomerServiceDraftsTest	agent core
+agent-core/src/test/kotlin/inkpilot/agent/CustomerServiceDraftsTest.kt	42	method	competing insertion returns the original receipt even if generated text differs	inkpilot.agent.CustomerServiceDraftsTest	agent core
+agent-core/src/test/kotlin/inkpilot/agent/CustomerServiceDraftsTest.kt	57	method	model text cannot change persisted recipient or contact identity	inkpilot.agent.CustomerServiceDraftsTest	agent core
+agent-core/src/test/kotlin/inkpilot/agent/CustomerServiceDraftsTest.kt	70	method	unknown commit acknowledgement is recoverable by the same durable key	inkpilot.agent.CustomerServiceDraftsTest	agent core
+agent-core/src/test/kotlin/inkpilot/agent/CustomerServiceDraftsTest.kt	85	method	a mismatched commit receipt never reports a confirmed draft	inkpilot.agent.CustomerServiceDraftsTest	agent core
+agent-core/src/test/kotlin/inkpilot/agent/CustomerServiceDraftsTest.kt	96	method	an altered newly committed body never reports the requested draft as held	inkpilot.agent.CustomerServiceDraftsTest	agent core
+agent-core/src/test/kotlin/inkpilot/agent/DraftFixture.kt	4	class	DraftFixture	inkpilot.agent	agent core
+agent-core/src/test/kotlin/inkpilot/agent/DraftFixture.kt	16	method	coordinator	inkpilot.agent.DraftFixture	agent core
+agent-core/src/test/kotlin/inkpilot/agent/DraftFixture.kt	28	class	FakeDraftStore	inkpilot.agent	agent core
+agent-core/src/test/kotlin/inkpilot/agent/DraftFixture.kt	37	method	readSource	inkpilot.agent.FakeDraftStore	agent core
+agent-core/src/test/kotlin/inkpilot/agent/DraftFixture.kt	40	method	findHeldDraft	inkpilot.agent.FakeDraftStore	agent core
+agent-core/src/test/kotlin/inkpilot/agent/DraftFixture.kt	43	method	holdIfCurrent	inkpilot.agent.FakeDraftStore	agent core
+agent-core/src/test/kotlin/inkpilot/agent/DraftFixture.kt	61	method	receiptFor	inkpilot.agent	agent core
+agent-core/src/test/kotlin/inkpilot/agent/DraftFreshnessTest.kt	7	class	DraftFreshnessTest	inkpilot.agent	agent core
+agent-core/src/test/kotlin/inkpilot/agent/DraftFreshnessTest.kt	9	method	stale trigger does not run inference	inkpilot.agent.DraftFreshnessTest	agent core
+agent-core/src/test/kotlin/inkpilot/agent/DraftFreshnessTest.kt	17	method	thread revision changed during inference cannot commit the reply	inkpilot.agent.DraftFreshnessTest	agent core
+agent-core/src/test/kotlin/inkpilot/agent/DraftFreshnessTest.kt	29	method	staff pause prevents inference	inkpilot.agent.DraftFreshnessTest	agent core
+agent-core/src/test/kotlin/inkpilot/agent/DraftFreshnessTest.kt	37	method	staff pause immediately before commit prevents persistence	inkpilot.agent.DraftFreshnessTest	agent core
+agent-core/src/test/kotlin/inkpilot/agent/DraftFreshnessTest.kt	45	method	recipient change immediately before commit prevents rerouting the reply	inkpilot.agent.DraftFreshnessTest	agent core
+agent-core/src/test/kotlin/inkpilot/agent/DraftFreshnessTest.kt	53	method	cancellation before work or during inference never attempts a write	inkpilot.agent.DraftFreshnessTest	agent core
+agent-core/src/test/kotlin/inkpilot/agent/DraftFreshnessTest.kt	74	method	durable cancellation at commit is enforced by revision invalidation	inkpilot.agent.DraftFreshnessTest	agent core
+agent-core/src/test/kotlin/inkpilot/agent/DraftFreshnessTest.kt	82	method	model cancellation is not reported as an inference failure	inkpilot.agent.DraftFreshnessTest	agent core
+agent-core/src/test/kotlin/inkpilot/agent/DraftGuardTest.kt	6	class	DraftGuardTest	inkpilot.agent	agent core
+agent-core/src/test/kotlin/inkpilot/agent/DraftGuardTest.kt	8	method	source contact mismatch stops before reading memory or using the model	inkpilot.agent.DraftGuardTest	agent core
+agent-core/src/test/kotlin/inkpilot/agent/DraftGuardTest.kt	16	method	cross contact memory fails closed	inkpilot.agent.DraftGuardTest	agent core
+agent-core/src/test/kotlin/inkpilot/agent/DraftGuardTest.kt	24	method	cross contact receipt cannot be reused	inkpilot.agent.DraftGuardTest	agent core
+agent-core/src/test/kotlin/inkpilot/agent/DraftGuardTest.kt	34	method	blank model output is rejected without a draft write	inkpilot.agent.DraftGuardTest	agent core
+agent-core/src/test/kotlin/inkpilot/agent/DraftGuardTest.kt	41	method	oversized model output is rejected without truncation or persistence	inkpilot.agent.DraftGuardTest	agent core
+agent-core/src/test/kotlin/inkpilot/agent/DraftGuardTest.kt	48	method	model failure does not claim a draft or invoke persistence	inkpilot.agent.DraftGuardTest	agent core
+agent-core/src/test/kotlin/inkpilot/agent/DraftGuardTest.kt	57	method	oversized incoming message is rejected before inference	inkpilot.agent.DraftGuardTest	agent core
+agent-core/src/test/kotlin/inkpilot/agent/DraftGuardTest.kt	65	method	memory count and total text are separately bounded	inkpilot.agent.DraftGuardTest	agent core
+agent-core/src/test/kotlin/inkpilot/agent/DraftGuardTest.kt	75	method	missing source and blank recipient are rejected	inkpilot.agent.DraftGuardTest	agent core
+agent-core/src/test/kotlin/inkpilot/agent/DraftGuardTest.kt	84	method	assertStopped	inkpilot.agent.DraftGuardTest	agent core
+app/src/main/kotlin/org/fossify/messages/inkpilot/runtime/AgentRuntime.kt	17	object	AgentRuntime	org.fossify.messages.inkpilot.runtime	runtime agent
+app/src/main/kotlin/org/fossify/messages/inkpilot/runtime/AgentRuntime.kt	20	method	importModel	org.fossify.messages.inkpilot.runtime.AgentRuntime	runtime agent
+app/src/main/kotlin/org/fossify/messages/inkpilot/runtime/AgentRuntime.kt	22	method	retryPending	org.fossify.messages.inkpilot.runtime.AgentRuntime	runtime agent
+app/src/main/kotlin/org/fossify/messages/inkpilot/runtime/AgentRuntime.kt	27	method	reconcileHistory	org.fossify.messages.inkpilot.runtime.AgentRuntime	runtime agent
+app/src/main/kotlin/org/fossify/messages/inkpilot/runtime/AgentRuntime.kt	29	method	runPending	org.fossify.messages.inkpilot.runtime.AgentRuntime	runtime agent
+app/src/main/kotlin/org/fossify/messages/inkpilot/runtime/AgentRuntime.kt	39	method	processPending	org.fossify.messages.inkpilot.runtime.AgentRuntime	runtime agent
+app/src/main/kotlin/org/fossify/messages/inkpilot/runtime/AgentRuntime.kt	96	method	approveAndSend	org.fossify.messages.inkpilot.runtime.AgentRuntime	runtime agent
+app/src/main/kotlin/org/fossify/messages/inkpilot/runtime/AgentSettings.kt	7	class	AgentSettings	org.fossify.messages.inkpilot.runtime	runtime agent
+app/src/main/kotlin/org/fossify/messages/inkpilot/runtime/AgentSettings.kt	28	method	recordModel	org.fossify.messages.inkpilot.runtime.AgentSettings	runtime agent
+app/src/main/kotlin/org/fossify/messages/inkpilot/runtime/AgentSettings.kt	30	method	recordStatus	org.fossify.messages.inkpilot.runtime.AgentSettings	runtime agent
+app/src/main/kotlin/org/fossify/messages/inkpilot/runtime/AgentSmsIntake.kt	7	object	AgentSmsIntake	org.fossify.messages.inkpilot.runtime	runtime agent
+app/src/main/kotlin/org/fossify/messages/inkpilot/runtime/AgentSmsIntake.kt	8	method	record	org.fossify.messages.inkpilot.runtime.AgentSmsIntake	runtime agent
+app/src/main/kotlin/org/fossify/messages/inkpilot/runtime/CheckedSmsSender.kt	16	class	CheckedSmsSender	org.fossify.messages.inkpilot.runtime	runtime agent
+app/src/main/kotlin/org/fossify/messages/inkpilot/runtime/CheckedSmsSender.kt	17	method	approveAndSend	org.fossify.messages.inkpilot.runtime.CheckedSmsSender	runtime agent
+app/src/main/kotlin/org/fossify/messages/inkpilot/runtime/CheckedSmsSender.kt	64	method	resultIntent	org.fossify.messages.inkpilot.runtime.CheckedSmsSender	runtime agent
+app/src/main/kotlin/org/fossify/messages/inkpilot/runtime/DraftNotifications.kt	12	object	DraftNotifications	org.fossify.messages.inkpilot.runtime	runtime agent
+app/src/main/kotlin/org/fossify/messages/inkpilot/runtime/DraftNotifications.kt	13	method	show	org.fossify.messages.inkpilot.runtime.DraftNotifications	runtime agent
+app/src/main/kotlin/org/fossify/messages/inkpilot/runtime/LocalDraftWorker.kt	7	class	LocalDraftWorker	org.fossify.messages.inkpilot.runtime	runtime agent
+app/src/main/kotlin/org/fossify/messages/inkpilot/runtime/LocalDraftWorker.kt	8	method	doWork		runtime agent
+app/src/main/kotlin/org/fossify/messages/inkpilot/runtime/ModelFiles.kt	10	object	ModelFiles	org.fossify.messages.inkpilot.runtime	runtime agent
+app/src/main/kotlin/org/fossify/messages/inkpilot/runtime/ModelFiles.kt	13	method	active	org.fossify.messages.inkpilot.runtime.ModelFiles	runtime agent
+app/src/main/kotlin/org/fossify/messages/inkpilot/runtime/ModelFiles.kt	16	method	import	org.fossify.messages.inkpilot.runtime.ModelFiles	runtime agent
+app/src/main/kotlin/org/fossify/messages/inkpilot/runtime/ModelFiles.kt	59	method	displayName	org.fossify.messages.inkpilot.runtime.ModelFiles	runtime agent
+app/src/main/kotlin/org/fossify/messages/inkpilot/runtime/SmsIntakeRecovery.kt	12	object	SmsIntakeRecovery	org.fossify.messages.inkpilot.runtime	runtime agent
+app/src/main/kotlin/org/fossify/messages/inkpilot/runtime/SmsIntakeRecovery.kt	15	method	recover	org.fossify.messages.inkpilot.runtime.SmsIntakeRecovery	runtime agent
+app/src/main/kotlin/org/fossify/messages/inkpilot/runtime/SmsIntakeRecovery.kt	29	method	scan	org.fossify.messages.inkpilot.runtime.SmsIntakeRecovery	runtime agent
+app/src/main/kotlin/org/fossify/messages/inkpilot/runtime/SmsIntakeRecovery.kt	65	method	canReadInbox	org.fossify.messages.inkpilot.runtime.SmsIntakeRecovery	runtime agent
+app/src/main/kotlin/org/fossify/messages/inkpilot/runtime/SmsProviderHistory.kt	17	object	SmsProviderHistory	org.fossify.messages.inkpilot.runtime	runtime agent
+app/src/main/kotlin/org/fossify/messages/inkpilot/runtime/SmsProviderHistory.kt	18	method	insert	org.fossify.messages.inkpilot.runtime.SmsProviderHistory	runtime agent
+app/src/main/kotlin/org/fossify/messages/inkpilot/runtime/SmsProviderHistory.kt	35	method	finish	org.fossify.messages.inkpilot.runtime.SmsProviderHistory	runtime agent
+app/src/main/kotlin/org/fossify/messages/inkpilot/runtime/SmsProviderHistory.kt	52	method	reconcile	org.fossify.messages.inkpilot.runtime.SmsProviderHistory	runtime agent
+app/src/main/kotlin/org/fossify/messages/inkpilot/runtime/SmsProviderHistory.kt	59	method	refresh	org.fossify.messages.inkpilot.runtime.SmsProviderHistory	runtime agent
+app/src/main/kotlin/org/fossify/messages/inkpilot/runtime/StudioSmsResultReceiver.kt	10	class	StudioSmsResultReceiver	org.fossify.messages.inkpilot.runtime	runtime agent
+app/src/main/kotlin/org/fossify/messages/inkpilot/runtime/StudioSmsResultReceiver.kt	11	method	onReceive	org.fossify.messages.inkpilot.runtime.StudioSmsResultReceiver	runtime agent
+app/src/main/kotlin/org/fossify/messages/transport/CompletedOutboundVerdict.kt	11	class	CompletedOutboundVerdict	org.fossify.messages.transport	transport
+app/src/main/kotlin/org/fossify/messages/transport/CredentialGuard.kt	26	object	CredentialGuard	org.fossify.messages.transport	transport
+app/src/main/kotlin/org/fossify/messages/transport/CredentialStorage.kt	34	method	storedDeviceCredential	org.fossify.messages.transport	transport
+app/src/main/kotlin/org/fossify/messages/transport/CredentialStorage.kt	67	method	storeDeviceCredential	org.fossify.messages.transport	transport
+app/src/main/kotlin/org/fossify/messages/transport/CredentialStorage.kt	78	method	storeDeviceCredentialGuarded	org.fossify.messages.transport	transport
+app/src/main/kotlin/org/fossify/messages/transport/CredentialStorage.kt	115	method	hasStoredCredentialMaterial	org.fossify.messages.transport	transport
+app/src/main/kotlin/org/fossify/messages/transport/CredentialStorage.kt	146	method	clearDeviceCredential	org.fossify.messages.transport	transport
+app/src/main/kotlin/org/fossify/messages/transport/CredentialStorage.kt	155	method	clearDeviceCredentialGuarded	org.fossify.messages.transport	transport
+app/src/main/kotlin/org/fossify/messages/transport/DefaultSmsRoleSetup.kt	38	method	launchDefaultSmsRoleSetup	org.fossify.messages.transport	transport
+app/src/main/kotlin/org/fossify/messages/transport/DefaultSmsRoleSetup.kt	79	method	isDefaultSmsApp	org.fossify.messages.transport	transport
+app/src/main/kotlin/org/fossify/messages/transport/DrainExecutionGuard.kt	30	object	DrainExecutionGuard	org.fossify.messages.transport	transport
+app/src/main/kotlin/org/fossify/messages/transport/DrainRetrySchedule.kt	53	method	ensureDrainRetrySchedule	org.fossify.messages.transport	transport
+app/src/main/kotlin/org/fossify/messages/transport/DrainRetrySchedule.kt	76	method	cancelDrainRetrySchedule	org.fossify.messages.transport	transport
+app/src/main/kotlin/org/fossify/messages/transport/HeartbeatAlarmReceiver.kt	35	class	HeartbeatAlarmReceiver	org.fossify.messages.transport	transport
+app/src/main/kotlin/org/fossify/messages/transport/HeartbeatAlarmReceiver.kt	37	method	onReceive	org.fossify.messages.transport.HeartbeatAlarmReceiver	transport
+app/src/main/kotlin/org/fossify/messages/transport/HeartbeatAlarmReceiver.kt	59	method	heartbeatAlarmIntent	org.fossify.messages.transport	transport
+app/src/main/kotlin/org/fossify/messages/transport/HeartbeatAlarmReceiver.kt	83	method	scheduleNextHeartbeat	org.fossify.messages.transport	transport
+app/src/main/kotlin/org/fossify/messages/transport/HeartbeatAlarmReceiver.kt	99	method	cancelHeartbeatSchedule	org.fossify.messages.transport	transport
+app/src/main/kotlin/org/fossify/messages/transport/HeartbeatBinding.kt	15	interface	HeartbeatBindingResult	org.fossify.messages.transport	transport
+app/src/main/kotlin/org/fossify/messages/transport/HeartbeatBinding.kt	23	object	NoUsableCredential	org.fossify.messages.transport.HeartbeatBindingResult	transport
+app/src/main/kotlin/org/fossify/messages/transport/HeartbeatBinding.kt	26	class	Completed	org.fossify.messages.transport.HeartbeatBindingResult	transport
+app/src/main/kotlin/org/fossify/messages/transport/HeartbeatBinding.kt	59	method	performHeartbeat	org.fossify.messages.transport	transport
+app/src/main/kotlin/org/fossify/messages/transport/HeartbeatBootReceiver.kt	46	class	HeartbeatBootReceiver	org.fossify.messages.transport	transport
+app/src/main/kotlin/org/fossify/messages/transport/HeartbeatBootReceiver.kt	48	method	onReceive	org.fossify.messages.transport.HeartbeatBootReceiver	transport
+app/src/main/kotlin/org/fossify/messages/transport/HeartbeatNotification.kt	25	method	createHeartbeatChannel	org.fossify.messages.transport	transport
+app/src/main/kotlin/org/fossify/messages/transport/HeartbeatNotification.kt	39	method	buildHeartbeatNotification	org.fossify.messages.transport	transport
+app/src/main/kotlin/org/fossify/messages/transport/HeartbeatNotification.kt	57	method	heartbeatStateText	org.fossify.messages.transport	transport
+app/src/main/kotlin/org/fossify/messages/transport/HeartbeatNotification.kt	68	method	postHeartbeatNotification	org.fossify.messages.transport	transport
+app/src/main/kotlin/org/fossify/messages/transport/HeartbeatNotification.kt	75	method	cancelHeartbeatNotification	org.fossify.messages.transport	transport
+app/src/main/kotlin/org/fossify/messages/transport/HeartbeatService.kt	57	class	HeartbeatService	org.fossify.messages.transport	transport
+app/src/main/kotlin/org/fossify/messages/transport/HeartbeatService.kt	61	method	onCreate	org.fossify.messages.transport.HeartbeatService	transport
+app/src/main/kotlin/org/fossify/messages/transport/HeartbeatService.kt	66	method	onStartCommand	org.fossify.messages.transport.HeartbeatService	transport
+app/src/main/kotlin/org/fossify/messages/transport/HeartbeatService.kt	74	method	onTimeout	org.fossify.messages.transport.HeartbeatService	transport
+app/src/main/kotlin/org/fossify/messages/transport/HeartbeatService.kt	82	method	onDestroy	org.fossify.messages.transport.HeartbeatService	transport
+app/src/main/kotlin/org/fossify/messages/transport/HeartbeatService.kt	91	method	onBind	org.fossify.messages.transport.HeartbeatService	transport
+app/src/main/kotlin/org/fossify/messages/transport/HeartbeatService.kt	93	method	runOneBeat	org.fossify.messages.transport.HeartbeatService	transport
+app/src/main/kotlin/org/fossify/messages/transport/HeartbeatService.kt	105	method	startForegroundWithState	org.fossify.messages.transport.HeartbeatService	transport
+app/src/main/kotlin/org/fossify/messages/transport/HeartbeatService.kt	134	method	runHeartbeatBeatOnce	org.fossify.messages.transport	transport
+app/src/main/kotlin/org/fossify/messages/transport/HeartbeatService.kt	173	method	tryStartHeartbeatBeatService	org.fossify.messages.transport	transport
+app/src/main/kotlin/org/fossify/messages/transport/HeartbeatService.kt	195	method	startHeartbeatService	org.fossify.messages.transport	transport
+app/src/main/kotlin/org/fossify/messages/transport/HeartbeatService.kt	217	method	ensureHeartbeatSchedule	org.fossify.messages.transport	transport
+app/src/main/kotlin/org/fossify/messages/transport/HeartbeatService.kt	231	method	stopHeartbeatService	org.fossify.messages.transport	transport
+app/src/main/kotlin/org/fossify/messages/transport/HeldArrival.kt	75	method	holdAndDrainInboundArrival	org.fossify.messages.transport	transport
+app/src/main/kotlin/org/fossify/messages/transport/HeldArrival.kt	107	method	enqueueHeldInboundDrain	org.fossify.messages.transport	transport
+app/src/main/kotlin/org/fossify/messages/transport/HeldDrainWorker.kt	25	class	HeldDrainWorker	org.fossify.messages.transport	transport
+app/src/main/kotlin/org/fossify/messages/transport/HeldDrainWorker.kt	30	method	doWork		transport
+app/src/main/kotlin/org/fossify/messages/transport/HeldQueueDrain.kt	55	method	drainHeldInboundQueue	org.fossify.messages.transport	transport
+app/src/main/kotlin/org/fossify/messages/transport/HeldQueueDrainResult.kt	4	interface	HeldQueueDrainResult	org.fossify.messages.transport	transport
+app/src/main/kotlin/org/fossify/messages/transport/HeldQueueDrainResult.kt	6	object	Empty	org.fossify.messages.transport.HeldQueueDrainResult	transport
+app/src/main/kotlin/org/fossify/messages/transport/HeldQueueDrainResult.kt	14	class	Drained	org.fossify.messages.transport.HeldQueueDrainResult	transport
+app/src/main/kotlin/org/fossify/messages/transport/HeldQueueDrainResult.kt	25	class	Blocked	org.fossify.messages.transport.HeldQueueDrainResult	transport
+app/src/main/kotlin/org/fossify/messages/transport/HeldQueueDrainResult.kt	46	class	StorageFailed	org.fossify.messages.transport.HeldQueueDrainResult	transport
+app/src/main/kotlin/org/fossify/messages/transport/HeldQueueGuard.kt	21	object	HeldQueueGuard	org.fossify.messages.transport	transport
+app/src/main/kotlin/org/fossify/messages/transport/HeldQueueStorage.kt	51	method	storedHeldInboundQueue	org.fossify.messages.transport	transport
+app/src/main/kotlin/org/fossify/messages/transport/HeldQueueStorage.kt	86	method	storeHeldInboundQueue	org.fossify.messages.transport	transport
+app/src/main/kotlin/org/fossify/messages/transport/HeldQueueStorage.kt	132	method	storedHeldMessageAt	org.fossify.messages.transport	transport
+app/src/main/kotlin/org/fossify/messages/transport/HeldQueueStorage.kt	136	method	decodedHeldMessageAt	org.fossify.messages.transport	transport
+app/src/main/kotlin/org/fossify/messages/transport/HeldQueueStorage.kt	172	method	storedNullableLongIsReadable	org.fossify.messages.transport	transport
+app/src/main/kotlin/org/fossify/messages/transport/HeldQueueStorage.kt	180	method	storedNullableLong	org.fossify.messages.transport	transport
+app/src/main/kotlin/org/fossify/messages/transport/HeldQueueStorage.kt	187	method	putHeldMessage	org.fossify.messages.transport	transport
+app/src/main/kotlin/org/fossify/messages/transport/HeldQueueStorage.kt	199	method	removeHeldMessage	org.fossify.messages.transport	transport
+app/src/main/kotlin/org/fossify/messages/transport/InboundDeliveryBinding.kt	19	interface	InboundDeliveryBindingResult	org.fossify.messages.transport	transport
+app/src/main/kotlin/org/fossify/messages/transport/InboundDeliveryBinding.kt	28	object	NoUsableCredential	org.fossify.messages.transport.InboundDeliveryBindingResult	transport
+app/src/main/kotlin/org/fossify/messages/transport/InboundDeliveryBinding.kt	38	object	NotDeliverable	org.fossify.messages.transport.InboundDeliveryBindingResult	transport
+app/src/main/kotlin/org/fossify/messages/transport/InboundDeliveryBinding.kt	41	class	Completed	org.fossify.messages.transport.InboundDeliveryBindingResult	transport
+app/src/main/kotlin/org/fossify/messages/transport/InboundDeliveryBinding.kt	78	method	performInboundDelivery	org.fossify.messages.transport	transport
+app/src/main/kotlin/org/fossify/messages/transport/InboundDeliveryBinding.kt	99	method	performInboundDelivery	org.fossify.messages.transport	transport
+app/src/main/kotlin/org/fossify/messages/transport/LocalInboundSink.kt	20	class	LocalInboundSink	org.fossify.messages.transport	transport
+app/src/main/kotlin/org/fossify/messages/transport/LocalInboundSink.kt	22	method	onInbound	org.fossify.messages.transport.LocalInboundSink	transport
+app/src/main/kotlin/org/fossify/messages/transport/LocalMessageTransport.kt	33	class	LocalMessageTransport	org.fossify.messages.transport	transport
+app/src/main/kotlin/org/fossify/messages/transport/LocalMessageTransport.kt	38	method	sendSms	org.fossify.messages.transport.LocalMessageTransport	transport
+app/src/main/kotlin/org/fossify/messages/transport/LocalMessageTransport.kt	93	method	sendSmsWithoutProviderRow	org.fossify.messages.transport.LocalMessageTransport	transport
+app/src/main/kotlin/org/fossify/messages/transport/LocalMessageTransport.kt	133	method	sentResultIntent	org.fossify.messages.transport.LocalMessageTransport	transport
+app/src/main/kotlin/org/fossify/messages/transport/LocalMessageTransport.kt	143	method	showSmsTransportFailure	org.fossify.messages.transport	transport
+app/src/main/kotlin/org/fossify/messages/transport/OutboundAckBinding.kt	17	interface	OutboundAckBindingResult	org.fossify.messages.transport	transport
+app/src/main/kotlin/org/fossify/messages/transport/OutboundAckBinding.kt	26	object	NoUsableCredential	org.fossify.messages.transport.OutboundAckBindingResult	transport
+app/src/main/kotlin/org/fossify/messages/transport/OutboundAckBinding.kt	36	object	NotReportable	org.fossify.messages.transport.OutboundAckBindingResult	transport
+app/src/main/kotlin/org/fossify/messages/transport/OutboundAckBinding.kt	39	class	Completed	org.fossify.messages.transport.OutboundAckBindingResult	transport
+app/src/main/kotlin/org/fossify/messages/transport/OutboundAckBinding.kt	87	method	performOutboundAckReport	org.fossify.messages.transport	transport
+app/src/main/kotlin/org/fossify/messages/transport/OutboundAckBinding.kt	109	method	performOutboundAckReport	org.fossify.messages.transport	transport
+app/src/main/kotlin/org/fossify/messages/transport/OutboundPickup.kt	78	method	pickUpAndSendOutboundWork	org.fossify.messages.transport	transport
+app/src/main/kotlin/org/fossify/messages/transport/OutboundPickup.kt	119	method	sendPickedUpWork	org.fossify.messages.transport	transport
+app/src/main/kotlin/org/fossify/messages/transport/OutboundPickupBinding.kt	25	interface	OutboundPickupBindingResult	org.fossify.messages.transport	transport
+app/src/main/kotlin/org/fossify/messages/transport/OutboundPickupBinding.kt	34	object	NoUsableCredential	org.fossify.messages.transport.OutboundPickupBindingResult	transport
+app/src/main/kotlin/org/fossify/messages/transport/OutboundPickupBinding.kt	37	class	Completed	org.fossify.messages.transport.OutboundPickupBindingResult	transport
+app/src/main/kotlin/org/fossify/messages/transport/OutboundPickupBinding.kt	88	method	performOutboundPickup	org.fossify.messages.transport	transport
+app/src/main/kotlin/org/fossify/messages/transport/OutboundPickupBinding.kt	105	method	performOutboundPickup	org.fossify.messages.transport	transport
+app/src/main/kotlin/org/fossify/messages/transport/OutboundPickupBinding.kt	149	method	readPickupResponseBody	org.fossify.messages.transport	transport
+app/src/main/kotlin/org/fossify/messages/transport/OutboundPickupGuard.kt	23	object	OutboundPickupGuard	org.fossify.messages.transport	transport
+app/src/main/kotlin/org/fossify/messages/transport/OutboundPickupSchedule.kt	64	method	ensureOutboundPickupSchedule	org.fossify.messages.transport	transport
+app/src/main/kotlin/org/fossify/messages/transport/OutboundPickupSchedule.kt	80	method	enqueueOutboundPickup	org.fossify.messages.transport	transport
+app/src/main/kotlin/org/fossify/messages/transport/OutboundPickupSchedule.kt	94	method	cancelOutboundPickupSchedule	org.fossify.messages.transport	transport
+app/src/main/kotlin/org/fossify/messages/transport/OutboundPickupWorker.kt	27	class	OutboundPickupWorker	org.fossify.messages.transport	transport
+app/src/main/kotlin/org/fossify/messages/transport/OutboundPickupWorker.kt	32	method	doWork		transport
+app/src/main/kotlin/org/fossify/messages/transport/OutboundSendProgressGuard.kt	19	object	OutboundSendProgressGuard	org.fossify.messages.transport	transport
+app/src/main/kotlin/org/fossify/messages/transport/OutboundSendProgressStorage.kt	17	interface	OutboundSendProgressUpdate	org.fossify.messages.transport	transport
+app/src/main/kotlin/org/fossify/messages/transport/OutboundSendProgressStorage.kt	19	object	Pending	org.fossify.messages.transport.OutboundSendProgressUpdate	transport
+app/src/main/kotlin/org/fossify/messages/transport/OutboundSendProgressStorage.kt	34	class	Completed	org.fossify.messages.transport.OutboundSendProgressUpdate	transport
+app/src/main/kotlin/org/fossify/messages/transport/OutboundSendProgressStorage.kt	47	object	Unknown	org.fossify.messages.transport.OutboundSendProgressUpdate	transport
+app/src/main/kotlin/org/fossify/messages/transport/OutboundSendProgressStorage.kt	86	method	progressKeyStem	org.fossify.messages.transport	transport
+app/src/main/kotlin/org/fossify/messages/transport/OutboundSendProgressStorage.kt	94	method	progressPrefs	org.fossify.messages.transport	transport
+app/src/main/kotlin/org/fossify/messages/transport/OutboundSendProgressStorage.kt	103	method	beginOutboundSendProgress	org.fossify.messages.transport	transport
+app/src/main/kotlin/org/fossify/messages/transport/OutboundSendProgressStorage.kt	170	method	recordOutboundSendPart	org.fossify.messages.transport	transport
+app/src/main/kotlin/org/fossify/messages/transport/OutboundSendProgressStorage.kt	212	class	ProgressEntry	org.fossify.messages.transport	transport
+app/src/main/kotlin/org/fossify/messages/transport/OutboundSendProgressStorage.kt	227	method	progressEntry	org.fossify.messages.transport	transport
+app/src/main/kotlin/org/fossify/messages/transport/OutboundSendProgressStorage.kt	263	method	storeProgressMask	org.fossify.messages.transport	transport
+app/src/main/kotlin/org/fossify/messages/transport/OutboundSendProgressStorage.kt	293	method	completeProgress	org.fossify.messages.transport	transport
+app/src/main/kotlin/org/fossify/messages/transport/OutboundSendProgressStorage.kt	330	method	clearOutboundSendProgress	org.fossify.messages.transport	transport
+app/src/main/kotlin/org/fossify/messages/transport/OutboundSendRecoveryStorage.kt	28	method	storedCompletedOutboundVerdicts	org.fossify.messages.transport	transport
+app/src/main/kotlin/org/fossify/messages/transport/OutboundSendRecoveryStorage.kt	37	method	completedVerdict	org.fossify.messages.transport	transport
+app/src/main/kotlin/org/fossify/messages/transport/OutboundSendRecoveryStorage.kt	77	method	storeCompletedOutboundVerdict	org.fossify.messages.transport	transport
+app/src/main/kotlin/org/fossify/messages/transport/OutboundSendResultReceiver.kt	63	class	OutboundSendResultReceiver	org.fossify.messages.transport	transport
+app/src/main/kotlin/org/fossify/messages/transport/OutboundSendResultReceiver.kt	65	method	onReceive	org.fossify.messages.transport.OutboundSendResultReceiver	transport
+app/src/main/kotlin/org/fossify/messages/transport/OutboundSendResultReceiver.kt	104	object	Companion	org.fossify.messages.transport.OutboundSendResultReceiver	transport
+app/src/main/kotlin/org/fossify/messages/transport/OutboundVerdictFiling.kt	39	method	fileOutboundVerdict	org.fossify.messages.transport	transport
+app/src/main/kotlin/org/fossify/messages/transport/OutboundVerdictFiling.kt	71	method	fileRetainedOutboundVerdicts	org.fossify.messages.transport	transport
+app/src/main/kotlin/org/fossify/messages/transport/OutboundWorkSendResult.kt	4	interface	OutboundWorkSendResult	org.fossify.messages.transport	transport
+app/src/main/kotlin/org/fossify/messages/transport/OutboundWorkSendResult.kt	13	object	NotPaired	org.fossify.messages.transport.OutboundWorkSendResult	transport
+app/src/main/kotlin/org/fossify/messages/transport/OutboundWorkSendResult.kt	24	object	NotDefaultSmsApp	org.fossify.messages.transport.OutboundWorkSendResult	transport
+app/src/main/kotlin/org/fossify/messages/transport/OutboundWorkSendResult.kt	33	object	Submitted	org.fossify.messages.transport.OutboundWorkSendResult	transport
+app/src/main/kotlin/org/fossify/messages/transport/OutboundWorkSendResult.kt	44	class	Failed	org.fossify.messages.transport.OutboundWorkSendResult	transport
+app/src/main/kotlin/org/fossify/messages/transport/OutboundWorkSender.kt	72	method	sendOutboundWork	org.fossify.messages.transport	transport
+app/src/main/kotlin/org/fossify/messages/transport/OutboundWorkSender.kt	87	method	sendOutboundWork	org.fossify.messages.transport	transport
+app/src/main/kotlin/org/fossify/messages/transport/OutboundWorkSender.kt	145	method	synchronousFailure	org.fossify.messages.transport	transport
+app/src/main/kotlin/org/fossify/messages/transport/OutboundWorkSender.kt	191	method	outboundSentResultIntent	org.fossify.messages.transport	transport
+app/src/main/kotlin/org/fossify/messages/transport/PairingAttemptGuard.kt	16	object	PairingAttemptGuard	org.fossify.messages.transport	transport
+app/src/main/kotlin/org/fossify/messages/transport/PairingDisconnect.kt	46	method	confirmPairingDisconnect	org.fossify.messages.transport	transport
+app/src/main/kotlin/org/fossify/messages/transport/PairingDisconnect.kt	66	method	disconnectPairing	org.fossify.messages.transport	transport
+app/src/main/kotlin/org/fossify/messages/transport/PairingExchangeBinding.kt	27	interface	PairingExchangeBindingResult	org.fossify.messages.transport	transport
+app/src/main/kotlin/org/fossify/messages/transport/PairingExchangeBinding.kt	29	class	Stored	org.fossify.messages.transport.PairingExchangeBindingResult	transport
+app/src/main/kotlin/org/fossify/messages/transport/PairingExchangeBinding.kt	39	class	StorageFailed	org.fossify.messages.transport.PairingExchangeBindingResult	transport
+app/src/main/kotlin/org/fossify/messages/transport/PairingExchangeBinding.kt	42	class	Failed	org.fossify.messages.transport.PairingExchangeBindingResult	transport
+app/src/main/kotlin/org/fossify/messages/transport/PairingExchangeBinding.kt	78	method	performPairingExchange	org.fossify.messages.transport	transport
+app/src/main/kotlin/org/fossify/messages/transport/PairingExchangeBinding.kt	126	method	readExchangeResponseBody	org.fossify.messages.transport	transport
+app/src/main/kotlin/org/fossify/messages/transport/PairingSetup.kt	52	method	registerPairingScanner	org.fossify.messages.transport	transport
+app/src/main/kotlin/org/fossify/messages/transport/PairingSetup.kt	62	method	launchPairingScan	org.fossify.messages.transport	transport
+app/src/main/kotlin/org/fossify/messages/transport/PairingSetup.kt	79	method	handleScannedPairingPayload	org.fossify.messages.transport	transport
+app/src/main/kotlin/org/fossify/messages/transport/PairingSetup.kt	141	method	pairingFailureMessage	org.fossify.messages.transport	transport
+app/src/main/kotlin/org/fossify/messages/transport/PendingReportDrainWorker.kt	32	class	PendingReportDrainWorker	org.fossify.messages.transport	transport
+app/src/main/kotlin/org/fossify/messages/transport/PendingReportDrainWorker.kt	37	method	doWork		transport
+app/src/main/kotlin/org/fossify/messages/transport/PendingReportQueueDrain.kt	59	method	drainPendingOutboundReportQueue	org.fossify.messages.transport	transport
+app/src/main/kotlin/org/fossify/messages/transport/PendingReportQueueDrainResult.kt	4	interface	PendingReportQueueDrainResult	org.fossify.messages.transport	transport
+app/src/main/kotlin/org/fossify/messages/transport/PendingReportQueueDrainResult.kt	6	object	Empty	org.fossify.messages.transport.PendingReportQueueDrainResult	transport
+app/src/main/kotlin/org/fossify/messages/transport/PendingReportQueueDrainResult.kt	14	class	Drained	org.fossify.messages.transport.PendingReportQueueDrainResult	transport
+app/src/main/kotlin/org/fossify/messages/transport/PendingReportQueueDrainResult.kt	26	class	Blocked	org.fossify.messages.transport.PendingReportQueueDrainResult	transport
+app/src/main/kotlin/org/fossify/messages/transport/PendingReportQueueDrainResult.kt	47	class	StorageFailed	org.fossify.messages.transport.PendingReportQueueDrainResult	transport
+app/src/main/kotlin/org/fossify/messages/transport/PendingReportQueueGuard.kt	22	object	PendingReportQueueGuard	org.fossify.messages.transport	transport
+app/src/main/kotlin/org/fossify/messages/transport/PendingReportQueueStorage.kt	48	method	storedPendingOutboundReportQueue	org.fossify.messages.transport	transport
+app/src/main/kotlin/org/fossify/messages/transport/PendingReportQueueStorage.kt	86	method	storePendingOutboundReportQueue	org.fossify.messages.transport	transport
+app/src/main/kotlin/org/fossify/messages/transport/PendingReportQueueStorage.kt	134	method	storedPendingReportAt	org.fossify.messages.transport	transport
+app/src/main/kotlin/org/fossify/messages/transport/PendingReportQueueStorage.kt	138	method	decodedPendingReportAt	org.fossify.messages.transport	transport
+app/src/main/kotlin/org/fossify/messages/transport/PendingReportQueueStorage.kt	161	method	storedNullableIntIsReadable	org.fossify.messages.transport	transport
+app/src/main/kotlin/org/fossify/messages/transport/PendingReportQueueStorage.kt	169	method	storedNullableInt	org.fossify.messages.transport	transport
+app/src/main/kotlin/org/fossify/messages/transport/PendingReportQueueStorage.kt	176	method	putPendingReport	org.fossify.messages.transport	transport
+app/src/main/kotlin/org/fossify/messages/transport/PendingReportQueueStorage.kt	184	method	removePendingReport	org.fossify.messages.transport	transport
+app/src/main/kotlin/org/fossify/messages/transport/PendingReportVerdict.kt	64	method	holdAndDrainOutboundVerdict	org.fossify.messages.transport	transport
+app/src/main/kotlin/org/fossify/messages/transport/PendingReportVerdict.kt	117	method	enqueuePendingOutboundReportDrain	org.fossify.messages.transport	transport
+app/src/main/kotlin/org/fossify/messages/transport/PermissionsOnlySendResultReceiver.kt	24	class	PermissionsOnlySendResultReceiver	org.fossify.messages.transport	transport
+app/src/main/kotlin/org/fossify/messages/transport/PermissionsOnlySendResultReceiver.kt	26	method	onReceive	org.fossify.messages.transport.PermissionsOnlySendResultReceiver	transport
+app/src/main/kotlin/org/fossify/messages/transport/PostureSetup.kt	26	method	storedRolePosture	org.fossify.messages.transport	transport
+app/src/main/kotlin/org/fossify/messages/transport/PostureSetup.kt	34	method	storeRolePosture	org.fossify.messages.transport	transport
+app/src/main/kotlin/org/fossify/messages/transport/PostureSetup.kt	53	method	ensureRolePosture	org.fossify.messages.transport	transport
+local-inference/build.gradle.kts		no_named_symbol			local inference
+local-inference/src/main/cpp/CMakeLists.txt	2	project	inkpilot_inference		local inference
+local-inference/src/main/cpp/CMakeLists.txt	3	variable	CMAKE_CXX_STANDARD		local inference
+local-inference/src/main/cpp/CMakeLists.txt	4	variable	CMAKE_POSITION_INDEPENDENT_CODE		local inference
+local-inference/src/main/cpp/CMakeLists.txt	5	variable	BUILD_SHARED_LIBS		local inference
+local-inference/src/main/cpp/CMakeLists.txt	6	variable	LLAMA_BUILD_COMMON		local inference
+local-inference/src/main/cpp/CMakeLists.txt	7	variable	LLAMA_BUILD_TESTS		local inference
+local-inference/src/main/cpp/CMakeLists.txt	8	variable	LLAMA_BUILD_EXAMPLES		local inference
+local-inference/src/main/cpp/CMakeLists.txt	9	variable	LLAMA_BUILD_TOOLS		local inference
+local-inference/src/main/cpp/CMakeLists.txt	10	variable	LLAMA_BUILD_SERVER		local inference
+local-inference/src/main/cpp/CMakeLists.txt	11	variable	LLAMA_BUILD_APP		local inference
+local-inference/src/main/cpp/CMakeLists.txt	12	variable	LLAMA_OPENSSL		local inference
+local-inference/src/main/cpp/CMakeLists.txt	13	variable	LLAMA_SUBPROCESS		local inference
+local-inference/src/main/cpp/CMakeLists.txt	14	variable	GGML_NATIVE		local inference
+local-inference/src/main/cpp/CMakeLists.txt	15	variable	GGML_OPENMP		local inference
+local-inference/src/main/cpp/CMakeLists.txt	16	variable	GGML_LLAMAFILE		local inference
+local-inference/src/main/cpp/CMakeLists.txt	17	variable	GGML_BACKEND_DL		local inference
+local-inference/src/main/cpp/CMakeLists.txt	18	variable	GGML_CPU_KLEIDIAI		local inference
+local-inference/src/main/cpp/CMakeLists.txt	29	target	inkpilot-engine		local inference
+local-inference/src/main/cpp/CMakeLists.txt	34	target	inkpilot-inference		local inference
+local-inference/src/main/cpp/CMakeLists.txt	38	target	inkpilot-inference-smoke		local inference
+local-inference/src/main/cpp/inference_engine.cpp	5	namespace	inkpilot		local inference
+local-inference/src/main/cpp/inference_engine.cpp	6	namespace	__anon163ec7ad0111	inkpilot	local inference
+local-inference/src/main/cpp/inference_engine.cpp	10	function	initialize	inkpilot::__anon163ec7ad0111	local inference
+local-inference/src/main/cpp/inference_engine.cpp	13	function	__anon163ec7ad0202	inkpilot::__anon163ec7ad0111::initialize	local inference
+local-inference/src/main/cpp/inference_engine.cpp	17	function	load	inkpilot::__anon163ec7ad0111	local inference
+local-inference/src/main/cpp/inference_engine.cpp	21	function	__anon163ec7ad0302	inkpilot::__anon163ec7ad0111::load	local inference
+local-inference/src/main/cpp/inference_engine.cpp	35	function	make_context	inkpilot::__anon163ec7ad0111	local inference
+local-inference/src/main/cpp/inference_engine.cpp	45	function	__anon163ec7ad0402	inkpilot::__anon163ec7ad0111::make_context	local inference
+local-inference/src/main/cpp/inference_engine.cpp	54	function	generate	inkpilot	local inference
+local-inference/src/main/cpp/inference_engine.h	11	namespace	inkpilot		local inference
+local-inference/src/main/cpp/inference_engine.h	13	struct	Limits	inkpilot	local inference
+local-inference/src/main/cpp/inference_engine.h	14	member	context_tokens	inkpilot::Limits	local inference
+local-inference/src/main/cpp/inference_engine.h	15	member	output_tokens	inkpilot::Limits	local inference
+local-inference/src/main/cpp/inference_engine.h	16	member	reply_characters	inkpilot::Limits	local inference
+local-inference/src/main/cpp/inference_engine.h	17	member	deadline_millis	inkpilot::Limits	local inference
+local-inference/src/main/cpp/inference_engine.h	18	member	threads	inkpilot::Limits	local inference
+local-inference/src/main/cpp/inference_engine.h	21	struct	Cancelled	inkpilot	local inference
+local-inference/src/main/cpp/inference_engine.h	21	function	Cancelled	inkpilot::Cancelled	local inference
+local-inference/src/main/cpp/inference_engine.h	22	struct	TimedOut	inkpilot	local inference
+local-inference/src/main/cpp/inference_engine.h	22	function	TimedOut	inkpilot::TimedOut	local inference
+local-inference/src/main/cpp/inference_engine.h	24	struct	Budget	inkpilot	local inference
+local-inference/src/main/cpp/inference_engine.h	25	member	deadline	inkpilot::Budget	local inference
+local-inference/src/main/cpp/inference_engine.h	26	member	cancelled	inkpilot::Budget	local inference
+local-inference/src/main/cpp/inference_engine.h	27	function	expired	inkpilot::Budget	local inference
+local-inference/src/main/cpp/inference_engine.h	28	function	check	inkpilot::Budget	local inference
+local-inference/src/main/cpp/inference_engine.h	34	typedef	Model	inkpilot	local inference
+local-inference/src/main/cpp/inference_engine.h	35	typedef	Context	inkpilot	local inference
+local-inference/src/main/cpp/inference_engine.h	36	typedef	Batch	inkpilot	local inference
+local-inference/src/main/cpp/inference_engine.h	37	typedef	Sampler	inkpilot	local inference
+local-inference/src/main/cpp/inference_generation.cpp	5	namespace	inkpilot		local inference
+local-inference/src/main/cpp/inference_generation.cpp	6	namespace	__anonb39a62e30111	inkpilot	local inference
+local-inference/src/main/cpp/inference_generation.cpp	7	function	tokenize	inkpilot::__anonb39a62e30111	local inference
+local-inference/src/main/cpp/inference_generation.cpp	19	function	decode	inkpilot::__anonb39a62e30111	local inference
+local-inference/src/main/cpp/inference_generation.cpp	38	function	generate_reply	inkpilot	local inference
+local-inference/src/main/cpp/inference_jni.cpp	4	namespace	__anon23227d380111		local inference
+local-inference/src/main/cpp/inference_jni.cpp	5	function	read_bytes	__anon23227d380111	local inference
+local-inference/src/main/cpp/inference_jni.cpp	13	function	fail	__anon23227d380111	local inference
+local-inference/src/main/cpp/inference_jni.cpp	19	function	Java_inkpilot_inference_NativeInference_generate		local inference
+local-inference/src/main/cpp/inference_jni.cpp	28	function	__anon23227d380202	Java_inkpilot_inference_NativeInference_generate	local inference
+local-inference/src/main/cpp/inference_sampling.cpp	6	namespace	inkpilot		local inference
+local-inference/src/main/cpp/inference_sampling.cpp	8	function	make_sampler	inkpilot	local inference
+local-inference/src/main/cpp/inference_smoke.cpp	5	namespace	__anonfdfcc1d60111		local inference
+local-inference/src/main/cpp/inference_smoke.cpp	17	function	validate	__anonfdfcc1d60111	local inference
+local-inference/src/main/cpp/inference_smoke.cpp	32	function	main		local inference
+local-inference/src/main/cpp/inference_smoke.cpp	48	function	__anonfdfcc1d60202	main	local inference
+local-inference/src/main/kotlin/inkpilot/inference/DraftPromptEncoding.kt	6	object	DraftPromptEncoding	inkpilot.inference	local inference
+local-inference/src/main/kotlin/inkpilot/inference/DraftPromptEncoding.kt	7	method	userData	inkpilot.inference.DraftPromptEncoding	local inference
+local-inference/src/main/kotlin/inkpilot/inference/DraftPromptEncoding.kt	18	method	quoted	inkpilot.inference.DraftPromptEncoding	local inference
+local-inference/src/main/kotlin/inkpilot/inference/DraftReplyValidation.kt	4	object	DraftReplyValidation	inkpilot.inference	local inference
+local-inference/src/main/kotlin/inkpilot/inference/DraftReplyValidation.kt	10	method	finalText	inkpilot.inference.DraftReplyValidation	local inference
+local-inference/src/main/kotlin/inkpilot/inference/InferenceLimits.kt	4	class	InferenceLimits	inkpilot.inference	local inference
+local-inference/src/main/kotlin/inkpilot/inference/LlamaDraftModel.kt	12	class	LlamaDraftModel	inkpilot.inference	local inference
+local-inference/src/main/kotlin/inkpilot/inference/LlamaDraftModel.kt	16	method	generate	inkpilot.inference.LlamaDraftModel	local inference
+local-inference/src/main/kotlin/inkpilot/inference/LlamaDraftModel.kt	51	method	checkCancellation	inkpilot.inference.LlamaDraftModel	local inference
+local-inference/src/main/kotlin/inkpilot/inference/LlamaDraftModel.kt	55	object	Companion	inkpilot.inference.LlamaDraftModel	local inference
+local-inference/src/main/kotlin/inkpilot/inference/NativeInference.kt	5	object	NativeInference	inkpilot.inference	local inference
+local-inference/src/main/kotlin/inkpilot/inference/NativeInference.kt	8	method	generate	inkpilot.inference.NativeInference	local inference
+local-inference/src/test/kotlin/inkpilot/inference/DraftPromptEncodingTest.kt	7	class	DraftPromptEncodingTest	inkpilot.inference	local inference
+local-inference/src/test/kotlin/inkpilot/inference/DraftPromptEncodingTest.kt	9	method	customer delimiters and quotes remain data in one user payload	inkpilot.inference.DraftPromptEncodingTest	local inference
+local-inference/src/test/kotlin/inkpilot/inference/DraftPromptEncodingTest.kt	18	method	context cannot grow unbounded	inkpilot.inference.DraftPromptEncodingTest	local inference
+local-inference/src/test/kotlin/inkpilot/inference/DraftReplyValidationTest.kt	6	class	DraftReplyValidationTest	inkpilot.inference	local inference
+local-inference/src/test/kotlin/inkpilot/inference/DraftReplyValidationTest.kt	8	method	leakedToolParameterClosingTagIsRejected	inkpilot.inference.DraftReplyValidationTest	local inference
+local-inference/src/test/kotlin/inkpilot/inference/DraftReplyValidationTest.kt	13	method	ordinaryHeartTextIsKept	inkpilot.inference.DraftReplyValidationTest	local inference
+local-inference/src/test/kotlin/inkpilot/inference/DraftReplyValidationTest.kt	18	method	blankFinalReplyIsRejected	inkpilot.inference.DraftReplyValidationTest	local inference
+local-inference/src/test/kotlin/inkpilot/inference/DraftReplyValidationTest.kt	23	method	supplementaryCharactersStillCountAsTwoUtf16Units	inkpilot.inference.DraftReplyValidationTest	local inference
+local-inference/src/test/kotlin/inkpilot/inference/LlamaDraftModelTest.kt	9	class	LlamaDraftModelTest	inkpilot.inference	local inference
+local-inference/src/test/kotlin/inkpilot/inference/LlamaDraftModelTest.kt	13	method	missing weights fail before loading native code	inkpilot.inference.LlamaDraftModelTest	local inference
+local-inference/src/test/kotlin/inkpilot/inference/LlamaDraftModelTest.kt	18	method	non GGUF input never reaches native loader	inkpilot.inference.LlamaDraftModelTest	local inference
+local-inference/src/test/kotlin/inkpilot/inference/LlamaDraftModelTest.kt	29	method	cancelled request never loads the native library	inkpilot.inference.LlamaDraftModelTest	local inference
+transport/build.gradle.kts		no_named_symbol			transport
+transport/src/main/kotlin/inkstax/sms/transport/DefaultSmsRole.kt	36	class	DefaultSmsRoleStep	inkstax.sms.transport	transport
+transport/src/main/kotlin/inkstax/sms/transport/DefaultSmsRole.kt	61	method	defaultSmsRoleStep	inkstax.sms.transport	transport
+transport/src/main/kotlin/inkstax/sms/transport/DrainRetry.kt	40	method	drainRetryIntervalMillis	inkstax.sms.transport	transport
+transport/src/main/kotlin/inkstax/sms/transport/FailureHonesty.kt	45	class	BridgeHealth	inkstax.sms.transport	transport
+transport/src/main/kotlin/inkstax/sms/transport/FailureHonesty.kt	66	method	bridgeHealthAt	inkstax.sms.transport	transport
+transport/src/main/kotlin/inkstax/sms/transport/FailureHonesty.kt	78	class	InboundAckState	inkstax.sms.transport	transport
+transport/src/main/kotlin/inkstax/sms/transport/FailureHonesty.kt	87	method	inboundAckStateAfter	inkstax.sms.transport	transport
+transport/src/main/kotlin/inkstax/sms/transport/FailureHonesty.kt	95	class	OutboundAckState	inkstax.sms.transport	transport
+transport/src/main/kotlin/inkstax/sms/transport/FailureHonesty.kt	106	class	OutboundAckEvent	inkstax.sms.transport	transport
+transport/src/main/kotlin/inkstax/sms/transport/FailureHonesty.kt	116	method	outboundAckStateAfter	inkstax.sms.transport	transport
+transport/src/main/kotlin/inkstax/sms/transport/FailureHonesty.kt	131	method	isReceivedLate	inkstax.sms.transport	transport
+transport/src/main/kotlin/inkstax/sms/transport/HeartbeatSchedule.kt	44	method	nextHeartbeatDelayMillis	inkstax.sms.transport	transport
+transport/src/main/kotlin/inkstax/sms/transport/HeartbeatSchedule.kt	49	class	HeartbeatNotificationState	inkstax.sms.transport	transport
+transport/src/main/kotlin/inkstax/sms/transport/HeartbeatSchedule.kt	71	method	heartbeatNotificationStateFor	inkstax.sms.transport	transport
+transport/src/main/kotlin/inkstax/sms/transport/HeartbeatWire.kt	71	class	HeartbeatRequest	inkstax.sms.transport	transport
+transport/src/main/kotlin/inkstax/sms/transport/HeartbeatWire.kt	76	method	toString	inkstax.sms.transport.HeartbeatRequest	transport
+transport/src/main/kotlin/inkstax/sms/transport/HeartbeatWire.kt	91	method	heartbeatRequestFor	inkstax.sms.transport	transport
+transport/src/main/kotlin/inkstax/sms/transport/HeartbeatWire.kt	112	method	base64Url	inkstax.sms.transport	transport
+transport/src/main/kotlin/inkstax/sms/transport/HeartbeatWire.kt	118	class	HeartbeatFailure	inkstax.sms.transport	transport
+transport/src/main/kotlin/inkstax/sms/transport/HeartbeatWire.kt	133	interface	HeartbeatOutcome	inkstax.sms.transport	transport
+transport/src/main/kotlin/inkstax/sms/transport/HeartbeatWire.kt	135	object	Recorded	inkstax.sms.transport.HeartbeatOutcome	transport
+transport/src/main/kotlin/inkstax/sms/transport/HeartbeatWire.kt	138	class	Failed	inkstax.sms.transport.HeartbeatOutcome	transport
+transport/src/main/kotlin/inkstax/sms/transport/HeartbeatWire.kt	152	method	heartbeatOutcomeFor	inkstax.sms.transport	transport
+transport/src/main/kotlin/inkstax/sms/transport/HeartbeatWire.kt	177	method	jsonString	inkstax.sms.transport	transport
+transport/src/main/kotlin/inkstax/sms/transport/HeldQueue.kt	48	class	HeldInboundMessage	inkstax.sms.transport	transport
+transport/src/main/kotlin/inkstax/sms/transport/HeldQueue.kt	59	method	heldInboundMessageFor	inkstax.sms.transport	transport
+transport/src/main/kotlin/inkstax/sms/transport/HeldQueue.kt	77	method	heldQueueAfterArrival	inkstax.sms.transport	transport
+transport/src/main/kotlin/inkstax/sms/transport/HeldQueue.kt	89	method	nextHeldInbound	inkstax.sms.transport	transport
+transport/src/main/kotlin/inkstax/sms/transport/HeldQueue.kt	102	method	heldQueueAfterDelivery	inkstax.sms.transport	transport
+transport/src/main/kotlin/inkstax/sms/transport/Inbound.kt	20	class	InboundKind	inkstax.sms.transport	transport
+transport/src/main/kotlin/inkstax/sms/transport/Inbound.kt	34	class	InboundSms	inkstax.sms.transport	transport
+transport/src/main/kotlin/inkstax/sms/transport/Inbound.kt	52	class	InboundDisposition	inkstax.sms.transport	transport
+transport/src/main/kotlin/inkstax/sms/transport/Inbound.kt	63	class	InboundOutcome	inkstax.sms.transport	transport
+transport/src/main/kotlin/inkstax/sms/transport/Inbound.kt	67	object	Companion	inkstax.sms.transport.InboundOutcome	transport
+transport/src/main/kotlin/inkstax/sms/transport/Inbound.kt	79	method	inboundDispositionFor	inkstax.sms.transport	transport
+transport/src/main/kotlin/inkstax/sms/transport/Inbound.kt	91	interface	InboundSink	inkstax.sms.transport	transport
+transport/src/main/kotlin/inkstax/sms/transport/Inbound.kt	93	method	onInbound	inkstax.sms.transport.InboundSink	transport
+transport/src/main/kotlin/inkstax/sms/transport/MessageDeliveryWire.kt	91	class	InboundDeliveryRequest	inkstax.sms.transport	transport
+transport/src/main/kotlin/inkstax/sms/transport/MessageDeliveryWire.kt	96	method	toString	inkstax.sms.transport.InboundDeliveryRequest	transport
+transport/src/main/kotlin/inkstax/sms/transport/MessageDeliveryWire.kt	113	method	inboundDeliveryRequestFor	inkstax.sms.transport	transport
+transport/src/main/kotlin/inkstax/sms/transport/MessageDeliveryWire.kt	149	method	base64Url	inkstax.sms.transport	transport
+transport/src/main/kotlin/inkstax/sms/transport/MessageDeliveryWire.kt	155	class	InboundDeliveryFailure	inkstax.sms.transport	transport
+transport/src/main/kotlin/inkstax/sms/transport/MessageDeliveryWire.kt	170	interface	InboundDeliveryOutcome	inkstax.sms.transport	transport
+transport/src/main/kotlin/inkstax/sms/transport/MessageDeliveryWire.kt	172	object	Acknowledged	inkstax.sms.transport.InboundDeliveryOutcome	transport
+transport/src/main/kotlin/inkstax/sms/transport/MessageDeliveryWire.kt	175	class	Failed	inkstax.sms.transport.InboundDeliveryOutcome	transport
+transport/src/main/kotlin/inkstax/sms/transport/MessageDeliveryWire.kt	192	method	inboundDeliveryOutcomeFor	inkstax.sms.transport	transport
+transport/src/main/kotlin/inkstax/sms/transport/MessageDeliveryWire.kt	213	method	inboundAckStateAfterDelivery	inkstax.sms.transport	transport
+transport/src/main/kotlin/inkstax/sms/transport/MessageDeliveryWire.kt	228	method	jsonString	inkstax.sms.transport	transport
+transport/src/main/kotlin/inkstax/sms/transport/MessageTransport.kt	24	class	OutboundSms	inkstax.sms.transport	transport
+transport/src/main/kotlin/inkstax/sms/transport/MessageTransport.kt	42	interface	TransportOutcome	inkstax.sms.transport	transport
+transport/src/main/kotlin/inkstax/sms/transport/MessageTransport.kt	44	object	Sent	inkstax.sms.transport.TransportOutcome	transport
+transport/src/main/kotlin/inkstax/sms/transport/MessageTransport.kt	46	class	Failed	inkstax.sms.transport.TransportOutcome	transport
+transport/src/main/kotlin/inkstax/sms/transport/MessageTransport.kt	51	object	Companion	inkstax.sms.transport.TransportOutcome	transport
+transport/src/main/kotlin/inkstax/sms/transport/MessageTransport.kt	60	interface	MessageTransport	inkstax.sms.transport	transport
+transport/src/main/kotlin/inkstax/sms/transport/MessageTransport.kt	62	method	sendSms	inkstax.sms.transport.MessageTransport	transport
+transport/src/main/kotlin/inkstax/sms/transport/OutboundAckWire.kt	109	class	OutboundAckRequest	inkstax.sms.transport	transport
+transport/src/main/kotlin/inkstax/sms/transport/OutboundAckWire.kt	114	method	toString	inkstax.sms.transport.OutboundAckRequest	transport
+transport/src/main/kotlin/inkstax/sms/transport/OutboundAckWire.kt	135	method	outboundAckRequestFor	inkstax.sms.transport	transport
+transport/src/main/kotlin/inkstax/sms/transport/OutboundAckWire.kt	188	method	base64Url	inkstax.sms.transport	transport
+transport/src/main/kotlin/inkstax/sms/transport/OutboundAckWire.kt	194	class	OutboundAckFailure	inkstax.sms.transport	transport
+transport/src/main/kotlin/inkstax/sms/transport/OutboundAckWire.kt	209	interface	OutboundAckOutcome	inkstax.sms.transport	transport
+transport/src/main/kotlin/inkstax/sms/transport/OutboundAckWire.kt	211	object	Recorded	inkstax.sms.transport.OutboundAckOutcome	transport
+transport/src/main/kotlin/inkstax/sms/transport/OutboundAckWire.kt	214	class	Failed	inkstax.sms.transport.OutboundAckOutcome	transport
+transport/src/main/kotlin/inkstax/sms/transport/OutboundAckWire.kt	231	method	outboundAckOutcomeFor	inkstax.sms.transport	transport
+transport/src/main/kotlin/inkstax/sms/transport/OutboundAckWire.kt	255	method	outboundAckStateAfterSend	inkstax.sms.transport	transport
+transport/src/main/kotlin/inkstax/sms/transport/OutboundAckWire.kt	270	method	jsonString	inkstax.sms.transport	transport
+transport/src/main/kotlin/inkstax/sms/transport/OutboundPickupWire.kt	113	class	OutboundWork	inkstax.sms.transport	transport
+transport/src/main/kotlin/inkstax/sms/transport/OutboundPickupWire.kt	132	class	OutboundPickupRequest	inkstax.sms.transport	transport
+transport/src/main/kotlin/inkstax/sms/transport/OutboundPickupWire.kt	137	method	toString	inkstax.sms.transport.OutboundPickupRequest	transport
+transport/src/main/kotlin/inkstax/sms/transport/OutboundPickupWire.kt	153	method	outboundPickupRequestFor	inkstax.sms.transport	transport
+transport/src/main/kotlin/inkstax/sms/transport/OutboundPickupWire.kt	175	method	base64Url	inkstax.sms.transport	transport
+transport/src/main/kotlin/inkstax/sms/transport/OutboundPickupWire.kt	181	class	OutboundPickupFailure	inkstax.sms.transport	transport
+transport/src/main/kotlin/inkstax/sms/transport/OutboundPickupWire.kt	196	interface	OutboundPickupOutcome	inkstax.sms.transport	transport
+transport/src/main/kotlin/inkstax/sms/transport/OutboundPickupWire.kt	198	class	WorkAvailable	inkstax.sms.transport.OutboundPickupOutcome	transport
+transport/src/main/kotlin/inkstax/sms/transport/OutboundPickupWire.kt	201	object	NoWork	inkstax.sms.transport.OutboundPickupOutcome	transport
+transport/src/main/kotlin/inkstax/sms/transport/OutboundPickupWire.kt	204	class	Failed	inkstax.sms.transport.OutboundPickupOutcome	transport
+transport/src/main/kotlin/inkstax/sms/transport/OutboundPickupWire.kt	225	method	outboundPickupOutcomeFor	inkstax.sms.transport	transport
+transport/src/main/kotlin/inkstax/sms/transport/OutboundPickupWire.kt	254	method	outboundWorkFromFields	inkstax.sms.transport	transport
+transport/src/main/kotlin/inkstax/sms/transport/OutboundPickupWire.kt	287	method	nonNegativeMillis	inkstax.sms.transport	transport
+transport/src/main/kotlin/inkstax/sms/transport/OutboundPickupWire.kt	312	method	jsonString	inkstax.sms.transport	transport
+transport/src/main/kotlin/inkstax/sms/transport/OutboundPickupWire.kt	344	method	flatJsonStringObject	inkstax.sms.transport	transport
+transport/src/main/kotlin/inkstax/sms/transport/OutboundPickupWire.kt	350	class	PickupFlatJsonReader	inkstax.sms.transport	transport
+transport/src/main/kotlin/inkstax/sms/transport/OutboundPickupWire.kt	353	method	isAtEnd	inkstax.sms.transport.PickupFlatJsonReader	transport
+transport/src/main/kotlin/inkstax/sms/transport/OutboundPickupWire.kt	358	method	readObject	inkstax.sms.transport.PickupFlatJsonReader	transport
+transport/src/main/kotlin/inkstax/sms/transport/OutboundPickupWire.kt	390	method	readString	inkstax.sms.transport.PickupFlatJsonReader	transport
+transport/src/main/kotlin/inkstax/sms/transport/OutboundPickupWire.kt	415	method	readEscape	inkstax.sms.transport.PickupFlatJsonReader	transport
+transport/src/main/kotlin/inkstax/sms/transport/OutboundPickupWire.kt	435	method	readUnicodeEscape	inkstax.sms.transport.PickupFlatJsonReader	transport
+transport/src/main/kotlin/inkstax/sms/transport/OutboundPickupWire.kt	458	method	hexDigit	inkstax.sms.transport.PickupFlatJsonReader	transport
+transport/src/main/kotlin/inkstax/sms/transport/OutboundPickupWire.kt	467	method	consume	inkstax.sms.transport.PickupFlatJsonReader	transport
+transport/src/main/kotlin/inkstax/sms/transport/OutboundPickupWire.kt	475	method	skipWhitespace	inkstax.sms.transport.PickupFlatJsonReader	transport
+transport/src/main/kotlin/inkstax/sms/transport/OutboundRouting.kt	4	class	OutboundChannel	inkstax.sms.transport	transport
+transport/src/main/kotlin/inkstax/sms/transport/OutboundRouting.kt	17	method	outboundChannel	inkstax.sms.transport	transport
+transport/src/main/kotlin/inkstax/sms/transport/Pairing.kt	59	class	PairingOffer	inkstax.sms.transport	transport
+transport/src/main/kotlin/inkstax/sms/transport/Pairing.kt	80	method	pairingOfferFromQrPayload	inkstax.sms.transport	transport
+transport/src/main/kotlin/inkstax/sms/transport/Pairing.kt	142	method	percentDecoded	inkstax.sms.transport	transport
+transport/src/main/kotlin/inkstax/sms/transport/Pairing.kt	183	method	hexDigit	inkstax.sms.transport	transport
+transport/src/main/kotlin/inkstax/sms/transport/Pairing.kt	192	class	PairingTokenState	inkstax.sms.transport	transport
+transport/src/main/kotlin/inkstax/sms/transport/Pairing.kt	213	method	pairingTokenStateAt	inkstax.sms.transport	transport
+transport/src/main/kotlin/inkstax/sms/transport/Pairing.kt	225	class	PairingState	inkstax.sms.transport	transport
+transport/src/main/kotlin/inkstax/sms/transport/Pairing.kt	239	class	PairingEvent	inkstax.sms.transport	transport
+transport/src/main/kotlin/inkstax/sms/transport/Pairing.kt	256	method	pairingStateAfter	inkstax.sms.transport	transport
+transport/src/main/kotlin/inkstax/sms/transport/Pairing.kt	285	method	isPairingCodeFormat	inkstax.sms.transport	transport
+transport/src/main/kotlin/inkstax/sms/transport/PairingExchange.kt	46	class	DeviceCredential	inkstax.sms.transport	transport
+transport/src/main/kotlin/inkstax/sms/transport/PairingExchange.kt	66	method	isEndpointBase	inkstax.sms.transport	transport
+transport/src/main/kotlin/inkstax/sms/transport/PairingExchange.kt	101	method	isLoopbackAuthority	inkstax.sms.transport	transport
+transport/src/main/kotlin/inkstax/sms/transport/PairingExchange.kt	140	method	isOpaqueValue	inkstax.sms.transport	transport
+transport/src/main/kotlin/inkstax/sms/transport/PairingExchange.kt	157	method	exchangedCredentialFor	inkstax.sms.transport	transport
+transport/src/main/kotlin/inkstax/sms/transport/PairingExchange.kt	179	class	PairingExchangeFailure	inkstax.sms.transport	transport
+transport/src/main/kotlin/inkstax/sms/transport/PairingExchange.kt	205	method	pairingEventForExchangeFailure	inkstax.sms.transport	transport
+transport/src/main/kotlin/inkstax/sms/transport/PairingExchange.kt	226	method	deviceCredentialFromStored	inkstax.sms.transport	transport
+transport/src/main/kotlin/inkstax/sms/transport/PairingExchange.kt	250	method	isCredentialUsableFor	inkstax.sms.transport	transport
+transport/src/main/kotlin/inkstax/sms/transport/PairingExchange.kt	267	method	pairingStateAfterDisconnect	inkstax.sms.transport	transport
+transport/src/main/kotlin/inkstax/sms/transport/PairingExchangeWire.kt	67	class	PairingExchangeRequest	inkstax.sms.transport	transport
+transport/src/main/kotlin/inkstax/sms/transport/PairingExchangeWire.kt	77	method	pairingExchangeRequestFor	inkstax.sms.transport	transport
+transport/src/main/kotlin/inkstax/sms/transport/PairingExchangeWire.kt	85	interface	PairingExchangeOutcome	inkstax.sms.transport	transport
+transport/src/main/kotlin/inkstax/sms/transport/PairingExchangeWire.kt	87	class	Succeeded	inkstax.sms.transport.PairingExchangeOutcome	transport
+transport/src/main/kotlin/inkstax/sms/transport/PairingExchangeWire.kt	90	class	Failed	inkstax.sms.transport.PairingExchangeOutcome	transport
+transport/src/main/kotlin/inkstax/sms/transport/PairingExchangeWire.kt	102	method	pairingExchangeOutcomeFor	inkstax.sms.transport	transport
+transport/src/main/kotlin/inkstax/sms/transport/PairingExchangeWire.kt	145	method	jsonString	inkstax.sms.transport	transport
+transport/src/main/kotlin/inkstax/sms/transport/PairingExchangeWire.kt	177	method	flatJsonStringObject	inkstax.sms.transport	transport
+transport/src/main/kotlin/inkstax/sms/transport/PairingExchangeWire.kt	183	class	FlatJsonReader	inkstax.sms.transport	transport
+transport/src/main/kotlin/inkstax/sms/transport/PairingExchangeWire.kt	186	method	isAtEnd	inkstax.sms.transport.FlatJsonReader	transport
+transport/src/main/kotlin/inkstax/sms/transport/PairingExchangeWire.kt	191	method	readObject	inkstax.sms.transport.FlatJsonReader	transport
+transport/src/main/kotlin/inkstax/sms/transport/PairingExchangeWire.kt	223	method	readString	inkstax.sms.transport.FlatJsonReader	transport
+transport/src/main/kotlin/inkstax/sms/transport/PairingExchangeWire.kt	248	method	readEscape	inkstax.sms.transport.FlatJsonReader	transport
+transport/src/main/kotlin/inkstax/sms/transport/PairingExchangeWire.kt	268	method	readUnicodeEscape	inkstax.sms.transport.FlatJsonReader	transport
+transport/src/main/kotlin/inkstax/sms/transport/PairingExchangeWire.kt	290	method	hexDigit	inkstax.sms.transport.FlatJsonReader	transport
+transport/src/main/kotlin/inkstax/sms/transport/PairingExchangeWire.kt	299	method	consume	inkstax.sms.transport.FlatJsonReader	transport
+transport/src/main/kotlin/inkstax/sms/transport/PairingExchangeWire.kt	307	method	skipWhitespace	inkstax.sms.transport.FlatJsonReader	transport
+transport/src/main/kotlin/inkstax/sms/transport/PendingReportQueue.kt	58	class	PendingOutboundReport	inkstax.sms.transport	transport
+transport/src/main/kotlin/inkstax/sms/transport/PendingReportQueue.kt	74	method	pendingOutboundReportFor	inkstax.sms.transport	transport
+transport/src/main/kotlin/inkstax/sms/transport/PendingReportQueue.kt	105	method	pendingReportQueueAfterVerdict	inkstax.sms.transport	transport
+transport/src/main/kotlin/inkstax/sms/transport/PendingReportQueue.kt	121	method	nextPendingOutboundReport	inkstax.sms.transport	transport
+transport/src/main/kotlin/inkstax/sms/transport/PendingReportQueue.kt	132	method	pendingReportQueueAfterReport	inkstax.sms.transport	transport
+transport/src/main/kotlin/inkstax/sms/transport/Posture.kt	25	class	RolePosture	inkstax.sms.transport	transport
+transport/src/main/kotlin/inkstax/sms/transport/Posture.kt	43	method	rolePostureForDedicatedBusinessPhone	inkstax.sms.transport	transport
+transport/src/main/kotlin/inkstax/sms/transport/Posture.kt	56	method	rolePostureFromStoredName	inkstax.sms.transport	transport
+transport/src/main/kotlin/inkstax/sms/transport/Posture.kt	71	method	rolePostureFromStoredAnswer	inkstax.sms.transport	transport
+transport/src/test/kotlin/inkstax/sms/transport/DefaultSmsRoleTest.kt	6	class	DefaultSmsRoleTest	inkstax.sms.transport	transport
+transport/src/test/kotlin/inkstax/sms/transport/DefaultSmsRoleTest.kt	9	method	heldRoleNeedsNoScreenOnRoleSystemLevels	inkstax.sms.transport.DefaultSmsRoleTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/DefaultSmsRoleTest.kt	17	method	defaultPackageNeedsNoScreenEvenWithoutTheRole	inkstax.sms.transport.DefaultSmsRoleTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/DefaultSmsRoleTest.kt	31	method	availableRoleIsRequestedDirectly	inkstax.sms.transport.DefaultSmsRoleTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/DefaultSmsRoleTest.kt	43	method	unavailableRoleFallsBackToTheDefaultAppsScreen	inkstax.sms.transport.DefaultSmsRoleTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/DefaultSmsRoleTest.kt	57	method	preRoleLevelsUseTheChangeDefaultScreen	inkstax.sms.transport.DefaultSmsRoleTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/DefaultSmsRoleTest.kt	69	method	roleFactsAreIgnoredBeforeTheRoleSystem	inkstax.sms.transport.DefaultSmsRoleTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/DrainRetryTest.kt	6	class	DrainRetryTest	inkstax.sms.transport	transport
+transport/src/test/kotlin/inkstax/sms/transport/DrainRetryTest.kt	9	method	retryIntervalIsFifteenMinutes	inkstax.sms.transport.DrainRetryTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/DrainRetryTest.kt	15	method	retryIntervalMatchesHeartbeatInterval	inkstax.sms.transport.DrainRetryTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/FailureHonestyTest.kt	8	class	FailureHonestyTest	inkstax.sms.transport	transport
+transport/src/test/kotlin/inkstax/sms/transport/FailureHonestyTest.kt	13	method	heartbeat timing constants match the binding law	inkstax.sms.transport.FailureHonestyTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/FailureHonestyTest.kt	19	method	link is connected within one heartbeat interval	inkstax.sms.transport.FailureHonestyTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/FailureHonestyTest.kt	25	method	one missed heartbeat is overdue but not yet stale	inkstax.sms.transport.FailureHonestyTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/FailureHonestyTest.kt	32	method	silence at the stale deadline is stale and raises the alert	inkstax.sms.transport.FailureHonestyTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/FailureHonestyTest.kt	40	method	a link that never heartbeated is stale not healthy	inkstax.sms.transport.FailureHonestyTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/FailureHonestyTest.kt	45	method	a heartbeat timestamped in the future counts as just seen	inkstax.sms.transport.FailureHonestyTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/FailureHonestyTest.kt	50	method	inbound stays held until the brain acks and is never re-held	inkstax.sms.transport.FailureHonestyTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/FailureHonestyTest.kt	58	method	outbound stays queued until the phone acks it sent	inkstax.sms.transport.FailureHonestyTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/FailureHonestyTest.kt	70	method	outbound terminal states ignore late or duplicate acks	inkstax.sms.transport.FailureHonestyTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/FailureHonestyTest.kt	82	method	a hand-off within the late window is not late	inkstax.sms.transport.FailureHonestyTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/FailureHonestyTest.kt	88	method	a hand-off past the late window is received late	inkstax.sms.transport.FailureHonestyTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/FailureHonestyTest.kt	93	method	a hand-off timestamped before receipt is never late	inkstax.sms.transport.FailureHonestyTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/HeartbeatScheduleTest.kt	6	class	HeartbeatScheduleTest	inkstax.sms.transport	transport
+transport/src/test/kotlin/inkstax/sms/transport/HeartbeatScheduleTest.kt	9	method	firstBeatIsImmediate	inkstax.sms.transport.HeartbeatScheduleTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/HeartbeatScheduleTest.kt	15	method	laterBeatsWaitOneFullInterval	inkstax.sms.transport.HeartbeatScheduleTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/HeartbeatScheduleTest.kt	21	method	noBeatYetReadsAsStartingNeverLinked	inkstax.sms.transport.HeartbeatScheduleTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/HeartbeatScheduleTest.kt	26	method	recordedBeatReadsAsLinked	inkstax.sms.transport.HeartbeatScheduleTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/HeartbeatScheduleTest.kt	34	method	unreachableBeatReadsAsUnreachable	inkstax.sms.transport.HeartbeatScheduleTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/HeartbeatScheduleTest.kt	42	method	rejectedCredentialReadsAsRejected	inkstax.sms.transport.HeartbeatScheduleTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/HeartbeatScheduleTest.kt	50	method	otherFailuresReadAsProblem	inkstax.sms.transport.HeartbeatScheduleTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/HeartbeatWireTest.kt	9	class	HeartbeatWireTest	inkstax.sms.transport	transport
+transport/src/test/kotlin/inkstax/sms/transport/HeartbeatWireTest.kt	15	method	the request posts the device id and send time to the heartbeat path on the credential endpoint	inkstax.sms.transport.HeartbeatWireTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/HeartbeatWireTest.kt	22	method	the secret travels only in the authorization value never in the body	inkstax.sms.transport.HeartbeatWireTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/HeartbeatWireTest.kt	31	method	any minted secret encodes to a valid authorization value that decodes back to itself	inkstax.sms.transport.HeartbeatWireTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/HeartbeatWireTest.kt	42	method	a credential endpoint with a trailing slash still builds the one heartbeat path	inkstax.sms.transport.HeartbeatWireTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/HeartbeatWireTest.kt	51	method	the request rendering never shows the secret raw or encoded	inkstax.sms.transport.HeartbeatWireTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/HeartbeatWireTest.kt	61	method	the request body escapes the device id exactly	inkstax.sms.transport.HeartbeatWireTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/HeartbeatWireTest.kt	73	method	a credential the seam does not accept builds no request	inkstax.sms.transport.HeartbeatWireTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/HeartbeatWireTest.kt	83	method	a negative send time builds no request and zero is a send time	inkstax.sms.transport.HeartbeatWireTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/HeartbeatWireTest.kt	89	method	no content is a recorded beat	inkstax.sms.transport.HeartbeatWireTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/HeartbeatWireTest.kt	94	method	no answer at all is unreachable	inkstax.sms.transport.HeartbeatWireTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/HeartbeatWireTest.kt	102	method	a credential refusal is credential rejected not a transient failure	inkstax.sms.transport.HeartbeatWireTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/HeartbeatWireTest.kt	114	method	other client errors are the endpoint refusing the heartbeat	inkstax.sms.transport.HeartbeatWireTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/HeartbeatWireTest.kt	124	method	an unexpected status is an answer that is not a recorded beat	inkstax.sms.transport.HeartbeatWireTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/HeldQueueTest.kt	8	class	HeldQueueTest	inkstax.sms.transport	transport
+transport/src/test/kotlin/inkstax/sms/transport/HeldQueueTest.kt	12	method	sms	inkstax.sms.transport.HeldQueueTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/HeldQueueTest.kt	22	method	a handled sms with a provider id is held under its source id	inkstax.sms.transport.HeldQueueTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/HeldQueueTest.kt	29	method	an mms arrival is not held because v1 does not forward it	inkstax.sms.transport.HeldQueueTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/HeldQueueTest.kt	36	method	a blank sender arrival is not held because the caller still owns it	inkstax.sms.transport.HeldQueueTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/HeldQueueTest.kt	43	method	an arrival with no provider id is not held because no ack could release it	inkstax.sms.transport.HeldQueueTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/HeldQueueTest.kt	50	method	a negative receipt time is not held because it could never be delivered	inkstax.sms.transport.HeldQueueTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/HeldQueueTest.kt	57	method	a receipt time of zero is held	inkstax.sms.transport.HeldQueueTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/HeldQueueTest.kt	63	method	arrivals are held in arrival order and the head is next	inkstax.sms.transport.HeldQueueTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/HeldQueueTest.kt	72	method	a re-seen arrival is the held message not a second entry	inkstax.sms.transport.HeldQueueTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/HeldQueueTest.kt	80	method	only the brain ack releases the held entry it names	inkstax.sms.transport.HeldQueueTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/HeldQueueTest.kt	88	method	every failed delivery outcome leaves the entry held in place	inkstax.sms.transport.HeldQueueTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/HeldQueueTest.kt	100	method	an ack naming a source id that is not held changes nothing	inkstax.sms.transport.HeldQueueTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/HeldQueueTest.kt	107	method	an empty queue has nothing to deliver	inkstax.sms.transport.HeldQueueTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/InboundDispositionTest.kt	7	class	InboundDispositionTest	inkstax.sms.transport	transport
+transport/src/test/kotlin/inkstax/sms/transport/InboundDispositionTest.kt	9	method	sms	inkstax.sms.transport.InboundDispositionTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/InboundDispositionTest.kt	24	method	sms text is handled	inkstax.sms.transport.InboundDispositionTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/InboundDispositionTest.kt	31	method	mms is not forwarded in v1 instead of being dropped	inkstax.sms.transport.InboundDispositionTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/InboundDispositionTest.kt	38	method	blank sender is deferred	inkstax.sms.transport.InboundDispositionTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/InboundDispositionTest.kt	45	method	source id renders the provider row in contract shape	inkstax.sms.transport.InboundDispositionTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/MessageDeliveryWireTest.kt	9	class	MessageDeliveryWireTest	inkstax.sms.transport	transport
+transport/src/test/kotlin/inkstax/sms/transport/MessageDeliveryWireTest.kt	23	method	the request posts the message to the inbound path on the credential endpoint	inkstax.sms.transport.MessageDeliveryWireTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/MessageDeliveryWireTest.kt	33	method	the secret travels only in the authorization value never in the body	inkstax.sms.transport.MessageDeliveryWireTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/MessageDeliveryWireTest.kt	42	method	any minted secret encodes to a valid authorization value that decodes back to itself	inkstax.sms.transport.MessageDeliveryWireTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/MessageDeliveryWireTest.kt	52	method	a credential endpoint with a trailing slash still builds the one inbound path	inkstax.sms.transport.MessageDeliveryWireTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/MessageDeliveryWireTest.kt	61	method	the request rendering never shows the secret raw or encoded	inkstax.sms.transport.MessageDeliveryWireTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/MessageDeliveryWireTest.kt	69	method	the request body escapes the sender and body exactly	inkstax.sms.transport.MessageDeliveryWireTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/MessageDeliveryWireTest.kt	79	method	a credential the seam does not accept builds no request	inkstax.sms.transport.MessageDeliveryWireTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/MessageDeliveryWireTest.kt	88	method	negative timestamps build no request and zero is a timestamp	inkstax.sms.transport.MessageDeliveryWireTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/MessageDeliveryWireTest.kt	95	method	a message the disposition rule does not handle builds no request	inkstax.sms.transport.MessageDeliveryWireTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/MessageDeliveryWireTest.kt	102	method	a hand-off more than one interval after receipt is marked received late at the boundary	inkstax.sms.transport.MessageDeliveryWireTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/MessageDeliveryWireTest.kt	112	method	no content is the brain ack	inkstax.sms.transport.MessageDeliveryWireTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/MessageDeliveryWireTest.kt	117	method	no answer at all is unreachable and the message stays held	inkstax.sms.transport.MessageDeliveryWireTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/MessageDeliveryWireTest.kt	125	method	a credential refusal is credential rejected not a transient failure	inkstax.sms.transport.MessageDeliveryWireTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/MessageDeliveryWireTest.kt	131	method	other client errors are the endpoint refusing the delivery	inkstax.sms.transport.MessageDeliveryWireTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/MessageDeliveryWireTest.kt	138	method	an unexpected status is an answer that is not an ack	inkstax.sms.transport.MessageDeliveryWireTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/MessageDeliveryWireTest.kt	147	method	only the brain ack releases a held message and a released message is never re-held	inkstax.sms.transport.MessageDeliveryWireTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/OutboundAckWireTest.kt	9	class	OutboundAckWireTest	inkstax.sms.transport	transport
+transport/src/test/kotlin/inkstax/sms/transport/OutboundAckWireTest.kt	15	method	a sent report posts the verdict to the outbound ack path on the credential endpoint	inkstax.sms.transport.OutboundAckWireTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/OutboundAckWireTest.kt	25	method	a failed report carries the sending error code	inkstax.sms.transport.OutboundAckWireTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/OutboundAckWireTest.kt	40	method	an error code that contradicts the verdict builds no report	inkstax.sms.transport.OutboundAckWireTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/OutboundAckWireTest.kt	50	method	a failure with only the unknown error code still reports	inkstax.sms.transport.OutboundAckWireTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/OutboundAckWireTest.kt	62	method	the secret travels only in the authorization value never in the body	inkstax.sms.transport.OutboundAckWireTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/OutboundAckWireTest.kt	70	method	any minted secret encodes to a valid authorization value that decodes back to itself	inkstax.sms.transport.OutboundAckWireTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/OutboundAckWireTest.kt	81	method	a credential endpoint with a trailing slash still builds the one outbound ack path	inkstax.sms.transport.OutboundAckWireTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/OutboundAckWireTest.kt	90	method	the request rendering never shows the secret raw or encoded	inkstax.sms.transport.OutboundAckWireTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/OutboundAckWireTest.kt	98	method	the request body escapes the source id exactly	inkstax.sms.transport.OutboundAckWireTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/OutboundAckWireTest.kt	107	method	a credential the seam does not accept builds no report	inkstax.sms.transport.OutboundAckWireTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/OutboundAckWireTest.kt	116	method	an identity that is blank or carries whitespace builds no report	inkstax.sms.transport.OutboundAckWireTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/OutboundAckWireTest.kt	124	method	a negative report time builds no report and zero is a timestamp	inkstax.sms.transport.OutboundAckWireTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/OutboundAckWireTest.kt	130	method	no content is the brain recording the report	inkstax.sms.transport.OutboundAckWireTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/OutboundAckWireTest.kt	135	method	no answer at all is unreachable and the report stays unlanded	inkstax.sms.transport.OutboundAckWireTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/OutboundAckWireTest.kt	143	method	a credential refusal is credential rejected not a transient failure	inkstax.sms.transport.OutboundAckWireTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/OutboundAckWireTest.kt	149	method	other client errors are the endpoint refusing the report	inkstax.sms.transport.OutboundAckWireTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/OutboundAckWireTest.kt	156	method	an unexpected status is an answer that is not a recording	inkstax.sms.transport.OutboundAckWireTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/OutboundAckWireTest.kt	165	method	the phone verdict moves a queued reply to its terminal state	inkstax.sms.transport.OutboundAckWireTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/OutboundAckWireTest.kt	177	method	a terminal state ignores a late or duplicate verdict	inkstax.sms.transport.OutboundAckWireTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/OutboundPickupWireTest.kt	9	class	OutboundPickupWireTest	inkstax.sms.transport	transport
+transport/src/test/kotlin/inkstax/sms/transport/OutboundPickupWireTest.kt	17	method	the request posts the device id and pickup time to the pickup path on the credential endpoint	inkstax.sms.transport.OutboundPickupWireTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/OutboundPickupWireTest.kt	27	method	the secret travels only in the authorization value never in the body	inkstax.sms.transport.OutboundPickupWireTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/OutboundPickupWireTest.kt	37	method	a credential endpoint with a trailing slash still builds the one pickup path	inkstax.sms.transport.OutboundPickupWireTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/OutboundPickupWireTest.kt	46	method	the request rendering never shows the secret raw or encoded	inkstax.sms.transport.OutboundPickupWireTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/OutboundPickupWireTest.kt	54	method	a credential the seam does not accept builds no request	inkstax.sms.transport.OutboundPickupWireTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/OutboundPickupWireTest.kt	63	method	a loopback credential builds a pickup request for the local binding	inkstax.sms.transport.OutboundPickupWireTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/OutboundPickupWireTest.kt	72	method	a negative pickup time builds no request	inkstax.sms.transport.OutboundPickupWireTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/OutboundPickupWireTest.kt	77	method	no content reads as an empty queue whatever body accompanies it	inkstax.sms.transport.OutboundPickupWireTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/OutboundPickupWireTest.kt	83	method	an ok answer hands over the work item it names	inkstax.sms.transport.OutboundPickupWireTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/OutboundPickupWireTest.kt	94	method	extra string fields in the answer are ignored	inkstax.sms.transport.OutboundPickupWireTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/OutboundPickupWireTest.kt	104	method	the work body is carried exactly including escapes	inkstax.sms.transport.OutboundPickupWireTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/OutboundPickupWireTest.kt	112	method	a missing field reads as malformed never as partial work	inkstax.sms.transport.OutboundPickupWireTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/OutboundPickupWireTest.kt	132	method	an identity or recipient that is blank or carries whitespace names no send	inkstax.sms.transport.OutboundPickupWireTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/OutboundPickupWireTest.kt	133	method	answer	inkstax.sms.transport.OutboundPickupWireTest.an identity or recipient that is blank or carries whitespace names no send	transport
+transport/src/test/kotlin/inkstax/sms/transport/OutboundPickupWireTest.kt	144	method	a blank message body names no send	inkstax.sms.transport.OutboundPickupWireTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/OutboundPickupWireTest.kt	154	method	a queue time that is not ascii digits names no send	inkstax.sms.transport.OutboundPickupWireTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/OutboundPickupWireTest.kt	155	method	answer	inkstax.sms.transport.OutboundPickupWireTest.a queue time that is not ascii digits names no send	transport
+transport/src/test/kotlin/inkstax/sms/transport/OutboundPickupWireTest.kt	170	method	a structurally wrong answer reads as malformed	inkstax.sms.transport.OutboundPickupWireTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/OutboundPickupWireTest.kt	194	method	a non-ascii digit in a unicode escape reads as malformed	inkstax.sms.transport.OutboundPickupWireTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/OutboundPickupWireTest.kt	204	method	status decides failures before any body is read	inkstax.sms.transport.OutboundPickupWireTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/OutboundRoutingTest.kt	6	class	OutboundRoutingTest	inkstax.sms.transport	transport
+transport/src/test/kotlin/inkstax/sms/transport/OutboundRoutingTest.kt	9	method	plain single-address text is SMS	inkstax.sms.transport.OutboundRoutingTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/OutboundRoutingTest.kt	20	method	attachments route to MMS	inkstax.sms.transport.OutboundRoutingTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/OutboundRoutingTest.kt	31	method	long message converted to MMS routes to MMS	inkstax.sms.transport.OutboundRoutingTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/OutboundRoutingTest.kt	42	method	group message routes to MMS only when group-as-MMS is on	inkstax.sms.transport.OutboundRoutingTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/PairingExchangeTest.kt	9	class	PairingExchangeTest	inkstax.sms.transport	transport
+transport/src/test/kotlin/inkstax/sms/transport/PairingExchangeTest.kt	14	method	a well formed exchange return for the scanned endpoint is the credential	inkstax.sms.transport.PairingExchangeTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/PairingExchangeTest.kt	20	method	a credential for another endpoint is no credential	inkstax.sms.transport.PairingExchangeTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/PairingExchangeTest.kt	27	method	the pairing token handed back as the secret is no credential	inkstax.sms.transport.PairingExchangeTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/PairingExchangeTest.kt	32	method	blank or whitespace bearing exchange values are no credential	inkstax.sms.transport.PairingExchangeTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/PairingExchangeTest.kt	43	method	a non origin endpoint is no credential	inkstax.sms.transport.PairingExchangeTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/PairingExchangeTest.kt	49	method	spent or lapsed token failures end the attempt	inkstax.sms.transport.PairingExchangeTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/PairingExchangeTest.kt	62	method	transient exchange failures leave the attempt open	inkstax.sms.transport.PairingExchangeTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/PairingExchangeTest.kt	77	method	a stored credential with its on-device token reads back	inkstax.sms.transport.PairingExchangeTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/PairingExchangeTest.kt	83	method	a stored credential without its matching on-device token is no credential	inkstax.sms.transport.PairingExchangeTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/PairingExchangeTest.kt	92	method	a corrupt stored credential is no credential	inkstax.sms.transport.PairingExchangeTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/PairingExchangeTest.kt	100	method	a credential is usable only for the endpoint it was minted for	inkstax.sms.transport.PairingExchangeTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/PairingExchangeTest.kt	112	method	a loopback http credential reads back and is usable for its own endpoint	inkstax.sms.transport.PairingExchangeTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/PairingExchangeTest.kt	126	method	a non-loopback http credential is no credential	inkstax.sms.transport.PairingExchangeTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/PairingExchangeTest.kt	132	method	disconnect unpairs a paired phone and changes nothing otherwise	inkstax.sms.transport.PairingExchangeTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/PairingExchangeWireTest.kt	6	class	PairingExchangeWireTest	inkstax.sms.transport	transport
+transport/src/test/kotlin/inkstax/sms/transport/PairingExchangeWireTest.kt	10	method	successBody	inkstax.sms.transport.PairingExchangeWireTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/PairingExchangeWireTest.kt	19	method	the request posts only the token to the exchange path on the scanned endpoint	inkstax.sms.transport.PairingExchangeWireTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/PairingExchangeWireTest.kt	26	method	the request body escapes the token exactly	inkstax.sms.transport.PairingExchangeWireTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/PairingExchangeWireTest.kt	34	method	a success answer for the scanned endpoint is the credential	inkstax.sms.transport.PairingExchangeWireTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/PairingExchangeWireTest.kt	43	method	a success answer may carry extra string fields and escaped values	inkstax.sms.transport.PairingExchangeWireTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/PairingExchangeWireTest.kt	54	method	a success answer that mints no credential for this offer is malformed	inkstax.sms.transport.PairingExchangeWireTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/PairingExchangeWireTest.kt	63	method	a success answer that is not the flat string object shape is malformed	inkstax.sms.transport.PairingExchangeWireTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/PairingExchangeWireTest.kt	90	method	no answer at all is unreachable	inkstax.sms.transport.PairingExchangeWireTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/PairingExchangeWireTest.kt	98	method	gone and conflict carry the token fate whatever the body says	inkstax.sms.transport.PairingExchangeWireTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/PairingExchangeWireTest.kt	110	method	other client errors are the endpoint refusing the exchange	inkstax.sms.transport.PairingExchangeWireTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/PairingExchangeWireTest.kt	120	method	an unexpected status is an answer that is not a usable credential	inkstax.sms.transport.PairingExchangeWireTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/PairingExchangeWireTest.kt	128	method	wire failures feed the shared attempt rule	inkstax.sms.transport.PairingExchangeWireTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/PairingTest.kt	9	class	PairingTest	inkstax.sms.transport	transport
+transport/src/test/kotlin/inkstax/sms/transport/PairingTest.kt	14	method	pairing token lifetime matches the binding law	inkstax.sms.transport.PairingTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/PairingTest.kt	20	method	the issued QR shape reads back as an offer	inkstax.sms.transport.PairingTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/PairingTest.kt	26	method	an offer keeps an explicit endpoint port	inkstax.sms.transport.PairingTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/PairingTest.kt	33	method	an offer keeps an IPv6 endpoint address bracketed	inkstax.sms.transport.PairingTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/PairingTest.kt	39	method	surrounding whitespace on the scanned payload is ignored	inkstax.sms.transport.PairingTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/PairingTest.kt	45	method	non pairing payloads read back as no offer	inkstax.sms.transport.PairingTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/PairingTest.kt	54	method	an offer must be https with a host and no embedded user info	inkstax.sms.transport.PairingTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/PairingTest.kt	61	method	an offer carries exactly one non-blank token	inkstax.sms.transport.PairingTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/PairingTest.kt	69	method	a percent-encoded token is decoded before it is returned	inkstax.sms.transport.PairingTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/PairingTest.kt	76	method	an encoded blank or whitespace token is still no offer	inkstax.sms.transport.PairingTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/PairingTest.kt	82	method	a malformed percent escape is no offer	inkstax.sms.transport.PairingTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/PairingTest.kt	89	method	a percent escape spelled with non-ASCII digits is no offer	inkstax.sms.transport.PairingTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/PairingTest.kt	101	method	the decoder itself rejects escapes spelled with non-ASCII digits	inkstax.sms.transport.PairingTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/PairingTest.kt	115	method	the decoder accepts ASCII escapes and leaves the rest exact	inkstax.sms.transport.PairingTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/PairingTest.kt	123	method	the decoder rejects percent bytes that are not valid UTF-8	inkstax.sms.transport.PairingTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/PairingTest.kt	134	method	the decoder accepts percent bytes that are valid UTF-8	inkstax.sms.transport.PairingTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/PairingTest.kt	139	method	a pairing URL with a fragment is no offer	inkstax.sms.transport.PairingTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/PairingTest.kt	145	method	a fresh unused token is usable	inkstax.sms.transport.PairingTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/PairingTest.kt	154	method	a token is expired at exactly its lifetime	inkstax.sms.transport.PairingTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/PairingTest.kt	166	method	a used token stays already used even past its lifetime	inkstax.sms.transport.PairingTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/PairingTest.kt	175	method	a token timestamped in the future counts as just issued	inkstax.sms.transport.PairingTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/PairingTest.kt	180	method	pairing follows the scanned offer to paired	inkstax.sms.transport.PairingTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/PairingTest.kt	187	method	an exchange cannot succeed without a scanned offer	inkstax.sms.transport.PairingTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/PairingTest.kt	193	method	a failed exchange leaves the attempt open and a lapsed token expires it	inkstax.sms.transport.PairingTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/PairingTest.kt	205	method	a fresh scan after expiry starts a new attempt	inkstax.sms.transport.PairingTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/PairingTest.kt	210	method	a loopback http offer reads back as an offer for the local binding	inkstax.sms.transport.PairingTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/PairingTest.kt	218	method	an http offer for anywhere but this device is no offer	inkstax.sms.transport.PairingTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/PairingTest.kt	229	method	paired is terminal and a second scan replaces nothing	inkstax.sms.transport.PairingTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/PairingTest.kt	235	method	the fallback code is exactly six digits	inkstax.sms.transport.PairingTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/PairingTest.kt	247	method	the fallback code accepts only ASCII digits	inkstax.sms.transport.PairingTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/PendingReportQueueTest.kt	8	class	PendingReportQueueTest	inkstax.sms.transport	transport
+transport/src/test/kotlin/inkstax/sms/transport/PendingReportQueueTest.kt	13	method	a sent verdict is held under its source id	inkstax.sms.transport.PendingReportQueueTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/PendingReportQueueTest.kt	24	method	a failed verdict is held with the error code the send failed with	inkstax.sms.transport.PendingReportQueueTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/PendingReportQueueTest.kt	32	method	a failed verdict with the unknown error code is held	inkstax.sms.transport.PendingReportQueueTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/PendingReportQueueTest.kt	40	method	a sent verdict carrying an error code is not held because it contradicts itself	inkstax.sms.transport.PendingReportQueueTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/PendingReportQueueTest.kt	47	method	a failed verdict with no error code is not held because it contradicts itself	inkstax.sms.transport.PendingReportQueueTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/PendingReportQueueTest.kt	54	method	a blank source id is not held because no report could be filed against it	inkstax.sms.transport.PendingReportQueueTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/PendingReportQueueTest.kt	66	method	a source id carrying whitespace is not held because the seam mints none	inkstax.sms.transport.PendingReportQueueTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/PendingReportQueueTest.kt	73	method	a negative report time is not held because it could never be reported	inkstax.sms.transport.PendingReportQueueTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/PendingReportQueueTest.kt	85	method	a report time of zero is held	inkstax.sms.transport.PendingReportQueueTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/PendingReportQueueTest.kt	94	method	verdicts are held in reached order and the head is next	inkstax.sms.transport.PendingReportQueueTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/PendingReportQueueTest.kt	109	method	a re-seen verdict is the pending report not a second entry	inkstax.sms.transport.PendingReportQueueTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/PendingReportQueueTest.kt	122	method	only the brain recording releases the pending entry it names	inkstax.sms.transport.PendingReportQueueTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/PendingReportQueueTest.kt	134	method	every failed report outcome leaves the entry pending in place	inkstax.sms.transport.PendingReportQueueTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/PendingReportQueueTest.kt	150	method	a recording naming a source id that is not pending changes nothing	inkstax.sms.transport.PendingReportQueueTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/PendingReportQueueTest.kt	159	method	an empty queue has nothing to report	inkstax.sms.transport.PendingReportQueueTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/PostureTest.kt	8	class	PostureTest	inkstax.sms.transport	transport
+transport/src/test/kotlin/inkstax/sms/transport/PostureTest.kt	11	method	dedicated business phone maps to default role posture	inkstax.sms.transport.PostureTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/PostureTest.kt	16	method	personal phone maps to permissions only posture	inkstax.sms.transport.PostureTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/PostureTest.kt	21	method	only the default role posture may request the default sms role	inkstax.sms.transport.PostureTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/PostureTest.kt	28	method	only the personal posture requires a pinned subscription	inkstax.sms.transport.PostureTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/PostureTest.kt	35	method	stored names round trip and unknown values fail safe to unset	inkstax.sms.transport.PostureTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/PostureTest.kt	46	method	stored answer counts only with its matching on-device token	inkstax.sms.transport.PostureTest	transport
+transport/src/test/kotlin/inkstax/sms/transport/PostureTest.kt	69	method	unset is the only unanswered posture	inkstax.sms.transport.PostureTest	transport

@@ -1,0 +1,586 @@
+path	line	kind	symbol	scope	area
+app/src/main/kotlin/org/fossify/messages/activities/ArchivedConversationsActivity.kt	30	class	ArchivedConversationsActivity	org.fossify.messages.activities	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ArchivedConversationsActivity.kt	35	method	onCreate	org.fossify.messages.activities.ArchivedConversationsActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ArchivedConversationsActivity.kt	49	method	onResume	org.fossify.messages.activities.ArchivedConversationsActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ArchivedConversationsActivity.kt	55	method	onDestroy	org.fossify.messages.activities.ArchivedConversationsActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ArchivedConversationsActivity.kt	60	method	setupOptionsMenu	org.fossify.messages.activities.ArchivedConversationsActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ArchivedConversationsActivity.kt	71	method	updateOptionsMenu	org.fossify.messages.activities.ArchivedConversationsActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ArchivedConversationsActivity.kt	77	method	loadArchivedConversations	org.fossify.messages.activities.ArchivedConversationsActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ArchivedConversationsActivity.kt	97	method	removeAll	org.fossify.messages.activities.ArchivedConversationsActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ArchivedConversationsActivity.kt	111	method	getOrCreateConversationsAdapter	org.fossify.messages.activities.ArchivedConversationsActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ArchivedConversationsActivity.kt	130	method	setupConversations	org.fossify.messages.activities.ArchivedConversationsActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ArchivedConversationsActivity.kt	147	method	showOrHidePlaceholder	org.fossify.messages.activities.ArchivedConversationsActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ArchivedConversationsActivity.kt	155	method	notifyDatasetChanged	org.fossify.messages.activities.ArchivedConversationsActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ArchivedConversationsActivity.kt	159	method	handleConversationClick	org.fossify.messages.activities.ArchivedConversationsActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ArchivedConversationsActivity.kt	169	method	refreshConversations	org.fossify.messages.activities.ArchivedConversationsActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ConversationDetailsActivity.kt	37	class	ConversationDetailsActivity	org.fossify.messages.activities	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ConversationDetailsActivity.kt	45	method	onCreate	org.fossify.messages.activities.ConversationDetailsActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ConversationDetailsActivity.kt	72	method	onResume	org.fossify.messages.activities.ConversationDetailsActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ConversationDetailsActivity.kt	87	method	setupCustomNotifications	org.fossify.messages.activities.ConversationDetailsActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ConversationDetailsActivity.kt	117	method	createNotificationChannel	org.fossify.messages.activities.ConversationDetailsActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ConversationDetailsActivity.kt	137	method	removeNotificationChannel	org.fossify.messages.activities.ConversationDetailsActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ConversationDetailsActivity.kt	141	method	setupTextViews	org.fossify.messages.activities.ConversationDetailsActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ConversationDetailsActivity.kt	167	method	setupParticipants	org.fossify.messages.activities.ConversationDetailsActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/MainActivity.kt	81	class	MainActivity	org.fossify.messages.activities	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/MainActivity.kt	95	method	onCreate	org.fossify.messages.activities.MainActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/MainActivity.kt	119	method	onResume	org.fossify.messages.activities.MainActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/MainActivity.kt	148	method	onPause	org.fossify.messages.activities.MainActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/MainActivity.kt	153	method	onDestroy	org.fossify.messages.activities.MainActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/MainActivity.kt	158	method	onBackPressedCompat	org.fossify.messages.activities.MainActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/MainActivity.kt	168	method	setupOptionsMenu	org.fossify.messages.activities.MainActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/MainActivity.kt	200	method	refreshMenuItems	org.fossify.messages.activities.MainActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/MainActivity.kt	207	method	onRequestPermissionsResult	org.fossify.messages.activities.MainActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/MainActivity.kt	220	method	onActivityResult	org.fossify.messages.activities.MainActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/MainActivity.kt	235	method	storeStateVariables	org.fossify.messages.activities.MainActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/MainActivity.kt	240	method	updateMenuColors	org.fossify.messages.activities.MainActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/MainActivity.kt	244	method	loadMessages	org.fossify.messages.activities.MainActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/MainActivity.kt	283	method	askPermissions	org.fossify.messages.activities.MainActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/MainActivity.kt	315	method	initMessenger	org.fossify.messages.activities.MainActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/MainActivity.kt	328	method	getCachedConversations	org.fossify.messages.activities.MainActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/MainActivity.kt	354	method	getNewConversations	org.fossify.messages.activities.MainActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/MainActivity.kt	422	method	getOrCreateConversationsAdapter	org.fossify.messages.activities.MainActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/MainActivity.kt	441	method	setupConversations	org.fossify.messages.activities.MainActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/MainActivity.kt	473	method	showOrHideProgress	org.fossify.messages.activities.MainActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/MainActivity.kt	484	method	showOrHidePlaceholder	org.fossify.messages.activities.MainActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/MainActivity.kt	491	method	fadeOutSearch	org.fossify.messages.activities.MainActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/MainActivity.kt	502	method	notifyDatasetChanged	org.fossify.messages.activities.MainActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/MainActivity.kt	506	method	handleConversationClick	org.fossify.messages.activities.MainActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/MainActivity.kt	515	method	launchNewConversation	org.fossify.messages.activities.MainActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/MainActivity.kt	523	method	checkShortcut	org.fossify.messages.activities.MainActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/MainActivity.kt	538	method	getCreateNewContactShortcut	org.fossify.messages.activities.MainActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/MainActivity.kt	560	method	searchTextChanged	org.fossify.messages.activities.MainActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/MainActivity.kt	582	method	showSearchResults	org.fossify.messages.activities.MainActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/MainActivity.kt	653	method	launchRecycleBin	org.fossify.messages.activities.MainActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/MainActivity.kt	658	method	launchArchivedConversations	org.fossify.messages.activities.MainActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/MainActivity.kt	663	method	launchSettings	org.fossify.messages.activities.MainActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/MainActivity.kt	668	method	launchAbout	org.fossify.messages.activities.MainActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/MainActivity.kt	715	method	refreshConversations	org.fossify.messages.activities.MainActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/MainActivity.kt	719	method	checkWhatsNewDialog	org.fossify.messages.activities.MainActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ManageBlockedKeywordsActivity.kt	32	class	ManageBlockedKeywordsActivity	org.fossify.messages.activities	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ManageBlockedKeywordsActivity.kt	36	method	onCreate	org.fossify.messages.activities.ManageBlockedKeywordsActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ManageBlockedKeywordsActivity.kt	58	method	onResume	org.fossify.messages.activities.ManageBlockedKeywordsActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ManageBlockedKeywordsActivity.kt	63	method	setupOptionsMenu	org.fossify.messages.activities.ManageBlockedKeywordsActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ManageBlockedKeywordsActivity.kt	109	method	tryImportBlockedKeywords	org.fossify.messages.activities.ManageBlockedKeywordsActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ManageBlockedKeywordsActivity.kt	120	method	tryImportBlockedKeywordsFromFile	org.fossify.messages.activities.ManageBlockedKeywordsActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ManageBlockedKeywordsActivity.kt	144	method	importBlockedKeywords	org.fossify.messages.activities.ManageBlockedKeywordsActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ManageBlockedKeywordsActivity.kt	157	method	exportBlockedKeywordsTo	org.fossify.messages.activities.ManageBlockedKeywordsActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ManageBlockedKeywordsActivity.kt	175	method	tryExportBlockedNumbers	org.fossify.messages.activities.ManageBlockedKeywordsActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ManageBlockedKeywordsActivity.kt	194	method	refreshItems	org.fossify.messages.activities.ManageBlockedKeywordsActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ManageBlockedKeywordsActivity.kt	198	method	updateBlockedKeywords	org.fossify.messages.activities.ManageBlockedKeywordsActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ManageBlockedKeywordsActivity.kt	219	method	addOrEditBlockedKeyword	org.fossify.messages.activities.ManageBlockedKeywordsActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/NewConversationActivity.kt	53	class	NewConversationActivity	org.fossify.messages.activities	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/NewConversationActivity.kt	59	method	onCreate	org.fossify.messages.activities.NewConversationActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/NewConversationActivity.kt	80	method	onResume	org.fossify.messages.activities.NewConversationActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/NewConversationActivity.kt	88	method	initContacts	org.fossify.messages.activities.NewConversationActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/NewConversationActivity.kt	138	method	isThirdPartyIntent	org.fossify.messages.activities.NewConversationActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/NewConversationActivity.kt	154	method	fetchContacts	org.fossify.messages.activities.NewConversationActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/NewConversationActivity.kt	171	method	setupAdapter	org.fossify.messages.activities.NewConversationActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/NewConversationActivity.kt	213	method	fillSuggestedContacts	org.fossify.messages.activities.NewConversationActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/NewConversationActivity.kt	254	method	setupLetterFastscroller	org.fossify.messages.activities.NewConversationActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/NewConversationActivity.kt	268	method	launchThreadActivity	org.fossify.messages.activities.NewConversationActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/RecycleBinConversationsActivity.kt	29	class	RecycleBinConversationsActivity	org.fossify.messages.activities	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/RecycleBinConversationsActivity.kt	34	method	onCreate	org.fossify.messages.activities.RecycleBinConversationsActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/RecycleBinConversationsActivity.kt	48	method	onResume	org.fossify.messages.activities.RecycleBinConversationsActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/RecycleBinConversationsActivity.kt	54	method	onDestroy	org.fossify.messages.activities.RecycleBinConversationsActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/RecycleBinConversationsActivity.kt	59	method	setupOptionsMenu	org.fossify.messages.activities.RecycleBinConversationsActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/RecycleBinConversationsActivity.kt	70	method	updateOptionsMenu	org.fossify.messages.activities.RecycleBinConversationsActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/RecycleBinConversationsActivity.kt	76	method	loadRecycleBinConversations	org.fossify.messages.activities.RecycleBinConversationsActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/RecycleBinConversationsActivity.kt	97	method	removeAll	org.fossify.messages.activities.RecycleBinConversationsActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/RecycleBinConversationsActivity.kt	112	method	getOrCreateConversationsAdapter	org.fossify.messages.activities.RecycleBinConversationsActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/RecycleBinConversationsActivity.kt	131	method	setupConversations	org.fossify.messages.activities.RecycleBinConversationsActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/RecycleBinConversationsActivity.kt	148	method	showOrHidePlaceholder	org.fossify.messages.activities.RecycleBinConversationsActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/RecycleBinConversationsActivity.kt	155	method	notifyDatasetChanged	org.fossify.messages.activities.RecycleBinConversationsActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/RecycleBinConversationsActivity.kt	159	method	handleConversationClick	org.fossify.messages.activities.RecycleBinConversationsActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/RecycleBinConversationsActivity.kt	170	method	refreshConversations	org.fossify.messages.activities.RecycleBinConversationsActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/SettingsActivity.kt	60	class	SettingsActivity	org.fossify.messages.activities	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/SettingsActivity.kt	101	method	onCreate	org.fossify.messages.activities.SettingsActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/SettingsActivity.kt	112	method	onResume	org.fossify.messages.activities.SettingsActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/SettingsActivity.kt	162	method	setupPairCompanion	org.fossify.messages.activities.SettingsActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/SettingsActivity.kt	171	method	setupDisconnectCompanion	org.fossify.messages.activities.SettingsActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/SettingsActivity.kt	193	method	refreshDisconnectCompanionVisibility	org.fossify.messages.activities.SettingsActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/SettingsActivity.kt	197	method	setupMessagesExport	org.fossify.messages.activities.SettingsActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/SettingsActivity.kt	205	method	setupMessagesImport	org.fossify.messages.activities.SettingsActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/SettingsActivity.kt	211	method	onPause	org.fossify.messages.activities.SettingsActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/SettingsActivity.kt	216	method	setupCustomizeColors	org.fossify.messages.activities.SettingsActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/SettingsActivity.kt	222	method	setupCustomizeNotifications	org.fossify.messages.activities.SettingsActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/SettingsActivity.kt	228	method	setupUseEnglish	org.fossify.messages.activities.SettingsActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/SettingsActivity.kt	241	method	setupLanguage	org.fossify.messages.activities.SettingsActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/SettingsActivity.kt	253	method	setupManageBlockedNumbers	org.fossify.messages.activities.SettingsActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/SettingsActivity.kt	264	method	setupManageBlockedKeywords	org.fossify.messages.activities.SettingsActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/SettingsActivity.kt	275	method	setupChangeDateTimeFormat	org.fossify.messages.activities.SettingsActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/SettingsActivity.kt	283	method	setupFontSize	org.fossify.messages.activities.SettingsActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/SettingsActivity.kt	303	method	setupShowCharacterCounter	org.fossify.messages.activities.SettingsActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/SettingsActivity.kt	311	method	setupUseSimpleCharacters	org.fossify.messages.activities.SettingsActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/SettingsActivity.kt	319	method	setupSendOnEnter	org.fossify.messages.activities.SettingsActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/SettingsActivity.kt	327	method	setupEnableDeliveryReports	org.fossify.messages.activities.SettingsActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/SettingsActivity.kt	335	method	setupSendLongMessageAsMMS	org.fossify.messages.activities.SettingsActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/SettingsActivity.kt	343	method	setupGroupMessageAsMMS	org.fossify.messages.activities.SettingsActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/SettingsActivity.kt	351	method	setupKeepConversationsArchived	org.fossify.messages.activities.SettingsActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/SettingsActivity.kt	359	method	setupLockScreenVisibility	org.fossify.messages.activities.SettingsActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/SettingsActivity.kt	375	method	getLockScreenVisibilityText	org.fossify.messages.activities.SettingsActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/SettingsActivity.kt	383	method	setupMMSFileSizeLimit	org.fossify.messages.activities.SettingsActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/SettingsActivity.kt	404	method	setupUseRecycleBin	org.fossify.messages.activities.SettingsActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/SettingsActivity.kt	417	method	updateRecycleBinButtons	org.fossify.messages.activities.SettingsActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/SettingsActivity.kt	421	method	setupEmptyRecycleBin	org.fossify.messages.activities.SettingsActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/SettingsActivity.kt	460	method	setupAppPasswordProtection	org.fossify.messages.activities.SettingsActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/SettingsActivity.kt	502	method	getMMSFileLimitText	org.fossify.messages.activities.SettingsActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/SimpleActivity.kt	6	class	SimpleActivity	org.fossify.messages.activities	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/SimpleActivity.kt	7	method	getAppIconIDs	org.fossify.messages.activities.SimpleActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/SimpleActivity.kt	29	method	getAppLauncherName	org.fossify.messages.activities.SimpleActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/SimpleActivity.kt	31	method	getRepositoryName	org.fossify.messages.activities.SimpleActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/SplashActivity.kt	6	class	SplashActivity	org.fossify.messages.activities	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/SplashActivity.kt	7	method	initActivity	org.fossify.messages.activities.SplashActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	205	class	ThreadActivity	org.fossify.messages.activities	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	235	method	onNewIntent	org.fossify.messages.activities.ThreadActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	241	method	onCreate	org.fossify.messages.activities.ThreadActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	278	method	onResume	org.fossify.messages.activities.ThreadActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	315	method	onPause	org.fossify.messages.activities.ThreadActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	322	method	onStop	org.fossify.messages.activities.ThreadActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	328	method	onBackPressedCompat	org.fossify.messages.activities.ThreadActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	338	method	onDestroy	org.fossify.messages.activities.ThreadActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	343	method	saveDraftMessage	org.fossify.messages.activities.ThreadActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	354	method	refreshMenuItems	org.fossify.messages.activities.ThreadActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	383	method	setupOptionsMenu	org.fossify.messages.activities.ThreadActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	390	method	handleMenuItemAction	org.fossify.messages.activities.ThreadActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	410	method	onActivityResult	org.fossify.messages.activities.ThreadActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	433	method	setupCachedMessages	org.fossify.messages.activities.ThreadActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	473	method	setupThread	org.fossify.messages.activities.ThreadActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	573	method	canReuseLoadedThread	org.fossify.messages.activities.ThreadActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	585	method	getOrCreateThreadAdapter	org.fossify.messages.activities.ThreadActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	607	method	setupAdapter	org.fossify.messages.activities.ThreadActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	666	method	scrollToBottom	org.fossify.messages.activities.ThreadActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	673	method	setupScrollListener	org.fossify.messages.activities.ThreadActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	690	method	handleItemClick	org.fossify.messages.activities.ThreadActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	700	method	deleteMessages	org.fossify.messages.activities.ThreadActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	754	method	jumpToMessage	org.fossify.messages.activities.ThreadActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	792	method	tryLoadMoreMessages	org.fossify.messages.activities.ThreadActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	800	method	loadMoreMessages	org.fossify.messages.activities.ThreadActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	816	method	fetchOlderMessages	org.fossify.messages.activities.ThreadActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	830	method	loadConversation	org.fossify.messages.activities.ThreadActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	851	method	setupConversation	org.fossify.messages.activities.ThreadActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	857	method	setupButtons	org.fossify.messages.activities.ThreadActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	979	method	askForExactAlarmPermissionIfNeeded	org.fossify.messages.activities.ThreadActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	998	method	hasOnlyScheduledMessages	org.fossify.messages.activities.ThreadActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	1002	method	getProviderThreadParticipants	org.fossify.messages.activities.ThreadActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	1010	method	reconcileProviderParticipants	org.fossify.messages.activities.ThreadActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	1024	method	setupParticipants	org.fossify.messages.activities.ThreadActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	1039	method	isSpecialNumber	org.fossify.messages.activities.ThreadActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	1044	method	maybeDisableShortCodeReply	org.fossify.messages.activities.ThreadActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	1066	method	setupThreadTitle	org.fossify.messages.activities.ThreadActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	1076	method	setupSIMSelector	org.fossify.messages.activities.ThreadActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	1132	method	getProperSimIndex	org.fossify.messages.activities.ThreadActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	1157	method	blockNumber	org.fossify.messages.activities.ThreadActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	1176	method	askConfirmDelete	org.fossify.messages.activities.ThreadActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	1193	method	askConfirmRestoreAll	org.fossify.messages.activities.ThreadActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	1205	method	archiveConversation	org.fossify.messages.activities.ThreadActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	1215	method	unarchiveConversation	org.fossify.messages.activities.ThreadActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	1225	method	dialNumber	org.fossify.messages.activities.ThreadActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	1230	method	copyNumberToClipboard	org.fossify.messages.activities.ThreadActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	1237	method	managePeople	org.fossify.messages.activities.ThreadActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	1249	method	showSelectedContacts	org.fossify.messages.activities.ThreadActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	1279	method	addSelectedContact	org.fossify.messages.activities.ThreadActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	1290	method	markAsUnread	org.fossify.messages.activities.ThreadActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	1301	method	addNumberToContact	org.fossify.messages.activities.ThreadActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	1312	method	renameConversation	org.fossify.messages.activities.ThreadActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	1323	method	shouldShowThreadDateTime	org.fossify.messages.activities.ThreadActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	1334	method	getThreadItems	org.fossify.messages.activities.ThreadActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	1395	method	launchActivityForResult	org.fossify.messages.activities.ThreadActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	1410	method	getAttachmentsDir	org.fossify.messages.activities.ThreadActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	1418	method	launchCapturePhotoIntent	org.fossify.messages.activities.ThreadActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	1427	method	launchCaptureVideoIntent	org.fossify.messages.activities.ThreadActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	1432	method	launchCaptureAudioIntent	org.fossify.messages.activities.ThreadActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	1437	method	launchGetContentIntent	org.fossify.messages.activities.ThreadActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	1446	method	launchPickContactIntent	org.fossify.messages.activities.ThreadActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	1453	method	addContactAttachment	org.fossify.messages.activities.ThreadActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	1481	method	getAttachmentsAdapter	org.fossify.messages.activities.ThreadActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	1486	method	getAttachmentSelections	org.fossify.messages.activities.ThreadActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	1488	method	addAttachment	org.fossify.messages.activities.ThreadActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	1538	method	saveAttachments	org.fossify.messages.activities.ThreadActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	1569	method	checkSendMessageAvailability	org.fossify.messages.activities.ThreadActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	1585	method	sendMessage	org.fossify.messages.activities.ThreadActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	1605	method	confirmGroupMessageSendIfNeeded	org.fossify.messages.activities.ThreadActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	1627	method	sendScheduledMessage	org.fossify.messages.activities.ThreadActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	1674	method	sendNormalMessage	org.fossify.messages.activities.ThreadActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	1700	method	clearCurrentMessage	org.fossify.messages.activities.ThreadActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	1706	method	insertOrUpdateMessage	org.fossify.messages.activities.ThreadActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	1733	method	showSelectedContact	org.fossify.messages.activities.ThreadActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	1785	method	removeSelectedContact	org.fossify.messages.activities.ThreadActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	1792	method	getPhoneNumbersFromIntent	org.fossify.messages.activities.ThreadActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	1807	method	fixParticipantNumbers	org.fossify.messages.activities.ThreadActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	1830	method	saveMMS	org.fossify.messages.activities.ThreadActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	1857	method	refreshMessages	org.fossify.messages.activities.ThreadActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	1907	method	isMmsMessage	org.fossify.messages.activities.ThreadActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	1913	method	updateMessageType	org.fossify.messages.activities.ThreadActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	1923	method	showScheduledMessageInfo	org.fossify.messages.activities.ThreadActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	1948	method	extractAttachments	org.fossify.messages.activities.ThreadActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	1957	method	editScheduledMessage	org.fossify.messages.activities.ThreadActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	1966	method	cancelScheduledMessageAndRefresh	org.fossify.messages.activities.ThreadActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	1977	method	launchScheduleSendDialog	org.fossify.messages.activities.ThreadActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	1988	method	setupScheduleSendUi	org.fossify.messages.activities.ThreadActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	2011	method	showScheduleMessageDialog	org.fossify.messages.activities.ThreadActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	2027	method	hideScheduleSendUi	org.fossify.messages.activities.ThreadActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	2033	method	updateSendButtonDrawable	org.fossify.messages.activities.ThreadActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	2047	method	buildScheduledMessage	org.fossify.messages.activities.ThreadActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	2068	method	buildMessageAttachments	org.fossify.messages.activities.ThreadActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	2072	method	setupAttachmentPickerView	org.fossify.messages.activities.ThreadActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	2140	method	showAttachmentPicker	org.fossify.messages.activities.ThreadActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	2146	method	maybeSetupRecycleBinView	org.fossify.messages.activities.ThreadActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	2152	method	hideAttachmentPicker	org.fossify.messages.activities.ThreadActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	2163	method	animateAttachmentButton	org.fossify.messages.activities.ThreadActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	2171	method	getBottomBarColor	org.fossify.messages.activities.ThreadActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	2177	method	setupMessagingEdgeToEdge	org.fossify.messages.activities.ThreadActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/ThreadActivity.kt	2202	object	Companion	org.fossify.messages.activities.ThreadActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/VCardViewerActivity.kt	22	class	VCardViewerActivity	org.fossify.messages.activities	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/VCardViewerActivity.kt	26	method	onCreate	org.fossify.messages.activities.VCardViewerActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/VCardViewerActivity.kt	44	method	onResume	org.fossify.messages.activities.VCardViewerActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/VCardViewerActivity.kt	49	method	setupOptionsMenu	org.fossify.messages.activities.VCardViewerActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/VCardViewerActivity.kt	67	method	setupContactsList	org.fossify.messages.activities.VCardViewerActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/VCardViewerActivity.kt	78	method	handleClick	org.fossify.messages.activities.VCardViewerActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/activities/VCardViewerActivity.kt	85	method	prepareData	org.fossify.messages.activities.VCardViewerActivity	UI/SMS inherited activity
+app/src/main/kotlin/org/fossify/messages/adapters/ArchivedConversationsAdapter.kt	15	class	ArchivedConversationsAdapter	org.fossify.messages.adapters	UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/ArchivedConversationsAdapter.kt	18	method	getActionMenuId		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/ArchivedConversationsAdapter.kt	20	method	prepareActionMode		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/ArchivedConversationsAdapter.kt	22	method	actionItemPressed		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/ArchivedConversationsAdapter.kt	34	method	askConfirmDelete		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/ArchivedConversationsAdapter.kt	48	method	deleteConversations		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/ArchivedConversationsAdapter.kt	62	method	unarchiveConversation		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/ArchivedConversationsAdapter.kt	77	method	removeConversationsFromList		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/AttachmentsAdapter.kt	54	class	AttachmentsAdapter	org.fossify.messages.adapters	UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/AttachmentsAdapter.kt	68	method	getItemViewType	org.fossify.messages.adapters.AttachmentsAdapter	UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/AttachmentsAdapter.kt	72	method	onCreateViewHolder	org.fossify.messages.adapters.AttachmentsAdapter	UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/AttachmentsAdapter.kt	85	method	onBindViewHolder	org.fossify.messages.adapters.AttachmentsAdapter	UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/AttachmentsAdapter.kt	137	method	clear	org.fossify.messages.adapters.AttachmentsAdapter	UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/AttachmentsAdapter.kt	146	method	addAttachment	org.fossify.messages.adapters.AttachmentsAdapter	UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/AttachmentsAdapter.kt	152	method	removeAttachment	org.fossify.messages.adapters.AttachmentsAdapter	UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/AttachmentsAdapter.kt	162	method	setupMediaPreview	org.fossify.messages.adapters.AttachmentsAdapter	UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/AttachmentsAdapter.kt	213	method	loadMediaPreview	org.fossify.messages.adapters.AttachmentsAdapter	UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/AttachmentsAdapter.kt	227	method	onLoadFailed	org.fossify.messages.adapters.AttachmentsAdapter.loadMediaPreview	UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/AttachmentsAdapter.kt	238	method	onResourceReady	org.fossify.messages.adapters.AttachmentsAdapter.loadMediaPreview	UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/AttachmentsAdapter.kt	254	class	AttachmentsViewHolder	org.fossify.messages.adapters.AttachmentsAdapter	UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/AttachmentsAdapter.kt	255	method	bindView	org.fossify.messages.adapters.AttachmentsAdapter.AttachmentsViewHolder	UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/AttachmentsAdapter.kt	261	class	AttachmentDiffCallback	org.fossify.messages.adapters	UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/AttachmentsAdapter.kt	262	method	areItemsTheSame	org.fossify.messages.adapters.AttachmentDiffCallback	UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/AttachmentsAdapter.kt	266	method	areContentsTheSame	org.fossify.messages.adapters.AttachmentDiffCallback	UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/AutoCompleteTextViewAdapter.kt	17	class	AutoCompleteTextViewAdapter	org.fossify.messages.adapters	UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/AutoCompleteTextViewAdapter.kt	20	method	getView	org.fossify.messages.adapters.AutoCompleteTextViewAdapter	UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/AutoCompleteTextViewAdapter.kt	50	method	getFilter	org.fossify.messages.adapters.AutoCompleteTextViewAdapter	UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/AutoCompleteTextViewAdapter.kt	51	method	performFiltering	org.fossify.messages.adapters.AutoCompleteTextViewAdapter.getFilter	UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/AutoCompleteTextViewAdapter.kt	70	method	publishResults	org.fossify.messages.adapters.AutoCompleteTextViewAdapter.getFilter	UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/AutoCompleteTextViewAdapter.kt	81	method	convertResultToString	org.fossify.messages.adapters.AutoCompleteTextViewAdapter.getFilter	UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/AutoCompleteTextViewAdapter.kt	84	method	getItem	org.fossify.messages.adapters.AutoCompleteTextViewAdapter	UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/AutoCompleteTextViewAdapter.kt	86	method	getCount	org.fossify.messages.adapters.AutoCompleteTextViewAdapter	UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/BaseConversationsAdapter.kt	32	class	BaseConversationsAdapter	org.fossify.messages.adapters	UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/BaseConversationsAdapter.kt	56	method	onChanged		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/BaseConversationsAdapter.kt	57	method	onItemRangeMoved		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/BaseConversationsAdapter.kt	60	method	onItemRangeInserted		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/BaseConversationsAdapter.kt	66	method	updateFontSize		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/BaseConversationsAdapter.kt	71	method	updateConversations		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/BaseConversationsAdapter.kt	80	method	updateDrafts		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/BaseConversationsAdapter.kt	93	method	getSelectableItemCount		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/BaseConversationsAdapter.kt	95	method	getSelectedItems		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/BaseConversationsAdapter.kt	99	method	getIsItemSelectable		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/BaseConversationsAdapter.kt	101	method	getItemSelectionKey		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/BaseConversationsAdapter.kt	103	method	getItemKeyPosition		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/BaseConversationsAdapter.kt	105	method	onActionModeCreated		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/BaseConversationsAdapter.kt	107	method	onActionModeDestroyed		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/BaseConversationsAdapter.kt	109	method	onCreateViewHolder		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/BaseConversationsAdapter.kt	114	method	onBindViewHolder		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/BaseConversationsAdapter.kt	126	method	getItemId		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/BaseConversationsAdapter.kt	128	method	onViewRecycled		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/BaseConversationsAdapter.kt	136	method	fetchDrafts		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/BaseConversationsAdapter.kt	143	method	setupView		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/BaseConversationsAdapter.kt	211	method	setupBadgeCount		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/BaseConversationsAdapter.kt	226	method	onChange		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/BaseConversationsAdapter.kt	228	method	saveRecyclerViewState		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/BaseConversationsAdapter.kt	232	method	restoreRecyclerViewState		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/BaseConversationsAdapter.kt	236	class	ConversationDiffCallback		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/BaseConversationsAdapter.kt	237	method	areItemsTheSame	ConversationDiffCallback	UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/BaseConversationsAdapter.kt	241	method	areContentsTheSame	ConversationDiffCallback	UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/BaseConversationsAdapter.kt	246	object	Companion		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/ContactsAdapter.kt	17	class	ContactsAdapter	org.fossify.messages.adapters	UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/ContactsAdapter.kt	22	method	getActionMenuId		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/ContactsAdapter.kt	24	method	prepareActionMode		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/ContactsAdapter.kt	26	method	actionItemPressed		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/ContactsAdapter.kt	28	method	getSelectableItemCount		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/ContactsAdapter.kt	30	method	getIsItemSelectable		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/ContactsAdapter.kt	32	method	getItemSelectionKey		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/ContactsAdapter.kt	34	method	getItemKeyPosition		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/ContactsAdapter.kt	36	method	onActionModeCreated		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/ContactsAdapter.kt	38	method	onActionModeDestroyed		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/ContactsAdapter.kt	40	method	onCreateViewHolder		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/ContactsAdapter.kt	45	method	onBindViewHolder		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/ContactsAdapter.kt	53	method	getItemCount		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/ContactsAdapter.kt	55	method	updateContacts		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/ContactsAdapter.kt	64	method	setupView		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/ContactsAdapter.kt	82	method	onViewRecycled		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/ConversationsAdapter.kt	29	class	ConversationsAdapter	org.fossify.messages.adapters	UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/ConversationsAdapter.kt	35	method	getActionMenuId		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/ConversationsAdapter.kt	37	method	prepareActionMode		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/ConversationsAdapter.kt	63	method	actionItemPressed		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/ConversationsAdapter.kt	88	method	askConfirmBlock		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/ConversationsAdapter.kt	101	method	blockNumbers		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/ConversationsAdapter.kt	121	method	dialNumber		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/ConversationsAdapter.kt	128	method	copyNumberToClipboard		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/ConversationsAdapter.kt	134	method	askConfirmDelete		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/ConversationsAdapter.kt	148	method	askConfirmArchive		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/ConversationsAdapter.kt	162	method	archiveConversations		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/ConversationsAdapter.kt	193	method	deleteConversations		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/ConversationsAdapter.kt	224	method	renameConversation		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/ConversationsAdapter.kt	239	method	markAsRead		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/ConversationsAdapter.kt	255	method	markAsUnread		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/ConversationsAdapter.kt	271	method	addNumberToContact		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/ConversationsAdapter.kt	281	method	pinConversation		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/ConversationsAdapter.kt	299	method	checkPinBtnVisibility		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/ConversationsAdapter.kt	308	method	refreshConversationsAndFinishActMode		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/RecycleBinConversationsAdapter.kt	15	class	RecycleBinConversationsAdapter	org.fossify.messages.adapters	UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/RecycleBinConversationsAdapter.kt	18	method	getActionMenuId		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/RecycleBinConversationsAdapter.kt	20	method	prepareActionMode		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/RecycleBinConversationsAdapter.kt	22	method	actionItemPressed		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/RecycleBinConversationsAdapter.kt	34	method	askConfirmDelete		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/RecycleBinConversationsAdapter.kt	48	method	deleteConversations		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/RecycleBinConversationsAdapter.kt	62	method	askConfirmRestore		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/RecycleBinConversationsAdapter.kt	76	method	restoreConversations		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/RecycleBinConversationsAdapter.kt	89	method	removeConversationsFromList		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/SearchResultsAdapter.kt	17	class	SearchResultsAdapter	org.fossify.messages.adapters	UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/SearchResultsAdapter.kt	24	method	getActionMenuId		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/SearchResultsAdapter.kt	26	method	prepareActionMode		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/SearchResultsAdapter.kt	28	method	actionItemPressed		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/SearchResultsAdapter.kt	30	method	getSelectableItemCount		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/SearchResultsAdapter.kt	32	method	getIsItemSelectable		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/SearchResultsAdapter.kt	34	method	getItemSelectionKey		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/SearchResultsAdapter.kt	36	method	getItemKeyPosition		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/SearchResultsAdapter.kt	38	method	onActionModeCreated		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/SearchResultsAdapter.kt	40	method	onActionModeDestroyed		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/SearchResultsAdapter.kt	42	method	onCreateViewHolder		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/SearchResultsAdapter.kt	47	method	onBindViewHolder		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/SearchResultsAdapter.kt	55	method	getItemCount		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/SearchResultsAdapter.kt	57	method	updateItems		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/SearchResultsAdapter.kt	68	method	setupView		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/SearchResultsAdapter.kt	92	method	onViewRecycled		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/ThreadAdapter.kt	95	class	ThreadAdapter	org.fossify.messages.adapters	UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/ThreadAdapter.kt	108	object	Companion		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/ThreadAdapter.kt	120	method	getActionMenuId		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/ThreadAdapter.kt	122	method	prepareActionMode		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/ThreadAdapter.kt	141	method	actionItemPressed		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/ThreadAdapter.kt	159	method	getSelectableItemCount		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/ThreadAdapter.kt	161	method	getIsItemSelectable		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/ThreadAdapter.kt	163	method	getItemSelectionKey		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/ThreadAdapter.kt	167	method	getItemKeyPosition		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/ThreadAdapter.kt	171	method	onActionModeCreated		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/ThreadAdapter.kt	173	method	onActionModeDestroyed		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/ThreadAdapter.kt	175	method	onCreateViewHolder		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/ThreadAdapter.kt	187	method	onBindViewHolder		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/ThreadAdapter.kt	203	method	getItemId		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/ThreadAdapter.kt	217	method	getItemViewType		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/ThreadAdapter.kt	227	method	copyToClipboard		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/ThreadAdapter.kt	247	method	getSelectedAttachments		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/ThreadAdapter.kt	252	method	saveAs		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/ThreadAdapter.kt	259	method	shareText		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/ThreadAdapter.kt	264	method	selectText		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/ThreadAdapter.kt	271	method	showMessageDetails		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/ThreadAdapter.kt	276	method	askConfirmDelete		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/ThreadAdapter.kt	305	method	askConfirmRestore		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/ThreadAdapter.kt	329	method	forwardMessage		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/ThreadAdapter.kt	344	method	getSelectedItems		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/ThreadAdapter.kt	350	method	isThreadDateTime		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/ThreadAdapter.kt	352	method	updateMessages		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/ThreadAdapter.kt	369	method	setupView		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/ThreadAdapter.kt	414	method	setupReceivedMessageView		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/ThreadAdapter.kt	458	method	setupSentMessageView		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/ThreadAdapter.kt	498	method	setupImageView		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/ThreadAdapter.kt	518	method	onLoadFailed	setupImageView.<lambda>	UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/ThreadAdapter.kt	524	method	onResourceReady	setupImageView.<lambda>	UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/ThreadAdapter.kt	546	method	setupAudioView		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/ThreadAdapter.kt	561	method	setupVCardView		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/ThreadAdapter.kt	584	method	setupFileView		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/ThreadAdapter.kt	606	method	setupDateTime		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/ThreadAdapter.kt	628	method	setupThreadSuccess		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/ThreadAdapter.kt	635	method	setupThreadError		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/ThreadAdapter.kt	640	method	setupThreadSending		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/ThreadAdapter.kt	647	method	onViewRecycled		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/ThreadAdapter.kt	657	class	ThreadViewHolder		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/ThreadAdapter.kt	660	class	ThreadItemDiffCallback		UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/ThreadAdapter.kt	662	method	areItemsTheSame	ThreadItemDiffCallback	UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/ThreadAdapter.kt	676	method	areContentsTheSame	ThreadItemDiffCallback	UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/VCardViewerAdapter.kt	24	class	VCardViewerAdapter	org.fossify.messages.adapters	UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/VCardViewerAdapter.kt	32	method	getItemCount	org.fossify.messages.adapters	UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/VCardViewerAdapter.kt	34	method	getItemViewType	org.fossify.messages.adapters	UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/VCardViewerAdapter.kt	42	method	onCreateViewHolder	org.fossify.messages.adapters	UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/VCardViewerAdapter.kt	56	method	onBindViewHolder	org.fossify.messages.adapters	UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/VCardViewerAdapter.kt	64	class	VCardContactViewHolder	org.fossify.messages.adapters	UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/VCardViewerAdapter.kt	65	method	bindView	org.fossify.messages.adapters.VCardContactViewHolder	UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/VCardViewerAdapter.kt	117	method	expandOrCollapseRow	org.fossify.messages.adapters.VCardContactViewHolder	UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/VCardViewerAdapter.kt	126	method	expandRow	org.fossify.messages.adapters.VCardContactViewHolder	UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/VCardViewerAdapter.kt	134	method	collapseRow	org.fossify.messages.adapters.VCardContactViewHolder	UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/VCardViewerAdapter.kt	145	class	VCardPropertyViewHolder	org.fossify.messages.adapters	UI inherited
+app/src/main/kotlin/org/fossify/messages/adapters/VCardViewerAdapter.kt	146	method	bindView	org.fossify.messages.adapters.VCardPropertyViewHolder	UI inherited
+app/src/main/kotlin/org/fossify/messages/dialogs/AddBlockedKeywordDialog.kt	12	class	AddBlockedKeywordDialog	org.fossify.messages.dialogs	UI inherited
+app/src/main/kotlin/org/fossify/messages/dialogs/DeleteConfirmationDialog.kt	10	class	DeleteConfirmationDialog	org.fossify.messages.dialogs	UI inherited
+app/src/main/kotlin/org/fossify/messages/dialogs/DeleteConfirmationDialog.kt	33	method	dialogConfirmed	org.fossify.messages.dialogs.DeleteConfirmationDialog	UI inherited
+app/src/main/kotlin/org/fossify/messages/dialogs/ExportBlockedKeywordsDialog.kt	24	class	ExportBlockedKeywordsDialog	org.fossify.messages.dialogs	UI inherited
+app/src/main/kotlin/org/fossify/messages/dialogs/ExportMessagesDialog.kt	25	class	ExportMessagesDialog	org.fossify.messages.dialogs	UI inherited
+app/src/main/kotlin/org/fossify/messages/dialogs/ExportMessagesDialog.kt	66	method	exportMessages	org.fossify.messages.dialogs.ExportMessagesDialog	UI inherited
+app/src/main/kotlin/org/fossify/messages/dialogs/ExportMessagesDialog.kt	88	method	export	org.fossify.messages.dialogs.ExportMessagesDialog	UI inherited
+app/src/main/kotlin/org/fossify/messages/dialogs/ExportMessagesDialog.kt	126	method	dismiss	org.fossify.messages.dialogs.ExportMessagesDialog	UI inherited
+app/src/main/kotlin/org/fossify/messages/dialogs/GroupMessageSendDialog.kt	9	class	GroupMessageSendDialog	org.fossify.messages.dialogs	UI inherited
+app/src/main/kotlin/org/fossify/messages/dialogs/ImportMessagesDialog.kt	18	class	ImportMessagesDialog	org.fossify.messages.dialogs	UI inherited
+app/src/main/kotlin/org/fossify/messages/dialogs/ImportMessagesDialog.kt	83	method	handleParseResult	org.fossify.messages.dialogs.ImportMessagesDialog	UI inherited
+app/src/main/kotlin/org/fossify/messages/dialogs/InvalidNumberDialog.kt	8	class	InvalidNumberDialog	org.fossify.messages.dialogs	UI inherited
+app/src/main/kotlin/org/fossify/messages/dialogs/ManageBlockedKeywordsAdapter.kt	17	class	ManageBlockedKeywordsAdapter	org.fossify.messages.dialogs	UI inherited
+app/src/main/kotlin/org/fossify/messages/dialogs/ManageBlockedKeywordsAdapter.kt	25	method	getActionMenuId		UI inherited
+app/src/main/kotlin/org/fossify/messages/dialogs/ManageBlockedKeywordsAdapter.kt	27	method	prepareActionMode		UI inherited
+app/src/main/kotlin/org/fossify/messages/dialogs/ManageBlockedKeywordsAdapter.kt	33	method	actionItemPressed		UI inherited
+app/src/main/kotlin/org/fossify/messages/dialogs/ManageBlockedKeywordsAdapter.kt	44	method	getSelectableItemCount		UI inherited
+app/src/main/kotlin/org/fossify/messages/dialogs/ManageBlockedKeywordsAdapter.kt	46	method	getIsItemSelectable		UI inherited
+app/src/main/kotlin/org/fossify/messages/dialogs/ManageBlockedKeywordsAdapter.kt	48	method	getItemSelectionKey		UI inherited
+app/src/main/kotlin/org/fossify/messages/dialogs/ManageBlockedKeywordsAdapter.kt	50	method	getItemKeyPosition		UI inherited
+app/src/main/kotlin/org/fossify/messages/dialogs/ManageBlockedKeywordsAdapter.kt	52	method	onActionModeCreated		UI inherited
+app/src/main/kotlin/org/fossify/messages/dialogs/ManageBlockedKeywordsAdapter.kt	54	method	onActionModeDestroyed		UI inherited
+app/src/main/kotlin/org/fossify/messages/dialogs/ManageBlockedKeywordsAdapter.kt	56	method	onCreateViewHolder		UI inherited
+app/src/main/kotlin/org/fossify/messages/dialogs/ManageBlockedKeywordsAdapter.kt	61	method	onBindViewHolder		UI inherited
+app/src/main/kotlin/org/fossify/messages/dialogs/ManageBlockedKeywordsAdapter.kt	69	method	getItemCount		UI inherited
+app/src/main/kotlin/org/fossify/messages/dialogs/ManageBlockedKeywordsAdapter.kt	71	method	getSelectedItems		UI inherited
+app/src/main/kotlin/org/fossify/messages/dialogs/ManageBlockedKeywordsAdapter.kt	73	method	setupView		UI inherited
+app/src/main/kotlin/org/fossify/messages/dialogs/ManageBlockedKeywordsAdapter.kt	93	method	showPopupMenu		UI inherited
+app/src/main/kotlin/org/fossify/messages/dialogs/ManageBlockedKeywordsAdapter.kt	121	method	executeItemMenuOperation		UI inherited
+app/src/main/kotlin/org/fossify/messages/dialogs/ManageBlockedKeywordsAdapter.kt	127	method	copyKeywordToClipboard		UI inherited
+app/src/main/kotlin/org/fossify/messages/dialogs/ManageBlockedKeywordsAdapter.kt	133	method	deleteSelection		UI inherited
+app/src/main/kotlin/org/fossify/messages/dialogs/MessageDetailsDialog.kt	17	class	MessageDetailsDialog	org.fossify.messages.dialogs	UI inherited
+app/src/main/kotlin/org/fossify/messages/dialogs/MessageDetailsDialog.kt	35	method	getSenderOrReceiverLabel	org.fossify.messages.dialogs.MessageDetailsDialog	UI inherited
+app/src/main/kotlin/org/fossify/messages/dialogs/MessageDetailsDialog.kt	43	method	getSenderOrReceiverPhoneNumbers	org.fossify.messages.dialogs.MessageDetailsDialog	UI inherited
+app/src/main/kotlin/org/fossify/messages/dialogs/MessageDetailsDialog.kt	53	method	formatContactInfo	org.fossify.messages.dialogs.MessageDetailsDialog	UI inherited
+app/src/main/kotlin/org/fossify/messages/dialogs/MessageDetailsDialog.kt	61	method	getSIM	org.fossify.messages.dialogs.MessageDetailsDialog	UI inherited
+app/src/main/kotlin/org/fossify/messages/dialogs/MessageDetailsDialog.kt	66	method	getSentOrReceivedAtLabel	org.fossify.messages.dialogs.MessageDetailsDialog	UI inherited
+app/src/main/kotlin/org/fossify/messages/dialogs/MessageDetailsDialog.kt	74	method	getSentOrReceivedAt	org.fossify.messages.dialogs.MessageDetailsDialog	UI inherited
+app/src/main/kotlin/org/fossify/messages/dialogs/RenameConversationDialog.kt	14	class	RenameConversationDialog	org.fossify.messages.dialogs	UI inherited
+app/src/main/kotlin/org/fossify/messages/dialogs/ScheduleMessageDialog.kt	27	class	ScheduleMessageDialog	org.fossify.messages.dialogs	UI inherited
+app/src/main/kotlin/org/fossify/messages/dialogs/ScheduleMessageDialog.kt	63	method	updateTexts	org.fossify.messages.dialogs.ScheduleMessageDialog	UI inherited
+app/src/main/kotlin/org/fossify/messages/dialogs/ScheduleMessageDialog.kt	70	method	showPreview	org.fossify.messages.dialogs.ScheduleMessageDialog	UI inherited
+app/src/main/kotlin/org/fossify/messages/dialogs/ScheduleMessageDialog.kt	97	method	showDatePicker	org.fossify.messages.dialogs.ScheduleMessageDialog	UI inherited
+app/src/main/kotlin/org/fossify/messages/dialogs/ScheduleMessageDialog.kt	122	method	showTimePicker	org.fossify.messages.dialogs.ScheduleMessageDialog	UI inherited
+app/src/main/kotlin/org/fossify/messages/dialogs/ScheduleMessageDialog.kt	165	method	dateSet	org.fossify.messages.dialogs.ScheduleMessageDialog	UI inherited
+app/src/main/kotlin/org/fossify/messages/dialogs/ScheduleMessageDialog.kt	188	method	timeSet	org.fossify.messages.dialogs.ScheduleMessageDialog	UI inherited
+app/src/main/kotlin/org/fossify/messages/dialogs/ScheduleMessageDialog.kt	198	method	validateDateTime	org.fossify.messages.dialogs.ScheduleMessageDialog	UI inherited
+app/src/main/kotlin/org/fossify/messages/dialogs/ScheduleMessageDialog.kt	207	method	getNextHour	org.fossify.messages.dialogs.ScheduleMessageDialog	UI inherited
+app/src/main/kotlin/org/fossify/messages/dialogs/ScheduleMessageDialog.kt	212	method	getNextMinute	org.fossify.messages.dialogs.ScheduleMessageDialog	UI inherited
+app/src/main/kotlin/org/fossify/messages/dialogs/SelectTextDialog.kt	9	class	SelectTextDialog	org.fossify.messages.dialogs	UI inherited
+app/src/main/kotlin/org/fossify/messages/inkpilot/studio/CalendarEditor.kt	17	class	CalendarEditor	org.fossify.messages.inkpilot.studio	UI/data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/studio/CalendarEditor.kt	27	method	show	org.fossify.messages.inkpilot.studio	UI/data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/studio/CalendarEditor.kt	82	method	spinner	org.fossify.messages.inkpilot.studio	UI/data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/studio/CalendarEditor.kt	84	method	color	org.fossify.messages.inkpilot.studio.spinner.<lambda>	UI/data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/studio/CalendarEditor.kt	87	method	getView	org.fossify.messages.inkpilot.studio.spinner.<lambda>	UI/data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/studio/CalendarEditor.kt	89	method	getDropDownView	org.fossify.messages.inkpilot.studio.spinner.<lambda>	UI/data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/studio/StudioAlbumStore.kt	7	class	StudioAlbumStore	org.fossify.messages.inkpilot.studio	UI/data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/studio/StudioAlbumStore.kt	10	method	albums	org.fossify.messages.inkpilot.studio.StudioAlbumStore	UI/data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/studio/StudioAlbumStore.kt	16	method	saveAlbum	org.fossify.messages.inkpilot.studio.StudioAlbumStore	UI/data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/studio/StudioAlbumStore.kt	27	method	images	org.fossify.messages.inkpilot.studio.StudioAlbumStore	UI/data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/studio/StudioAlbumStore.kt	39	method	addOriginal	org.fossify.messages.inkpilot.studio.StudioAlbumStore	UI/data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/studio/StudioAlbumStore.kt	49	method	addMembership	org.fossify.messages.inkpilot.studio.StudioAlbumStore	UI/data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/studio/StudioAlbumStore.kt	54	method	removeMembership	org.fossify.messages.inkpilot.studio.StudioAlbumStore	UI/data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/studio/StudioAlbumsPanel.kt	10	class	StudioAlbumsPanel	org.fossify.messages.inkpilot.studio	UI/data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/studio/StudioAlbumsPanel.kt	17	method	view	org.fossify.messages.inkpilot.studio.StudioAlbumsPanel	UI/data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/studio/StudioAlbumsPanel.kt	23	method	render	org.fossify.messages.inkpilot.studio.StudioAlbumsPanel	UI/data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/studio/StudioAlbumsPanel.kt	29	method	renderAlbums	org.fossify.messages.inkpilot.studio.StudioAlbumsPanel	UI/data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/studio/StudioAlbumsPanel.kt	42	method	renderImages	org.fossify.messages.inkpilot.studio.StudioAlbumsPanel	UI/data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/studio/StudioAlbumsPanel.kt	58	method	loadImages	org.fossify.messages.inkpilot.studio.StudioAlbumsPanel	UI/data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/studio/StudioAlbumsPanel.kt	89	method	acceptImage	org.fossify.messages.inkpilot.studio.StudioAlbumsPanel	UI/data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/studio/StudioAlbumsPanel.kt	97	method	chooseAlbum	org.fossify.messages.inkpilot.studio.StudioAlbumsPanel	UI/data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/studio/StudioAlbumsPanel.kt	105	method	editAlbum	org.fossify.messages.inkpilot.studio.StudioAlbumsPanel	UI/data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/studio/StudioAlbumsPanel.kt	124	method	preview	org.fossify.messages.inkpilot.studio.StudioAlbumsPanel	UI/data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/studio/StudioCalendarPanel.kt	12	class	StudioCalendarPanel	org.fossify.messages.inkpilot.studio	UI/data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/studio/StudioCalendarPanel.kt	18	method	view	org.fossify.messages.inkpilot.studio.StudioCalendarPanel	UI/data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/studio/StudioCalendarPanel.kt	24	method	render	org.fossify.messages.inkpilot.studio.StudioCalendarPanel	UI/data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/studio/StudioCalendarPanel.kt	60	method	addStaff	org.fossify.messages.inkpilot.studio.StudioCalendarPanel	UI/data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/studio/StudioCalendarPanel.kt	73	method	details	org.fossify.messages.inkpilot.studio.StudioCalendarPanel	UI/data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/studio/StudioCalendarStore.kt	7	class	StudioCalendarStore	org.fossify.messages.inkpilot.studio	UI/data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/studio/StudioCalendarStore.kt	10	method	staff	org.fossify.messages.inkpilot.studio.StudioCalendarStore	UI/data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/studio/StudioCalendarStore.kt	14	method	addStaff	org.fossify.messages.inkpilot.studio.StudioCalendarStore	UI/data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/studio/StudioCalendarStore.kt	20	method	entries	org.fossify.messages.inkpilot.studio.StudioCalendarStore	UI/data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/studio/StudioCalendarStore.kt	33	method	schedule	org.fossify.messages.inkpilot.studio.StudioCalendarStore	UI/data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/studio/StudioCalendarStore.kt	53	method	setStatus	org.fossify.messages.inkpilot.studio.StudioCalendarStore	UI/data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/studio/StudioFeatureRecords.kt	5	class	StudioAlbum	org.fossify.messages.inkpilot.studio	UI/data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/studio/StudioFeatureRecords.kt	6	class	StudioImage	org.fossify.messages.inkpilot.studio	UI/data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/studio/StudioFeatureRecords.kt	7	class	StudioStaff	org.fossify.messages.inkpilot.studio	UI/data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/studio/StudioFeatureRecords.kt	8	class	CalendarEntry	org.fossify.messages.inkpilot.studio	UI/data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/studio/StudioFeatureRecords.kt	13	class	CalendarProposal	org.fossify.messages.inkpilot.studio	UI/data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/studio/StudioFeatureRecords.kt	17	method	validate	org.fossify.messages.inkpilot.studio.CalendarProposal	UI/data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/studio/StudioFeatureRecords.kt	28	interface	ScheduleResult	org.fossify.messages.inkpilot.studio	UI/data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/studio/StudioFeatureRecords.kt	29	class	Saved	org.fossify.messages.inkpilot.studio.ScheduleResult	UI/data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/studio/StudioFeatureRecords.kt	30	class	Conflict	org.fossify.messages.inkpilot.studio.ScheduleResult	UI/data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/studio/StudioFeatureSchema.kt	6	object	StudioFeatureSchema	org.fossify.messages.inkpilot.studio	UI/data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/studio/StudioFeatureSchema.kt	7	method	create	org.fossify.messages.inkpilot.studio.StudioFeatureSchema	UI/data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/studio/StudioImageFiles.kt	12	class	StudioImageFiles	org.fossify.messages.inkpilot.studio	UI/data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/studio/StudioImageFiles.kt	15	method	import	org.fossify.messages.inkpilot.studio.StudioImageFiles	UI/data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/studio/StudioImageFiles.kt	53	method	originalFile	org.fossify.messages.inkpilot.studio.StudioImageFiles	UI/data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/studio/StudioImageFiles.kt	59	method	thumbnail	org.fossify.messages.inkpilot.studio.StudioImageFiles	UI/data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/studio/StudioPanelHost.kt	18	class	StudioPanelHost	org.fossify.messages.inkpilot.studio	UI/data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/studio/StudioPanelHost.kt	26	method	dp	org.fossify.messages.inkpilot.studio.StudioPanelHost	UI/data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/studio/StudioPanelHost.kt	27	method	column	org.fossify.messages.inkpilot.studio.StudioPanelHost	UI/data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/studio/StudioPanelHost.kt	28	method	body	org.fossify.messages.inkpilot.studio.StudioPanelHost	UI/data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/studio/StudioPanelHost.kt	34	method	text	org.fossify.messages.inkpilot.studio.StudioPanelHost	UI/data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/studio/StudioPanelHost.kt	37	method	button	org.fossify.messages.inkpilot.studio.StudioPanelHost	UI/data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/studio/StudioPanelHost.kt	44	method	field	org.fossify.messages.inkpilot.studio.StudioPanelHost	UI/data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/studio/StudioPanelHost.kt	48	method	onUi	org.fossify.messages.inkpilot.studio.StudioPanelHost	UI/data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/studio/StudioPanelHost.kt	51	method	load	org.fossify.messages.inkpilot.studio.StudioPanelHost	UI/data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/studio/StudioPanels.kt	11	class	StudioPanels	org.fossify.messages.inkpilot.studio	UI/data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/studio/StudioPanels.kt	21	method	albums		UI/data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/studio/StudioPanels.kt	22	method	calendar		UI/data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/studio/StudioPanels.kt	24	method	onActivityResult		UI/data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/studio/StudioPanels.kt	30	object	Companion		UI/data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/ui/AgentPanel.kt	17	class	AgentPanel	org.fossify.messages.inkpilot.ui	UI inkPilot
+app/src/main/kotlin/org/fossify/messages/inkpilot/ui/AgentPanel.kt	27	method	model	org.fossify.messages.inkpilot.ui	UI inkPilot
+app/src/main/kotlin/org/fossify/messages/inkpilot/ui/AgentPanel.kt	67	method	soul	org.fossify.messages.inkpilot.ui	UI inkPilot
+app/src/main/kotlin/org/fossify/messages/inkpilot/ui/AgentPanel.kt	82	method	afterTextChanged	org.fossify.messages.inkpilot.ui.soul.<lambda>	UI inkPilot
+app/src/main/kotlin/org/fossify/messages/inkpilot/ui/AgentPanel.kt	83	method	beforeTextChanged	org.fossify.messages.inkpilot.ui.soul.<lambda>	UI inkPilot
+app/src/main/kotlin/org/fossify/messages/inkpilot/ui/AgentPanel.kt	84	method	onTextChanged	org.fossify.messages.inkpilot.ui.soul.<lambda>	UI inkPilot
+app/src/main/kotlin/org/fossify/messages/inkpilot/ui/AgentPanel.kt	101	method	onActivityResult	org.fossify.messages.inkpilot.ui	UI inkPilot
+app/src/main/kotlin/org/fossify/messages/inkpilot/ui/AgentPanel.kt	114	object	Companion	org.fossify.messages.inkpilot.ui	UI inkPilot
+app/src/main/kotlin/org/fossify/messages/inkpilot/ui/ContactPanel.kt	16	class	ContactPanel	org.fossify.messages.inkpilot.ui	UI inkPilot
+app/src/main/kotlin/org/fossify/messages/inkpilot/ui/ContactPanel.kt	22	method	view	org.fossify.messages.inkpilot.ui.ContactPanel	UI inkPilot
+app/src/main/kotlin/org/fossify/messages/inkpilot/ui/ContactPanel.kt	45	method	edit	org.fossify.messages.inkpilot.ui.ContactPanel	UI inkPilot
+app/src/main/kotlin/org/fossify/messages/inkpilot/ui/ContactPanel.kt	81	method	addContact	org.fossify.messages.inkpilot.ui.ContactPanel	UI inkPilot
+app/src/main/kotlin/org/fossify/messages/inkpilot/ui/DraftPanel.kt	12	class	DraftPanel	org.fossify.messages.inkpilot.ui	UI inkPilot
+app/src/main/kotlin/org/fossify/messages/inkpilot/ui/DraftPanel.kt	18	method	view	org.fossify.messages.inkpilot.ui.DraftPanel	UI inkPilot
+app/src/main/kotlin/org/fossify/messages/inkpilot/ui/DraftPanel.kt	55	method	statusText	org.fossify.messages.inkpilot.ui.DraftPanel	UI inkPilot
+app/src/main/kotlin/org/fossify/messages/inkpilot/ui/DraftReview.kt	16	class	DraftReview	org.fossify.messages.inkpilot.ui	UI inkPilot
+app/src/main/kotlin/org/fossify/messages/inkpilot/ui/DraftReview.kt	21	method	show	org.fossify.messages.inkpilot.ui.DraftReview	UI inkPilot
+app/src/main/kotlin/org/fossify/messages/inkpilot/ui/DraftReview.kt	48	method	chooseSim	org.fossify.messages.inkpilot.ui.DraftReview	UI inkPilot
+app/src/main/kotlin/org/fossify/messages/inkpilot/ui/MessagePanel.kt	19	class	MessagePanel	org.fossify.messages.inkpilot.ui	UI inkPilot
+app/src/main/kotlin/org/fossify/messages/inkpilot/ui/MessagePanel.kt	25	method	messages	org.fossify.messages.inkpilot.ui.MessagePanel	UI inkPilot
+app/src/main/kotlin/org/fossify/messages/inkpilot/ui/MessagePanel.kt	66	method	phone	org.fossify.messages.inkpilot.ui.MessagePanel	UI inkPilot
+app/src/main/kotlin/org/fossify/messages/inkpilot/ui/SmsRefreshObserver.kt	12	class	SmsRefreshObserver	org.fossify.messages.inkpilot.ui	UI inkPilot
+app/src/main/kotlin/org/fossify/messages/inkpilot/ui/SmsRefreshObserver.kt	17	method	onChange	org.fossify.messages.inkpilot.ui.SmsRefreshObserver	UI inkPilot
+app/src/main/kotlin/org/fossify/messages/inkpilot/ui/SmsRefreshObserver.kt	22	method	start	org.fossify.messages.inkpilot.ui.SmsRefreshObserver	UI inkPilot
+app/src/main/kotlin/org/fossify/messages/inkpilot/ui/SmsRefreshObserver.kt	30	method	stop	org.fossify.messages.inkpilot.ui.SmsRefreshObserver	UI inkPilot
+app/src/main/kotlin/org/fossify/messages/inkpilot/ui/StudioAppLock.kt	10	class	StudioAppLock	org.fossify.messages.inkpilot.ui	UI inkPilot
+app/src/main/kotlin/org/fossify/messages/inkpilot/ui/StudioAppLock.kt	11	method	onResume	org.fossify.messages.inkpilot.ui.StudioAppLock	UI inkPilot
+app/src/main/kotlin/org/fossify/messages/inkpilot/ui/StudioAppLock.kt	22	object	Companion	org.fossify.messages.inkpilot.ui.StudioAppLock	UI inkPilot
+app/src/main/kotlin/org/fossify/messages/inkpilot/ui/StudioHomeActivity.kt	30	class	StudioHomeActivity	org.fossify.messages.inkpilot.ui	UI inkPilot
+app/src/main/kotlin/org/fossify/messages/inkpilot/ui/StudioHomeActivity.kt	44	method	onCreate	org.fossify.messages.inkpilot.ui.StudioHomeActivity	UI inkPilot
+app/src/main/kotlin/org/fossify/messages/inkpilot/ui/StudioHomeActivity.kt	63	method	handleOnBackPressed	org.fossify.messages.inkpilot.ui.StudioHomeActivity.onCreate	UI inkPilot
+app/src/main/kotlin/org/fossify/messages/inkpilot/ui/StudioHomeActivity.kt	70	method	buildFrame	org.fossify.messages.inkpilot.ui.StudioHomeActivity	UI inkPilot
+app/src/main/kotlin/org/fossify/messages/inkpilot/ui/StudioHomeActivity.kt	98	method	render	org.fossify.messages.inkpilot.ui.StudioHomeActivity	UI inkPilot
+app/src/main/kotlin/org/fossify/messages/inkpilot/ui/StudioHomeActivity.kt	122	method	openAgent	org.fossify.messages.inkpilot.ui.StudioHomeActivity	UI inkPilot
+app/src/main/kotlin/org/fossify/messages/inkpilot/ui/StudioHomeActivity.kt	124	method	setupSms	org.fossify.messages.inkpilot.ui.StudioHomeActivity	UI inkPilot
+app/src/main/kotlin/org/fossify/messages/inkpilot/ui/StudioHomeActivity.kt	138	method	requestSmsPermissions	org.fossify.messages.inkpilot.ui.StudioHomeActivity	UI inkPilot
+app/src/main/kotlin/org/fossify/messages/inkpilot/ui/StudioHomeActivity.kt	145	method	onResume	org.fossify.messages.inkpilot.ui.StudioHomeActivity	UI inkPilot
+app/src/main/kotlin/org/fossify/messages/inkpilot/ui/StudioHomeActivity.kt	150	method	onPause	org.fossify.messages.inkpilot.ui.StudioHomeActivity	UI inkPilot
+app/src/main/kotlin/org/fossify/messages/inkpilot/ui/StudioHomeActivity.kt	151	method	onNewIntent	org.fossify.messages.inkpilot.ui.StudioHomeActivity	UI inkPilot
+app/src/main/kotlin/org/fossify/messages/inkpilot/ui/StudioHomeActivity.kt	156	method	onSaveInstanceState	org.fossify.messages.inkpilot.ui.StudioHomeActivity	UI inkPilot
+app/src/main/kotlin/org/fossify/messages/inkpilot/ui/StudioHomeActivity.kt	161	method	onActivityResult	org.fossify.messages.inkpilot.ui.StudioHomeActivity	UI inkPilot
+app/src/main/kotlin/org/fossify/messages/inkpilot/ui/StudioHomeActivity.kt	166	method	onRequestPermissionsResult	org.fossify.messages.inkpilot.ui.StudioHomeActivity	UI inkPilot
+app/src/main/kotlin/org/fossify/messages/inkpilot/ui/StudioHomeActivity.kt	170	method	onDestroy	org.fossify.messages.inkpilot.ui.StudioHomeActivity	UI inkPilot
+app/src/main/kotlin/org/fossify/messages/inkpilot/ui/StudioHomeActivity.kt	176	object	Companion	org.fossify.messages.inkpilot.ui.StudioHomeActivity	UI inkPilot
+app/src/main/kotlin/org/fossify/messages/inkpilot/ui/StudioNavigation.kt	14	class	StudioTab	org.fossify.messages.inkpilot.ui	UI inkPilot
+app/src/main/kotlin/org/fossify/messages/inkpilot/ui/StudioNavigation.kt	22	method	navigation	org.fossify.messages.inkpilot.ui	UI inkPilot
+app/src/main/kotlin/org/fossify/messages/inkpilot/ui/StudioNavigation.kt	49	method	showStudioDrawer	org.fossify.messages.inkpilot.ui	UI inkPilot
+app/src/main/kotlin/org/fossify/messages/inkpilot/ui/StudioUi.kt	18	object	StudioUi	org.fossify.messages.inkpilot.ui	UI inkPilot
+app/src/main/kotlin/org/fossify/messages/inkpilot/ui/StudioUi.kt	25	method	dp	org.fossify.messages.inkpilot.ui.StudioUi	UI inkPilot
+app/src/main/kotlin/org/fossify/messages/inkpilot/ui/StudioUi.kt	27	method	column	org.fossify.messages.inkpilot.ui.StudioUi	UI inkPilot
+app/src/main/kotlin/org/fossify/messages/inkpilot/ui/StudioUi.kt	34	method	text	org.fossify.messages.inkpilot.ui.StudioUi	UI inkPilot
+app/src/main/kotlin/org/fossify/messages/inkpilot/ui/StudioUi.kt	42	method	button	org.fossify.messages.inkpilot.ui.StudioUi	UI inkPilot
+app/src/main/kotlin/org/fossify/messages/inkpilot/ui/StudioUi.kt	57	method	rule	org.fossify.messages.inkpilot.ui.StudioUi	UI inkPilot
+app/src/main/kotlin/org/fossify/messages/inkpilot/ui/StudioUi.kt	62	method	scroll	org.fossify.messages.inkpilot.ui.StudioUi	UI inkPilot
+app/src/main/kotlin/org/fossify/messages/inkpilot/ui/StudioUi.kt	67	method	error	org.fossify.messages.inkpilot.ui.StudioUi	UI inkPilot
+app/src/main/kotlin/org/fossify/messages/inkpilot/ui/StudioUi.kt	73	class	StudioWork	org.fossify.messages.inkpilot.ui	UI inkPilot
+app/src/main/kotlin/org/fossify/messages/inkpilot/ui/StudioUi.kt	74	method	load	org.fossify.messages.inkpilot.ui.StudioWork	UI inkPilot

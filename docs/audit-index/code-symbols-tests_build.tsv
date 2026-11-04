@@ -1,0 +1,123 @@
+path	line	kind	symbol	scope	area
+app/build.gradle.kts	19	method	hasSigningVars		build/config
+app/src/androidTest/kotlin/org/fossify/messages/inkpilot/data/StudioDatabaseTestBase.kt	13	class	StudioDatabaseTestBase	org.fossify.messages.inkpilot.data	test Android
+app/src/androidTest/kotlin/org/fossify/messages/inkpilot/data/StudioDatabaseTestBase.kt	19	method	createDatabase	org.fossify.messages.inkpilot.data.StudioDatabaseTestBase	test Android
+app/src/androidTest/kotlin/org/fossify/messages/inkpilot/data/StudioDatabaseTestBase.kt	27	method	removeDatabase	org.fossify.messages.inkpilot.data.StudioDatabaseTestBase	test Android
+app/src/androidTest/kotlin/org/fossify/messages/inkpilot/data/StudioDatabaseTestBase.kt	32	method	inbound	org.fossify.messages.inkpilot.data.StudioDatabaseTestBase	test Android
+app/src/androidTest/kotlin/org/fossify/messages/inkpilot/data/StudioDatabaseTestBase.kt	36	method	write	org.fossify.messages.inkpilot.data.StudioDatabaseTestBase	test Android
+app/src/androidTest/kotlin/org/fossify/messages/inkpilot/data/StudioDatabaseTestBase.kt	41	method	held	org.fossify.messages.inkpilot.data.StudioDatabaseTestBase	test Android
+app/src/androidTest/kotlin/org/fossify/messages/inkpilot/data/StudioDatabaseTestBase.kt	46	method	reopen	org.fossify.messages.inkpilot.data.StudioDatabaseTestBase	test Android
+app/src/androidTest/kotlin/org/fossify/messages/inkpilot/data/StudioFreshnessTest.kt	10	class	StudioFreshnessTest	org.fossify.messages.inkpilot.data	test Android
+app/src/androidTest/kotlin/org/fossify/messages/inkpilot/data/StudioFreshnessTest.kt	12	method	memoryEditInvalidatesPendingWriteAndHeldReview	org.fossify.messages.inkpilot.data.StudioFreshnessTest	test Android
+app/src/androidTest/kotlin/org/fossify/messages/inkpilot/data/StudioFreshnessTest.kt	23	method	pauseAndResumeCannotResurrectOldInference	org.fossify.messages.inkpilot.data.StudioFreshnessTest	test Android
+app/src/androidTest/kotlin/org/fossify/messages/inkpilot/data/StudioFreshnessTest.kt	35	method	globalPauseAndSoulChangesAreDurableRevisionBarriers	org.fossify.messages.inkpilot.data.StudioFreshnessTest	test Android
+app/src/androidTest/kotlin/org/fossify/messages/inkpilot/data/StudioFreshnessTest.kt	53	method	newerMessageWinsAndOlderArrivalDoesNotReplaceIt	org.fossify.messages.inkpilot.data.StudioFreshnessTest	test Android
+app/src/androidTest/kotlin/org/fossify/messages/inkpilot/data/StudioFreshnessTest.kt	64	method	oneContactsMemoryAndScopeNeverCrossIntoAnother	org.fossify.messages.inkpilot.data.StudioFreshnessTest	test Android
+app/src/androidTest/kotlin/org/fossify/messages/inkpilot/data/StudioFreshnessTest.kt	75	method	oversizedMemoryIsRejectedWithoutChangingRevision	org.fossify.messages.inkpilot.data.StudioFreshnessTest	test Android
+app/src/androidTest/kotlin/org/fossify/messages/inkpilot/data/StudioPersistenceTest.kt	15	class	StudioPersistenceTest	org.fossify.messages.inkpilot.data	test Android
+app/src/androidTest/kotlin/org/fossify/messages/inkpilot/data/StudioPersistenceTest.kt	17	method	committedReceiptAndMemorySurviveReopenAndReplay	org.fossify.messages.inkpilot.data.StudioPersistenceTest	test Android
+app/src/androidTest/kotlin/org/fossify/messages/inkpilot/data/StudioPersistenceTest.kt	32	method	dismissingRetainsReplayTombstoneAcrossReopen	org.fossify.messages.inkpilot.data.StudioPersistenceTest	test Android
+app/src/androidTest/kotlin/org/fossify/messages/inkpilot/data/StudioPersistenceTest.kt	46	method	concurrentRepositoriesCommitExactlyOneDraft	org.fossify.messages.inkpilot.data.StudioPersistenceTest	test Android
+app/src/androidTest/kotlin/org/fossify/messages/inkpilot/data/StudioPersistenceTest.kt	71	method	concurrentFirstOpenDoesNotRaceSchemaCreation	org.fossify.messages.inkpilot.data.StudioPersistenceTest	test Android
+app/src/androidTest/kotlin/org/fossify/messages/inkpilot/data/StudioPersistenceTest.kt	94	method	duplicateEventDoesNotBumpRevisionOrPermitChangedScope	org.fossify.messages.inkpilot.data.StudioPersistenceTest	test Android
+app/src/androidTest/kotlin/org/fossify/messages/inkpilot/data/StudioPersistenceTest.kt	104	method	formattedNumberReusesContactWithoutGuessingCountryCode	org.fossify.messages.inkpilot.data.StudioPersistenceTest	test Android
+app/src/androidTest/kotlin/org/fossify/messages/inkpilot/data/StudioRecoveryTest.kt	9	class	StudioRecoveryTest	org.fossify.messages.inkpilot.data	test Android
+app/src/androidTest/kotlin/org/fossify/messages/inkpilot/data/StudioRecoveryTest.kt	11	method	providerHistoryUpdateRemainsPendingAcrossProcessRestartUntilExactAcknowledgement	org.fossify.messages.inkpilot.data.StudioRecoveryTest	test Android
+app/src/androidTest/kotlin/org/fossify/messages/inkpilot/data/StudioRecoveryTest.kt	29	method	unknownAttemptNeverEntersHistoryQueueAsSentOrFailed	org.fossify.messages.inkpilot.data.StudioRecoveryTest	test Android
+app/src/androidTest/kotlin/org/fossify/messages/inkpilot/data/StudioRecoveryTest.kt	39	method	failedRevisionDoesNotStarveLaterContactsAndExplicitRetryReleasesIt	org.fossify.messages.inkpilot.data.StudioRecoveryTest	test Android
+app/src/androidTest/kotlin/org/fossify/messages/inkpilot/data/StudioRecoveryTest.kt	50	method	revisionChangeReleasesOldFailureWithoutRecordingFailureAgainstNewState	org.fossify.messages.inkpilot.data.StudioRecoveryTest	test Android
+app/src/androidTest/kotlin/org/fossify/messages/inkpilot/data/StudioRecoveryTest.kt	59	method	heldOrClaimedDraftCannotBeMarkedAsFailedGeneration	org.fossify.messages.inkpilot.data.StudioRecoveryTest	test Android
+app/src/androidTest/kotlin/org/fossify/messages/inkpilot/data/StudioSendPartsTest.kt	9	class	StudioSendPartsTest	org.fossify.messages.inkpilot.data	test Android
+app/src/androidTest/kotlin/org/fossify/messages/inkpilot/data/StudioSendPartsTest.kt	10	method	sending	org.fossify.messages.inkpilot.data.StudioSendPartsTest	test Android
+app/src/androidTest/kotlin/org/fossify/messages/inkpilot/data/StudioSendPartsTest.kt	18	method	outOfOrderSuccessWaitsForEveryPartAndSurvivesReopen	org.fossify.messages.inkpilot.data.StudioSendPartsTest	test Android
+app/src/androidTest/kotlin/org/fossify/messages/inkpilot/data/StudioSendPartsTest.kt	31	method	anyFailedPartPreventsLaterSuccessFromClaimingWholeMessageSent	org.fossify.messages.inkpilot.data.StudioSendPartsTest	test Android
+app/src/androidTest/kotlin/org/fossify/messages/inkpilot/data/StudioSendPartsTest.kt	40	method	conflictingDuplicatePartCannotReplaceItsFirstOutcome	org.fossify.messages.inkpilot.data.StudioSendPartsTest	test Android
+app/src/androidTest/kotlin/org/fossify/messages/inkpilot/data/StudioSendPartsTest.kt	48	method	unknownPartCannotCompleteOrMutateSend	org.fossify.messages.inkpilot.data.StudioSendPartsTest	test Android
+app/src/androidTest/kotlin/org/fossify/messages/inkpilot/data/StudioSendingTest.kt	10	class	StudioSendingTest	org.fossify.messages.inkpilot.data	test Android
+app/src/androidTest/kotlin/org/fossify/messages/inkpilot/data/StudioSendingTest.kt	12	method	editedStaffProposalIsImmutableAndClaimCannotBeRepeated	org.fossify.messages.inkpilot.data.StudioSendingTest	test Android
+app/src/androidTest/kotlin/org/fossify/messages/inkpilot/data/StudioSendingTest.kt	27	method	mismatchedDisplayedBodyAndPausedContactCannotBeApproved	org.fossify.messages.inkpilot.data.StudioSendingTest	test Android
+app/src/androidTest/kotlin/org/fossify/messages/inkpilot/data/StudioSendingTest.kt	36	method	providerIdentityAndTerminalOutcomeCannotBeChangedByReplay	org.fossify.messages.inkpilot.data.StudioSendingTest	test Android
+app/src/androidTest/kotlin/org/fossify/messages/inkpilot/data/StudioSendingTest.kt	52	method	ambiguousAttemptStaysRecordedAndIsNeverReclaimed	org.fossify.messages.inkpilot.data.StudioSendingTest	test Android
+app/src/androidTest/kotlin/org/fossify/messages/inkpilot/data/StudioSendingTest.kt	63	method	invalidRecipientSelectionAndBodyCannotCreateClaim	org.fossify.messages.inkpilot.data.StudioSendingTest	test Android
+app/src/androidTest/kotlin/org/fossify/messages/inkpilot/runtime/SmsIntakeRecoveryTest.kt	11	class	SmsIntakeRecoveryTest	org.fossify.messages.inkpilot.runtime	test Android
+app/src/androidTest/kotlin/org/fossify/messages/inkpilot/runtime/SmsIntakeRecoveryTest.kt	13	method	backfillAndReplayCommitIntakeWithoutChangingNativeHistory	org.fossify.messages.inkpilot.runtime.SmsIntakeRecoveryTest	test Android
+app/src/androidTest/kotlin/org/fossify/messages/inkpilot/runtime/SmsIntakeRecoveryTest.kt	28	method	invalidRowsDoNotStarveLaterValidInboxRows	org.fossify.messages.inkpilot.runtime.SmsIntakeRecoveryTest	test Android
+app/src/androidTest/kotlin/org/fossify/messages/inkpilot/runtime/SmsIntakeRecoveryTest.kt	41	method	dateBoundaryAndInboxOnlySelectionExcludeEarlierHistoryAndOutgoingRows	org.fossify.messages.inkpilot.runtime.SmsIntakeRecoveryTest	test Android
+app/src/androidTest/kotlin/org/fossify/messages/inkpilot/runtime/SmsIntakeRecoveryTest.kt	54	method	actualDatabaseFailureAbortsCheckpointProgressAndLeavesNativeMessageIntact	org.fossify.messages.inkpilot.runtime.SmsIntakeRecoveryTest	test Android
+app/src/androidTest/kotlin/org/fossify/messages/inkpilot/runtime/SmsIntakeRecoveryTestBase.kt	21	class	SmsIntakeRecoveryTestBase	org.fossify.messages.inkpilot.runtime	test Android
+app/src/androidTest/kotlin/org/fossify/messages/inkpilot/runtime/SmsIntakeRecoveryTestBase.kt	30	method	prepareProviderFixture	org.fossify.messages.inkpilot.runtime.SmsIntakeRecoveryTestBase	test Android
+app/src/androidTest/kotlin/org/fossify/messages/inkpilot/runtime/SmsIntakeRecoveryTestBase.kt	51	method	removeOnlyOwnedFixtures	org.fossify.messages.inkpilot.runtime.SmsIntakeRecoveryTestBase	test Android
+app/src/androidTest/kotlin/org/fossify/messages/inkpilot/runtime/SmsIntakeRecoveryTestBase.kt	59	method	insertInbox	org.fossify.messages.inkpilot.runtime.SmsIntakeRecoveryTestBase	test Android
+app/src/androidTest/kotlin/org/fossify/messages/inkpilot/runtime/SmsIntakeRecoveryTestBase.kt	72	method	nativeBody	org.fossify.messages.inkpilot.runtime.SmsIntakeRecoveryTestBase	test Android
+app/src/androidTest/kotlin/org/fossify/messages/inkpilot/smoke/BatchFailureSmokeTest.kt	22	class	BatchFailureSmokeTest	org.fossify.messages.inkpilot.smoke	test Android
+app/src/androidTest/kotlin/org/fossify/messages/inkpilot/smoke/BatchFailureSmokeTest.kt	24	method	oversizedNativeContextDoesNotBlockFollowingLocalReply	org.fossify.messages.inkpilot.smoke.BatchFailureSmokeTest	test Android
+app/src/androidTest/kotlin/org/fossify/messages/inkpilot/smoke/HomeNavigationSmokeTest.kt	12	class	HomeNavigationSmokeTest	org.fossify.messages.inkpilot.smoke	test Android
+app/src/androidTest/kotlin/org/fossify/messages/inkpilot/smoke/HomeNavigationSmokeTest.kt	14	method	dailyTabsRenderWithoutSendingOrCalling	org.fossify.messages.inkpilot.smoke.HomeNavigationSmokeTest	test Android
+app/src/androidTest/kotlin/org/fossify/messages/inkpilot/smoke/LocalLoopSmokeTest.kt	23	class	LocalLoopSmokeTest	org.fossify.messages.inkpilot.smoke	test Android
+app/src/androidTest/kotlin/org/fossify/messages/inkpilot/smoke/LocalLoopSmokeTest.kt	31	method	prepareForSyntheticSms	org.fossify.messages.inkpilot.smoke.LocalLoopSmokeTest	test Android
+app/src/androidTest/kotlin/org/fossify/messages/inkpilot/smoke/LocalLoopSmokeTest.kt	45	method	incomingSmsCreatesLocalHeldDraft	org.fossify.messages.inkpilot.smoke.LocalLoopSmokeTest	test Android
+app/src/androidTest/kotlin/org/fossify/messages/inkpilot/smoke/LocalLoopSmokeTest.kt	106	method	heldDraftSurvivesProcessRestart	org.fossify.messages.inkpilot.smoke.LocalLoopSmokeTest	test Android
+app/src/androidTest/kotlin/org/fossify/messages/inkpilot/smoke/LocalLoopSmokeTest.kt	121	method	assertProviderArrival	org.fossify.messages.inkpilot.smoke.LocalLoopSmokeTest	test Android
+app/src/androidTest/kotlin/org/fossify/messages/inkpilot/smoke/LocalLoopSmokeTest.kt	134	method	outgoingMessages	org.fossify.messages.inkpilot.smoke.LocalLoopSmokeTest	test Android
+app/src/androidTest/kotlin/org/fossify/messages/inkpilot/smoke/LocalLoopSmokeTest.kt	138	method	assertSmsRoleHeld	org.fossify.messages.inkpilot.smoke.LocalLoopSmokeTest	test Android
+app/src/androidTest/kotlin/org/fossify/messages/inkpilot/smoke/NativeSendSmokeTest.kt	26	class	NativeSendSmokeTest	org.fossify.messages.inkpilot.smoke	test Android
+app/src/androidTest/kotlin/org/fossify/messages/inkpilot/smoke/NativeSendSmokeTest.kt	28	method	selectedEmulatorSimUsesProviderAndReplayGuard	org.fossify.messages.inkpilot.smoke.NativeSendSmokeTest	test Android
+app/src/androidTest/kotlin/org/fossify/messages/inkpilot/smoke/NativeSendSmokeTest.kt	83	method	verifyCallbackAndProvider	org.fossify.messages.inkpilot.smoke.NativeSendSmokeTest	test Android
+app/src/androidTest/kotlin/org/fossify/messages/inkpilot/smoke/SmokeViews.kt	10	object	SmokeViews	org.fossify.messages.inkpilot.smoke	test Android
+app/src/androidTest/kotlin/org/fossify/messages/inkpilot/smoke/SmokeViews.kt	14	method	await	org.fossify.messages.inkpilot.smoke.SmokeViews	test Android
+app/src/androidTest/kotlin/org/fossify/messages/inkpilot/smoke/SmokeViews.kt	23	method	clickDescription	org.fossify.messages.inkpilot.smoke.SmokeViews	test Android
+app/src/androidTest/kotlin/org/fossify/messages/inkpilot/smoke/SmokeViews.kt	31	method	clickText	org.fossify.messages.inkpilot.smoke.SmokeViews	test Android
+app/src/androidTest/kotlin/org/fossify/messages/inkpilot/smoke/SmokeViews.kt	39	method	assertText	org.fossify.messages.inkpilot.smoke.SmokeViews	test Android
+app/src/androidTest/kotlin/org/fossify/messages/inkpilot/smoke/SmokeViews.kt	45	method	capture	org.fossify.messages.inkpilot.smoke.SmokeViews	test Android
+app/src/androidTest/kotlin/org/fossify/messages/inkpilot/smoke/SmokeViews.kt	53	method	find	org.fossify.messages.inkpilot.smoke.SmokeViews	test Android
+app/src/androidTest/kotlin/org/fossify/messages/inkpilot/smoke/WorkerWakeupSmokeTest.kt	21	class	WorkerWakeupSmokeTest	org.fossify.messages.inkpilot.smoke	test Android
+app/src/androidTest/kotlin/org/fossify/messages/inkpilot/smoke/WorkerWakeupSmokeTest.kt	23	method	incomingSmsAutomaticallyWakesLocalWorkerAndHoldsReply	org.fossify.messages.inkpilot.smoke.WorkerWakeupSmokeTest	test Android
+app/src/androidTest/kotlin/org/fossify/messages/inkpilot/studio/StudioAlbumStorageTest.kt	18	class	StudioAlbumStorageTest	org.fossify.messages.inkpilot.studio	test Android
+app/src/androidTest/kotlin/org/fossify/messages/inkpilot/studio/StudioAlbumStorageTest.kt	25	method	setUp	org.fossify.messages.inkpilot.studio.StudioAlbumStorageTest	test Android
+app/src/androidTest/kotlin/org/fossify/messages/inkpilot/studio/StudioAlbumStorageTest.kt	26	method	tearDown	org.fossify.messages.inkpilot.studio.StudioAlbumStorageTest	test Android
+app/src/androidTest/kotlin/org/fossify/messages/inkpilot/studio/StudioAlbumStorageTest.kt	28	method	importedOriginalSurvivesMembershipRemovalAndReopen	org.fossify.messages.inkpilot.studio.StudioAlbumStorageTest	test Android
+app/src/androidTest/kotlin/org/fossify/messages/inkpilot/studio/StudioAlbumStorageTest.kt	58	method	albumRenameAndArtistAssignmentPersist	org.fossify.messages.inkpilot.studio.StudioAlbumStorageTest	test Android
+app/src/androidTest/kotlin/org/fossify/messages/inkpilot/studio/StudioAlbumStorageTest.kt	66	method	missingAlbumRollsBackOriginalRecord	org.fossify.messages.inkpilot.studio.StudioAlbumStorageTest	test Android
+app/src/androidTest/kotlin/org/fossify/messages/inkpilot/studio/StudioCalendarStorageTest.kt	18	class	StudioCalendarStorageTest	org.fossify.messages.inkpilot.studio	test Android
+app/src/androidTest/kotlin/org/fossify/messages/inkpilot/studio/StudioCalendarStorageTest.kt	27	method	setUp	org.fossify.messages.inkpilot.studio.StudioCalendarStorageTest	test Android
+app/src/androidTest/kotlin/org/fossify/messages/inkpilot/studio/StudioCalendarStorageTest.kt	31	method	tearDown	org.fossify.messages.inkpilot.studio.StudioCalendarStorageTest	test Android
+app/src/androidTest/kotlin/org/fossify/messages/inkpilot/studio/StudioCalendarStorageTest.kt	32	method	proposal	org.fossify.messages.inkpilot.studio.StudioCalendarStorageTest	test Android
+app/src/androidTest/kotlin/org/fossify/messages/inkpilot/studio/StudioCalendarStorageTest.kt	35	method	staffAndSharedRoomConflictsAreRejectedButAdjacentTimesWork	org.fossify.messages.inkpilot.studio.StudioCalendarStorageTest	test Android
+app/src/androidTest/kotlin/org/fossify/messages/inkpilot/studio/StudioCalendarStorageTest.kt	45	method	roomlessTasksForDifferentStaffCanOverlap	org.fossify.messages.inkpilot.studio.StudioCalendarStorageTest	test Android
+app/src/androidTest/kotlin/org/fossify/messages/inkpilot/studio/StudioCalendarStorageTest.kt	50	method	cancellingFreesTimeAndPreservesTheHistoricalEntryAcrossReopen	org.fossify.messages.inkpilot.studio.StudioCalendarStorageTest	test Android
+app/src/androidTest/kotlin/org/fossify/messages/inkpilot/studio/StudioCalendarStorageTest.kt	61	method	concurrentSchedulingAcrossConnectionsCannotDoubleBook	org.fossify.messages.inkpilot.studio.StudioCalendarStorageTest	test Android
+app/src/androidTest/kotlin/org/fossify/messages/inkpilot/studio/StudioCalendarStorageTest.kt	79	method	invalidTimeAndMissingStaffDoNotCreateEntries	org.fossify.messages.inkpilot.studio.StudioCalendarStorageTest	test Android
+app/src/androidTest/kotlin/org/fossify/messages/inkpilot/ui/StudioAppLockTest.kt	25	class	StudioAppLockTest	org.fossify.messages.inkpilot.ui	test Android
+app/src/androidTest/kotlin/org/fossify/messages/inkpilot/ui/StudioAppLockTest.kt	27	method	lockedNotificationEntryUsesExistingUnlockScreenAndHidesStudioCanvas	org.fossify.messages.inkpilot.ui.StudioAppLockTest	test Android
+app/src/androidTest/kotlin/org/fossify/messages/inkpilot/ui/StudioSoulEditorTest.kt	16	class	StudioSoulEditorTest	org.fossify.messages.inkpilot.ui	test Android
+app/src/androidTest/kotlin/org/fossify/messages/inkpilot/ui/StudioSoulEditorTest.kt	18	method	unsavedGuidanceSurvivesResumeAndRecreationButRequiresExplicitSave	org.fossify.messages.inkpilot.ui.StudioSoulEditorTest	test Android
+app/src/androidTest/kotlin/org/fossify/messages/inkpilot/ui/StudioSoulEditorTest.kt	54	method	awaitEditor	org.fossify.messages.inkpilot.ui.StudioSoulEditorTest	test Android
+build.gradle.kts		no_named_symbol			build/config
+scripts/check-file-size-ratchet.py	27	function	tracked_files		build/proof scripts
+scripts/check-file-size-ratchet.py	34	function	line_count		build/proof scripts
+scripts/check-file-size-ratchet.py	47	function	load_baseline		build/proof scripts
+scripts/check-file-size-ratchet.py	53	function	main		build/proof scripts
+scripts/check-file-size-ratchet.sh		no_named_symbol			build/proof scripts
+scripts/inkpilot-device-model.sh		no_named_symbol			build/proof scripts
+scripts/inkpilot-device-result.py		no_named_symbol			build/proof scripts
+scripts/inkpilot-device-run.sh	14	function	collect		build/proof scripts
+scripts/inkpilot-device-run.sh	34	function	run_tests		build/proof scripts
+scripts/inkpilot-device-run.sh	42	function	observe_sms		build/proof scripts
+scripts/test_file_size_ratchet.py	14	class	FileSizeRatchetTests		build/proof scripts
+scripts/test_sms_visibility.py	15	class	SmsVisibilityTests		build/proof scripts
+scripts/test_sms_visibility.py	28	function	remove_query	SmsVisibilityTests.test_receiver_action_does_not_replace_visibility_query	build/proof scripts
+scripts/test_sms_visibility.py	36	function	wrong_action	SmsVisibilityTests.test_query_must_use_sms_delivery_action	build/proof scripts
+scripts/verify_app_identity.py	19	function	check_identity		build/proof scripts
+scripts/verify_app_identity.py	22	function	require	check_identity	build/proof scripts
+scripts/verify_sms_role_qualification.py	50	function	intent_filters		build/proof scripts
+scripts/verify_sms_role_qualification.py	90	function	usable		build/proof scripts
+scripts/verify_sms_role_qualification.py	98	function	effective_permission		build/proof scripts
+scripts/verify_sms_role_qualification.py	110	function	mime_matches		build/proof scripts
+scripts/verify_sms_role_qualification.py	121	function	any_filter		build/proof scripts
+scripts/verify_sms_role_qualification.py	125	function	check_manifest		build/proof scripts
+scripts/verify_sms_role_qualification.py	136	function	components	check_manifest	build/proof scripts
+scripts/verify_sms_role_qualification.py	155	function	sendto_filter	check_manifest	build/proof scripts
+scripts/verify_sms_role_qualification.py	252	function	find_aapt2		build/proof scripts
+scripts/verify_sms_role_qualification.py	268	function	check_apk		build/proof scripts
+scripts/verify_sms_role_qualification.py	295	function	main		build/proof scripts
+settings.gradle.kts		no_named_symbol			build/config

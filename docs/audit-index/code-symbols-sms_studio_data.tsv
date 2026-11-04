@@ -1,0 +1,545 @@
+path	line	kind	symbol	scope	area
+app/src/main/kotlin/org/fossify/messages/App.kt	15	class	App	org.fossify.messages	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/App.kt	18	method	onCreate	org.fossify.messages.App	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/App.kt	45	method	onChange	org.fossify.messages.App	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/databases/MessagesDatabase.kt	36	class	MessagesDatabase	org.fossify.messages.databases	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/databases/MessagesDatabase.kt	38	method	ConversationsDao	org.fossify.messages.databases.MessagesDatabase	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/databases/MessagesDatabase.kt	40	method	AttachmentsDao	org.fossify.messages.databases.MessagesDatabase	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/databases/MessagesDatabase.kt	42	method	MessageAttachmentsDao	org.fossify.messages.databases.MessagesDatabase	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/databases/MessagesDatabase.kt	44	method	MessagesDao	org.fossify.messages.databases.MessagesDatabase	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/databases/MessagesDatabase.kt	46	method	DraftsDao	org.fossify.messages.databases.MessagesDatabase	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/databases/MessagesDatabase.kt	48	object	Companion	org.fossify.messages.databases.MessagesDatabase	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/databases/MessagesDatabase.kt	51	method	getInstance	org.fossify.messages.databases.MessagesDatabase.Companion	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/databases/MessagesDatabase.kt	79	method	migrate	org.fossify.messages.databases.MessagesDatabase.Companion	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/databases/MessagesDatabase.kt	92	method	migrate	org.fossify.messages.databases.MessagesDatabase.Companion	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/databases/MessagesDatabase.kt	111	method	migrate	org.fossify.messages.databases.MessagesDatabase.Companion	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/databases/MessagesDatabase.kt	119	method	migrate	org.fossify.messages.databases.MessagesDatabase.Companion	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/databases/MessagesDatabase.kt	128	method	migrate	org.fossify.messages.databases.MessagesDatabase.Companion	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/databases/MessagesDatabase.kt	136	method	migrate	org.fossify.messages.databases.MessagesDatabase.Companion	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/databases/MessagesDatabase.kt	144	method	migrate	org.fossify.messages.databases.MessagesDatabase.Companion	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/databases/MessagesDatabase.kt	154	method	migrate	org.fossify.messages.databases.MessagesDatabase.Companion	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/databases/MessagesDatabase.kt	162	method	migrate	org.fossify.messages.databases.MessagesDatabase.Companion	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/databases/MessagesDatabase.kt	170	method	migrate	org.fossify.messages.databases.MessagesDatabase.Companion	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/extensions/Activity.kt	26	method	dialNumber	org.fossify.messages.extensions	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/extensions/Activity.kt	45	method	launchViewIntent	org.fossify.messages.extensions	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/extensions/Activity.kt	67	method	startContactDetailsIntent	org.fossify.messages.extensions	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/extensions/Activity.kt	113	method	launchConversationDetails	org.fossify.messages.extensions	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/extensions/Audio.kt	27	method	isPlayableAudioMimeType	org.fossify.messages.extensions	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/extensions/Bitmap.kt	5	method	extension	org.fossify.messages.extensions	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/extensions/Collections.kt	6	method	indexOfFirstOrNull	org.fossify.messages.extensions	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/extensions/Collections.kt	16	method	toContentValues	org.fossify.messages.extensions	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/extensions/Collections.kt	35	method	toArrayList	org.fossify.messages.extensions	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/extensions/Collections.kt	37	method	filterNotInByKey	org.fossify.messages.extensions	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/extensions/Collections.kt	54	method	toSortedMessages	org.fossify.messages.extensions	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/extensions/Context.kt	86	method	getMessagesDB	org.fossify.messages.extensions	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/extensions/Context.kt	114	method	getMessages	org.fossify.messages.extensions	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/extensions/Context.kt	219	method	getMMS	org.fossify.messages.extensions	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/extensions/Context.kt	302	method	getMMSSender	org.fossify.messages.extensions	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/extensions/Context.kt	323	method	getUnreadCountsByThread	org.fossify.messages.extensions	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/extensions/Context.kt	326	method	bump	org.fossify.messages.extensions.getUnreadCountsByThread	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/extensions/Context.kt	351	method	getConversations	org.fossify.messages.extensions	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/extensions/Context.kt	464	method	queryCursorUnsafe	org.fossify.messages.extensions	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/extensions/Context.kt	482	method	getConversationIds	org.fossify.messages.extensions	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/extensions/Context.kt	497	method	getMmsAttachment	org.fossify.messages.extensions	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/extensions/Context.kt	563	method	getLatestMMS	org.fossify.messages.extensions	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/extensions/Context.kt	568	method	getMMS	org.fossify.messages.extensions	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/extensions/Context.kt	572	method	getThreadSnippet	org.fossify.messages.extensions	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/extensions/Context.kt	599	method	getMessageRecipientAddress	org.fossify.messages.extensions	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/extensions/Context.kt	621	method	getThreadParticipants	org.fossify.messages.extensions	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/extensions/Context.kt	668	method	getThreadRecipientIds	org.fossify.messages.extensions	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/extensions/Context.kt	686	method	getThreadPhoneNumbers	org.fossify.messages.extensions	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/extensions/Context.kt	694	method	getThreadContactNames	org.fossify.messages.extensions	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/extensions/Context.kt	715	method	getPhoneNumberFromAddressId	org.fossify.messages.extensions	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/extensions/Context.kt	736	method	getSuggestedContacts	org.fossify.messages.extensions	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/extensions/Context.kt	790	method	getNameAndPhotoFromPhoneNumber	org.fossify.messages.extensions	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/extensions/Context.kt	821	method	insertNewSMS	org.fossify.messages.extensions	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/extensions/Context.kt	851	method	removeAllArchivedConversations	org.fossify.messages.extensions	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/extensions/Context.kt	872	method	deleteConversation	org.fossify.messages.extensions	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/extensions/Context.kt	914	method	checkAndDeleteOldRecycleBinMessages	org.fossify.messages.extensions	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/extensions/Context.kt	934	method	emptyMessagesRecycleBin	org.fossify.messages.extensions	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/extensions/Context.kt	941	method	emptyMessagesRecycleBinForConversation	org.fossify.messages.extensions	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/extensions/Context.kt	948	method	restoreAllMessagesFromRecycleBinForConversation	org.fossify.messages.extensions	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/extensions/Context.kt	952	method	moveMessageToRecycleBin	org.fossify.messages.extensions	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/extensions/Context.kt	960	method	restoreMessageFromRecycleBin	org.fossify.messages.extensions	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/extensions/Context.kt	968	method	updateConversationArchivedStatus	org.fossify.messages.extensions	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/extensions/Context.kt	995	method	deleteMessage	org.fossify.messages.extensions	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/extensions/Context.kt	1007	method	deleteScheduledMessage	org.fossify.messages.extensions	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/extensions/Context.kt	1015	method	markMessageRead	org.fossify.messages.extensions	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/extensions/Context.kt	1027	method	markThreadMessagesRead	org.fossify.messages.extensions	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/extensions/Context.kt	1050	method	markThreadMessagesUnread	org.fossify.messages.extensions	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/extensions/Context.kt	1064	method	getThreadId	org.fossify.messages.extensions	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/extensions/Context.kt	1073	method	getThreadId	org.fossify.messages.extensions	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/extensions/Context.kt	1081	method	showReceivedMessageNotification	org.fossify.messages.extensions	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/extensions/Context.kt	1103	method	getNameFromAddress	org.fossify.messages.extensions	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/extensions/Context.kt	1112	method	getContactFromAddress	org.fossify.messages.extensions	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/extensions/Context.kt	1126	method	getNotificationBitmap	org.fossify.messages.extensions	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/extensions/Context.kt	1149	method	removeDiacriticsIfNeeded	org.fossify.messages.extensions	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/extensions/Context.kt	1153	method	getSmsDraft	org.fossify.messages.extensions	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/extensions/Context.kt	1163	method	getAllDrafts	org.fossify.messages.extensions	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/extensions/Context.kt	1176	method	saveSmsDraft	org.fossify.messages.extensions	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/extensions/Context.kt	1191	method	deleteSmsDraft	org.fossify.messages.extensions	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/extensions/Context.kt	1200	method	updateLastConversationMessage	org.fossify.messages.extensions	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/extensions/Context.kt	1204	method	updateLastConversationMessage	org.fossify.messages.extensions	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/extensions/Context.kt	1221	method	getFileSizeFromUri	org.fossify.messages.extensions	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/extensions/Context.kt	1259	method	clearAllMessagesIfNeeded	org.fossify.messages.extensions	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/extensions/Context.kt	1271	method	subscriptionManagerCompat	org.fossify.messages.extensions	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/extensions/Context.kt	1275	method	insertOrUpdateConversation	org.fossify.messages.extensions	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/extensions/Context.kt	1289	method	renameConversation	org.fossify.messages.extensions	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/extensions/Context.kt	1302	method	createTemporaryThread	org.fossify.messages.extensions	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/extensions/Context.kt	1342	method	updateScheduledMessagesThreadId	org.fossify.messages.extensions	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/extensions/Context.kt	1347	method	clearExpiredScheduledMessages	org.fossify.messages.extensions	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/extensions/Context.kt	1368	method	rescheduleAllScheduledMessages	org.fossify.messages.extensions	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/extensions/Context.kt	1380	method	getDefaultKeyboardHeight	org.fossify.messages.extensions	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/extensions/Context.kt	1384	method	shouldUnarchive	org.fossify.messages.extensions	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/extensions/Context.kt	1388	method	copyToUri	org.fossify.messages.extensions	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/extensions/Cursor.kt	7	method	rowsToJson	org.fossify.messages.extensions	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/extensions/Math.kt	8	method	roundToClosestMultipleOf	org.fossify.messages.extensions	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/extensions/RecyclerView.kt	5	method	onScroll	org.fossify.messages.extensions	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/extensions/RecyclerView.kt	10	method	onScrolled	org.fossify.messages.extensions.onScroll	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/extensions/RecyclerView.kt	14	method	onScrollStateChanged	org.fossify.messages.extensions.onScroll	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/extensions/SimpleContact.kt	14	method	getThreadTitle	org.fossify.messages.extensions	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/extensions/SimpleContact.kt	18	method	getAddresses	org.fossify.messages.extensions	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/extensions/SimpleContact.kt	22	method	toPerson	org.fossify.messages.extensions	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/extensions/SimpleContact.kt	39	method	loadIcon	org.fossify.messages.extensions	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/extensions/String.kt	3	method	getExtensionFromMimeType	org.fossify.messages.extensions	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/extensions/String.kt	14	method	isImageMimeType	org.fossify.messages.extensions	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/extensions/String.kt	18	method	isGifMimeType	org.fossify.messages.extensions	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/extensions/String.kt	22	method	isVideoMimeType	org.fossify.messages.extensions	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/extensions/String.kt	26	method	isVCardMimeType	org.fossify.messages.extensions	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/extensions/String.kt	31	method	isAudioMimeType	org.fossify.messages.extensions	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/extensions/String.kt	35	method	isCalendarMimeType	org.fossify.messages.extensions	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/extensions/String.kt	39	method	isPdfMimeType	org.fossify.messages.extensions	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/extensions/String.kt	43	method	isZipMimeType	org.fossify.messages.extensions	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/extensions/String.kt	47	method	isPlainTextMimeType	org.fossify.messages.extensions	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/extensions/Temporal.kt	7	method	format	org.fossify.messages.extensions	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/extensions/View.kt	8	method	showWithAnimation	org.fossify.messages.extensions	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/extensions/gson/Gson.kt		no_named_symbol			SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/extensions/gson/JsonElement.kt	52	method	safeConversion	org.fossify.messages.extensions.gson	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/extensions/gson/JsonObject.kt	8	method	optGet	org.fossify.messages.extensions.gson	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/extensions/gson/JsonObject.kt	10	method	optGetJsonArray	org.fossify.messages.extensions.gson	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/extensions/gson/JsonObject.kt	12	method	optGetJsonObject	org.fossify.messages.extensions.gson	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/extensions/gson/JsonObject.kt	14	method	optGetJsonPrimitive	org.fossify.messages.extensions.gson	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/extensions/gson/JsonObject.kt	16	method	optString	org.fossify.messages.extensions.gson	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/extensions/gson/JsonObject.kt	18	method	optLong	org.fossify.messages.extensions.gson	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/extensions/gson/JsonObject.kt	20	method	optBoolean	org.fossify.messages.extensions.gson	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/extensions/gson/JsonObject.kt	22	method	optFloat	org.fossify.messages.extensions.gson	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/extensions/gson/JsonObject.kt	24	method	optDouble	org.fossify.messages.extensions.gson	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/extensions/gson/JsonObject.kt	26	method	optJsonObject	org.fossify.messages.extensions.gson	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/extensions/gson/JsonObject.kt	28	method	optJsonArray	org.fossify.messages.extensions.gson	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/extensions/gson/JsonObject.kt	30	method	optJsonPrimitive	org.fossify.messages.extensions.gson	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/extensions/gson/JsonObject.kt	32	method	optInt	org.fossify.messages.extensions.gson	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/extensions/gson/JsonObject.kt	34	method	optBigDecimal	org.fossify.messages.extensions.gson	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/extensions/gson/JsonObject.kt	36	method	optBigInteger	org.fossify.messages.extensions.gson	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/extensions/gson/JsonObject.kt	38	method	optByte	org.fossify.messages.extensions.gson	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/extensions/gson/JsonObject.kt	40	method	optShort	org.fossify.messages.extensions.gson	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/extensions/gson/JsonObject.kt	42	method	optJsonNull	org.fossify.messages.extensions.gson	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/extensions/gson/JsonObject.kt	44	method	optCharacter	org.fossify.messages.extensions.gson	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/extensions/gson/MapDeserializerDoubleAsIntFix.kt	12	class	MapDeserializerDoubleAsIntFix	org.fossify.messages.extensions.gson	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/extensions/gson/MapDeserializerDoubleAsIntFix.kt	14	method	deserialize	org.fossify.messages.extensions.gson.MapDeserializerDoubleAsIntFix	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/extensions/gson/MapDeserializerDoubleAsIntFix.kt	18	method	read	org.fossify.messages.extensions.gson.MapDeserializerDoubleAsIntFix	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/AttachmentPreviews.kt	34	method	setupDocumentPreview	org.fossify.messages.helpers	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/AttachmentPreviews.kt	54	method	setupDocumentPreview	org.fossify.messages.helpers	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/AttachmentPreviews.kt	100	method	setupAudioPreview	org.fossify.messages.helpers	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/AttachmentPreviews.kt	118	method	setupAudio	org.fossify.messages.helpers	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/AttachmentPreviews.kt	149	method	onPlaybackStateChanged	org.fossify.messages.helpers.setupAudio	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/AttachmentPreviews.kt	154	method	onProgressUpdated	org.fossify.messages.helpers.setupAudio	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/AttachmentPreviews.kt	159	method	onPlaybackCompleted	org.fossify.messages.helpers.setupAudio	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/AttachmentPreviews.kt	164	method	onPlaybackError	org.fossify.messages.helpers.setupAudio	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/AttachmentPreviews.kt	170	method	onViewAttachedToWindow	org.fossify.messages.helpers.setupAudio	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/AttachmentPreviews.kt	177	method	onViewDetachedFromWindow	org.fossify.messages.helpers.setupAudio	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/AttachmentPreviews.kt	225	method	onProgressChanged	org.fossify.messages.helpers.setupAudio	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/AttachmentPreviews.kt	232	method	onStartTrackingTouch	org.fossify.messages.helpers.setupAudio	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/AttachmentPreviews.kt	234	method	onStopTrackingTouch	org.fossify.messages.helpers.setupAudio	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/AttachmentPreviews.kt	238	method	setupVCardPreview	org.fossify.messages.helpers	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/AttachmentPreviews.kt	266	method	setupVCardPreview	org.fossify.messages.helpers	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/AttachmentPreviews.kt	337	method	formatMs	org.fossify.messages.helpers	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/AttachmentPreviews.kt	344	method	getIconResourceForMimeType	org.fossify.messages.helpers	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/AttachmentUtils.kt	6	object	AttachmentUtils	org.fossify.messages.helpers	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/AttachmentUtils.kt	17	method	parseAttachmentNames	org.fossify.messages.helpers.AttachmentUtils	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/AttachmentUtils.kt	25	method	readSmil	org.fossify.messages.helpers.AttachmentUtils	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/AttachmentUtils.kt	42	method	readBody	org.fossify.messages.helpers.AttachmentUtils	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/AttachmentUtils.kt	71	method	skip	org.fossify.messages.helpers.AttachmentUtils	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/AudioPlayerManager.kt	19	object	AudioPlayerManager	org.fossify.messages.helpers	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/AudioPlayerManager.kt	22	interface	AudioPlayerListener	org.fossify.messages.helpers.AudioPlayerManager	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/AudioPlayerManager.kt	23	method	onPlaybackStateChanged	org.fossify.messages.helpers.AudioPlayerManager.AudioPlayerListener	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/AudioPlayerManager.kt	24	method	onProgressUpdated	org.fossify.messages.helpers.AudioPlayerManager.AudioPlayerListener	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/AudioPlayerManager.kt	25	method	onPlaybackCompleted	org.fossify.messages.helpers.AudioPlayerManager.AudioPlayerListener	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/AudioPlayerManager.kt	26	method	onPlaybackError	org.fossify.messages.helpers.AudioPlayerManager.AudioPlayerListener	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/AudioPlayerManager.kt	53	method	onReceive	org.fossify.messages.helpers.AudioPlayerManager	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/AudioPlayerManager.kt	59	method	run	org.fossify.messages.helpers.AudioPlayerManager	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/AudioPlayerManager.kt	73	method	togglePlay	org.fossify.messages.helpers.AudioPlayerManager	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/AudioPlayerManager.kt	93	method	seekTo	org.fossify.messages.helpers.AudioPlayerManager	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/AudioPlayerManager.kt	107	method	getDurationMs	org.fossify.messages.helpers.AudioPlayerManager	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/AudioPlayerManager.kt	125	method	release	org.fossify.messages.helpers.AudioPlayerManager	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/AudioPlayerManager.kt	142	method	detachListener	org.fossify.messages.helpers.AudioPlayerManager	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/AudioPlayerManager.kt	147	method	attachListener	org.fossify.messages.helpers.AudioPlayerManager	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/AudioPlayerManager.kt	164	method	prepareAndPlay	org.fossify.messages.helpers.AudioPlayerManager	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/AudioPlayerManager.kt	195	method	startPlayback	org.fossify.messages.helpers.AudioPlayerManager	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/AudioPlayerManager.kt	218	method	pause	org.fossify.messages.helpers.AudioPlayerManager	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/AudioPlayerManager.kt	235	method	playbackFailed	org.fossify.messages.helpers.AudioPlayerManager	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/BlockedKeywordsExporter.kt	6	object	BlockedKeywordsExporter	org.fossify.messages.helpers	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/BlockedKeywordsExporter.kt	8	method	exportBlockedKeywords	org.fossify.messages.helpers.BlockedKeywordsExporter	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/BlockedKeywordsImporter.kt	9	class	BlockedKeywordsImporter	org.fossify.messages.helpers	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/BlockedKeywordsImporter.kt	12	class	ImportResult	org.fossify.messages.helpers.BlockedKeywordsImporter	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/BlockedKeywordsImporter.kt	16	method	importBlockedKeywords	org.fossify.messages.helpers.BlockedKeywordsImporter	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/Config.kt	8	class	Config	org.fossify.messages.helpers	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/Config.kt	9	object	Companion	org.fossify.messages.helpers	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/Config.kt	10	method	newInstance	org.fossify.messages.helpers.Companion	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/Config.kt	22	method	saveUseSIMIdAtNumber	org.fossify.messages.helpers	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/Config.kt	26	method	getUseSIMIdAtNumber	org.fossify.messages.helpers	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/Config.kt	74	method	addPinnedConversationByThreadId	org.fossify.messages.helpers	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/Config.kt	78	method	addPinnedConversations	org.fossify.messages.helpers	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/Config.kt	82	method	removePinnedConversationByThreadId	org.fossify.messages.helpers	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/Config.kt	86	method	removePinnedConversations	org.fossify.messages.helpers	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/Config.kt	95	method	addBlockedKeyword	org.fossify.messages.helpers	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/Config.kt	99	method	removeBlockedKeyword	org.fossify.messages.helpers	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/Config.kt	146	method	addCustomNotificationsByThreadId	org.fossify.messages.helpers	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/Config.kt	150	method	removeCustomNotificationsByThreadId	org.fossify.messages.helpers	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/Constants.kt	104	method	refreshMessages	org.fossify.messages.helpers	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/Constants.kt	108	method	refreshConversations	org.fossify.messages.helpers	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/Constants.kt	113	method	generateRandomId	org.fossify.messages.helpers	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/Constants.kt	119	method	generateStableId	org.fossify.messages.helpers	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/Converters.kt	10	class	Converters	org.fossify.messages.helpers	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/Converters.kt	17	method	jsonToAttachmentList	org.fossify.messages.helpers.Converters	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/Converters.kt	22	method	attachmentListToJson	org.fossify.messages.helpers.Converters	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/Converters.kt	25	method	jsonToSimpleContactList	org.fossify.messages.helpers.Converters	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/Converters.kt	30	method	simpleContactListToJson	org.fossify.messages.helpers.Converters	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/Converters.kt	33	method	jsonToMessageAttachment	org.fossify.messages.helpers.Converters	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/Converters.kt	38	method	messageAttachmentToJson	org.fossify.messages.helpers.Converters	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/ImageCompressor.kt	24	class	ImageCompressor	org.fossify.messages.helpers	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/ImageCompressor.kt	36	method	compressImage	org.fossify.messages.helpers.ImageCompressor	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/ImageCompressor.kt	95	method	overWrite	org.fossify.messages.helpers.ImageCompressor	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/ImageCompressor.kt	106	method	saveBitmap	org.fossify.messages.helpers.ImageCompressor	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/ImageCompressor.kt	120	method	loadBitmap	org.fossify.messages.helpers.ImageCompressor	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/ImageCompressor.kt	124	method	determineImageRotation	org.fossify.messages.helpers.ImageCompressor	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/ImageCompressor.kt	136	method	decodeSampledBitmapFromFile	org.fossify.messages.helpers.ImageCompressor	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/ImageCompressor.kt	148	method	calculateInSampleSize	org.fossify.messages.helpers.ImageCompressor	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/MessagesImporter.kt	24	class	MessagesImporter	org.fossify.messages.helpers	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/MessagesImporter.kt	31	method	importMessages	org.fossify.messages.helpers.MessagesImporter	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/MessagesImporter.kt	48	method	importJson	org.fossify.messages.helpers.MessagesImporter	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/MessagesImporter.kt	83	method	restoreMessages	org.fossify.messages.helpers.MessagesImporter	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/MessagesImporter.kt	118	method	importXml	org.fossify.messages.helpers.MessagesImporter	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/MessagesImporter.kt	171	method	readSms	org.fossify.messages.helpers.MessagesImporter	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/MessagesImporter.kt	189	method	skip	org.fossify.messages.helpers.MessagesImporter	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/MessagesImporter.kt	202	method	getInputStreamFromUri	org.fossify.messages.helpers.MessagesImporter	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/MessagesImporter.kt	210	method	isFileXml	org.fossify.messages.helpers.MessagesImporter	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/MessagesImporter.kt	217	method	isXmlMimeType	org.fossify.messages.helpers.MessagesImporter	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/MessagesReader.kt	25	class	MessagesReader	org.fossify.messages.helpers	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/MessagesReader.kt	27	method	getMessagesToExport	org.fossify.messages.helpers.MessagesReader	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/MessagesReader.kt	43	method	getSmsMessages	org.fossify.messages.helpers.MessagesReader	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/MessagesReader.kt	99	method	getMmsMessages	org.fossify.messages.helpers.MessagesReader	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/MessagesReader.kt	187	method	getParts	org.fossify.messages.helpers.MessagesReader	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/MessagesReader.kt	254	method	usePart	org.fossify.messages.helpers.MessagesReader	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/MessagesReader.kt	272	method	getMmsAddresses	org.fossify.messages.helpers.MessagesReader	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/MessagesWriter.kt	20	class	MessagesWriter	org.fossify.messages.helpers	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/MessagesWriter.kt	25	method	writeSmsMessage	org.fossify.messages.helpers.MessagesWriter	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/MessagesWriter.kt	35	method	smsExist	org.fossify.messages.helpers.MessagesWriter	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/MessagesWriter.kt	50	method	writeMmsMessage	org.fossify.messages.helpers.MessagesWriter	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/MessagesWriter.kt	70	method	getMmsThreadId	org.fossify.messages.helpers.MessagesWriter	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/MessagesWriter.kt	82	method	getMmsId	org.fossify.messages.helpers.MessagesWriter	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/MessagesWriter.kt	101	method	mmsExist	org.fossify.messages.helpers.MessagesWriter	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/MessagesWriter.kt	106	method	mmsAddressExist	org.fossify.messages.helpers.MessagesWriter	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/MessagesWriter.kt	128	method	writeMmsAddress	org.fossify.messages.helpers.MessagesWriter	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/MessagesWriter.kt	143	method	writeMmsPart	org.fossify.messages.helpers.MessagesWriter	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/MessagesWriter.kt	165	method	mmsPartExist	org.fossify.messages.helpers.MessagesWriter	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/MessagesWriter.kt	184	method	fixConversationDates	org.fossify.messages.helpers.MessagesWriter	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/MessagingCache.kt	9	object	MessagingCache	org.fossify.messages.helpers	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/MessagingCache.kt	14	class	ThreadParticipantsCache	org.fossify.messages.helpers	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/MessagingCache.kt	18	method	get	org.fossify.messages.helpers.ThreadParticipantsCache	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/MessagingCache.kt	31	method	put	org.fossify.messages.helpers.ThreadParticipantsCache	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/MessagingCache.kt	48	method	remove	org.fossify.messages.helpers.ThreadParticipantsCache	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/MessagingCache.kt	54	method	evictAll	org.fossify.messages.helpers.ThreadParticipantsCache	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/MessagingCache.kt	60	class	Entry	org.fossify.messages.helpers.ThreadParticipantsCache	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/MessagingCache.kt	66	method	toRecipientCacheKey	org.fossify.messages.helpers	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/MessagingCache.kt	70	method	deepCopy	org.fossify.messages.helpers	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/NotificationHelper.kt	30	class	NotificationHelper	org.fossify.messages.helpers	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/NotificationHelper.kt	39	method	showMessageNotification	org.fossify.messages.helpers.NotificationHelper	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/NotificationHelper.kt	192	method	showSendingFailedNotification	org.fossify.messages.helpers.NotificationHelper	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/NotificationHelper.kt	232	method	createChannel	org.fossify.messages.helpers.NotificationHelper	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/NotificationHelper.kt	249	method	getMessagesStyle	org.fossify.messages.helpers.NotificationHelper	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/NotificationHelper.kt	274	method	getOldMessages	org.fossify.messages.helpers.NotificationHelper	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/ReceiverUtils.kt	6	object	ReceiverUtils	org.fossify.messages.helpers	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/ReceiverUtils.kt	8	method	isMessageFilteredOut	org.fossify.messages.helpers.ReceiverUtils	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/ShortcutHelper.kt	23	class	ShortcutHelper	org.fossify.messages.helpers	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/ShortcutHelper.kt	26	method	getShortcuts	org.fossify.messages.helpers.ShortcutHelper	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/ShortcutHelper.kt	30	method	getShortcut	org.fossify.messages.helpers.ShortcutHelper	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/ShortcutHelper.kt	34	method	buildShortcut	org.fossify.messages.helpers.ShortcutHelper	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/ShortcutHelper.kt	93	method	buildShortcut	org.fossify.messages.helpers.ShortcutHelper	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/ShortcutHelper.kt	123	method	createOrUpdateShortcut	org.fossify.messages.helpers.ShortcutHelper	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/ShortcutHelper.kt	129	method	createOrUpdateShortcut	org.fossify.messages.helpers.ShortcutHelper	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/ShortcutHelper.kt	135	method	createOrUpdateShortcut	org.fossify.messages.helpers.ShortcutHelper	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/ShortcutHelper.kt	146	method	reportSendMessageUsage	org.fossify.messages.helpers.ShortcutHelper	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/ShortcutHelper.kt	151	method	reportReceiveMessageUsage	org.fossify.messages.helpers.ShortcutHelper	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/ShortcutHelper.kt	156	method	removeShortcutForThread	org.fossify.messages.helpers.ShortcutHelper	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/ShortcutHelper.kt	161	method	shouldPresentShortcut	org.fossify.messages.helpers.ShortcutHelper	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/SmsIntentParser.kt	10	object	SmsIntentParser	org.fossify.messages.helpers	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/SmsIntentParser.kt	21	method	parse	org.fossify.messages.helpers.SmsIntentParser	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/SmsIntentParser.kt	33	method	parseRecipients	org.fossify.messages.helpers.SmsIntentParser	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/SmsIntentParser.kt	49	method	parseRecipientsFromUri	org.fossify.messages.helpers.SmsIntentParser	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/SmsIntentParser.kt	55	method	extractBodyFromIntent	org.fossify.messages.helpers.SmsIntentParser	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/SmsIntentParser.kt	68	method	extractBodyFromUri	org.fossify.messages.helpers.SmsIntentParser	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/SmsRole.kt	9	object	SmsRole	org.fossify.messages.helpers	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/SmsRole.kt	10	method	isHeld	org.fossify.messages.helpers.SmsRole	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/VCardParser.kt	12	method	parseVCardFromUri	org.fossify.messages.helpers	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/VCardParser.kt	29	class	LenientPhotoScribe	org.fossify.messages.helpers	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/VCardParser.kt	30	method	_mediaTypeFromTypeParameter	org.fossify.messages.helpers.LenientPhotoScribe	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/VCardParser.kt	33	method	_mediaTypeFromMediaTypeParameter	org.fossify.messages.helpers.LenientPhotoScribe	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/VCardParser.kt	36	method	_mediaTypeFromFileExtension	org.fossify.messages.helpers.LenientPhotoScribe	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/VCardParser.kt	40	class	LenientLogoScribe	org.fossify.messages.helpers	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/VCardParser.kt	41	method	_mediaTypeFromTypeParameter	org.fossify.messages.helpers.LenientLogoScribe	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/VCardParser.kt	44	method	_mediaTypeFromMediaTypeParameter	org.fossify.messages.helpers.LenientLogoScribe	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/VCardParser.kt	47	method	_mediaTypeFromFileExtension	org.fossify.messages.helpers.LenientLogoScribe	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/VCardParser.kt	51	method	findImageType	org.fossify.messages.helpers	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/helpers/VCardParser.kt	63	method	parseNameFromVCard	org.fossify.messages.helpers	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/inkpilot/data/StudioContacts.kt	10	method	canonicalStudioNumber	org.fossify.messages.inkpilot.data	data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/data/StudioContacts.kt	20	method	contact	org.fossify.messages.inkpilot.data	data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/data/StudioContacts.kt	25	method	studioContacts	org.fossify.messages.inkpilot.data	data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/data/StudioContacts.kt	30	method	studioContact	org.fossify.messages.inkpilot.data	data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/data/StudioContacts.kt	35	method	contactByNumber	org.fossify.messages.inkpilot.data	data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/data/StudioContacts.kt	40	method	upsertStudioContact	org.fossify.messages.inkpilot.data	data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/data/StudioContacts.kt	58	method	saveStudioMemory	org.fossify.messages.inkpilot.data	data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/data/StudioContacts.kt	68	method	setStudioPaused	org.fossify.messages.inkpilot.data	data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/data/StudioContacts.kt	77	method	studioMemory	org.fossify.messages.inkpilot.data	data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/data/StudioDatabase.kt	10	class	StudioDatabase	org.fossify.messages.inkpilot.data	data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/data/StudioDatabase.kt	15	method	onConfigure		data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/data/StudioDatabase.kt	20	method	getWritableDatabase		data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/data/StudioDatabase.kt	22	method	onCreate		data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/data/StudioDatabase.kt	97	method	onUpgrade		data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/data/StudioDatabase.kt	101	object	Companion		data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/data/StudioDatabase.kt	104	method	transaction		data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/data/StudioDraftAttempts.kt	7	method	recordStudioDraftAttempt	org.fossify.messages.inkpilot.data	data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/data/StudioDrafts.kt	12	method	studioReceipt	org.fossify.messages.inkpilot.data	data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/data/StudioDrafts.kt	21	method	holdStudioDraft	org.fossify.messages.inkpilot.data	data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/data/StudioDrafts.kt	44	method	reviewStudioDrafts	org.fossify.messages.inkpilot.data	data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/data/StudioDrafts.kt	70	method	dismissStudioDraft	org.fossify.messages.inkpilot.data	data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/data/StudioInbound.kt	10	method	recordStudioInbound	org.fossify.messages.inkpilot.data	data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/data/StudioInbound.kt	54	method	studioSource	org.fossify.messages.inkpilot.data	data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/data/StudioInbound.kt	67	method	pendingStudioRequests	org.fossify.messages.inkpilot.data	data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/data/StudioPolicy.kt	5	method	studioDraftingEnabled	org.fossify.messages.inkpilot.data	data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/data/StudioPolicy.kt	11	method	studioSoul	org.fossify.messages.inkpilot.data	data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/data/StudioPolicy.kt	17	method	setStudioDraftingEnabled	org.fossify.messages.inkpilot.data	data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/data/StudioPolicy.kt	26	method	setStudioSoul	org.fossify.messages.inkpilot.data	data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/data/StudioProviderSync.kt	7	method	pendingStudioProviderUpdates	org.fossify.messages.inkpilot.data	data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/data/StudioProviderSync.kt	19	method	markStudioProviderSynced	org.fossify.messages.inkpilot.data	data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/data/StudioRecords.kt	3	class	StudioContact	org.fossify.messages.inkpilot.data	data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/data/StudioRecords.kt	14	class	ReviewDraft	org.fossify.messages.inkpilot.data	data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/data/StudioRecords.kt	31	class	SendStatus	org.fossify.messages.inkpilot.data	data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/data/StudioRecords.kt	34	class	SendClaim	org.fossify.messages.inkpilot.data	data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/data/StudioRepository.kt	16	class	StudioRepository	org.fossify.messages.inkpilot.data	data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/data/StudioRepository.kt	22	method	recordInbound		data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/data/StudioRepository.kt	27	method	pendingRequests		data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/data/StudioRepository.kt	29	method	recordDraftAttempt		data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/data/StudioRepository.kt	32	method	clearDraftAttempts		data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/data/StudioRepository.kt	34	method	contacts		data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/data/StudioRepository.kt	36	method	contact		data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/data/StudioRepository.kt	38	method	upsertContact		data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/data/StudioRepository.kt	40	method	saveMemory		data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/data/StudioRepository.kt	42	method	setPaused		data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/data/StudioRepository.kt	44	method	heldDrafts		data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/data/StudioRepository.kt	46	method	drafts		data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/data/StudioRepository.kt	48	method	dismissDraft		data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/data/StudioRepository.kt	50	method	invalidateAllPending		data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/data/StudioRepository.kt	52	method	isDraftingEnabled		data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/data/StudioRepository.kt	54	method	setDraftingEnabled		data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/data/StudioRepository.kt	56	method	soul		data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/data/StudioRepository.kt	58	method	setSoul		data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/data/StudioRepository.kt	60	method	claimDraftForSend		data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/data/StudioRepository.kt	64	method	getSendClaim		data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/data/StudioRepository.kt	66	method	attachProviderId		data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/data/StudioRepository.kt	68	method	pendingProviderUpdates		data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/data/StudioRepository.kt	70	method	markProviderSynced		data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/data/StudioRepository.kt	72	method	markSendResult		data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/data/StudioRepository.kt	76	method	prepareSendParts		data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/data/StudioRepository.kt	78	method	recordSendPart		data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/data/StudioRepository.kt	81	method	readSource		data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/data/StudioRepository.kt	83	method	findHeldDraft		data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/data/StudioRepository.kt	85	method	holdIfCurrent		data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/data/StudioRepository.kt	87	method	read		data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/data/StudioRepository.kt	89	method	close		data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/data/StudioRepository.kt	91	object	Companion		data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/data/StudioSendClaims.kt	6	method	claimStudioDraft	org.fossify.messages.inkpilot.data	data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/data/StudioSendClaims.kt	27	method	studioSendClaim	org.fossify.messages.inkpilot.data	data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/data/StudioSendClaims.kt	41	method	attachStudioProviderId	org.fossify.messages.inkpilot.data	data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/data/StudioSendClaims.kt	50	method	finishStudioSend	org.fossify.messages.inkpilot.data	data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/data/StudioSendParts.kt	6	method	prepareStudioSendParts	org.fossify.messages.inkpilot.data	data Studio
+app/src/main/kotlin/org/fossify/messages/inkpilot/data/StudioSendParts.kt	20	method	recordStudioSendPart	org.fossify.messages.inkpilot.data	data Studio
+app/src/main/kotlin/org/fossify/messages/interfaces/AttachmentsDao.kt	8	interface	AttachmentsDao	org.fossify.messages.interfaces	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/interfaces/AttachmentsDao.kt	10	method	getAll	org.fossify.messages.interfaces.AttachmentsDao	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/interfaces/ConversationsDao.kt	11	interface	ConversationsDao	org.fossify.messages.interfaces	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/interfaces/ConversationsDao.kt	13	method	insertOrUpdate	org.fossify.messages.interfaces.ConversationsDao	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/interfaces/ConversationsDao.kt	16	method	getNonArchivedWithLatestSnippet	org.fossify.messages.interfaces.ConversationsDao	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/interfaces/ConversationsDao.kt	18	method	getNonArchived	org.fossify.messages.interfaces.ConversationsDao	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/interfaces/ConversationsDao.kt	23	method	getAllArchivedWithLatestSnippet	org.fossify.messages.interfaces.ConversationsDao	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/interfaces/ConversationsDao.kt	25	method	getAllArchived	org.fossify.messages.interfaces.ConversationsDao	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/interfaces/ConversationsDao.kt	30	method	getAllWithMessagesInRecycleBinWithLatestSnippet	org.fossify.messages.interfaces.ConversationsDao	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/interfaces/ConversationsDao.kt	32	method	getAllWithMessagesInRecycleBin	org.fossify.messages.interfaces.ConversationsDao	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/interfaces/ConversationsDao.kt	37	method	getConversationWithThreadId	org.fossify.messages.interfaces.ConversationsDao	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/interfaces/ConversationsDao.kt	40	method	getUnreadConversations	org.fossify.messages.interfaces.ConversationsDao	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/interfaces/ConversationsDao.kt	43	method	getConversationsWithText	org.fossify.messages.interfaces.ConversationsDao	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/interfaces/ConversationsDao.kt	46	method	markRead	org.fossify.messages.interfaces.ConversationsDao	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/interfaces/ConversationsDao.kt	49	method	markUnread	org.fossify.messages.interfaces.ConversationsDao	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/interfaces/ConversationsDao.kt	52	method	moveToArchive	org.fossify.messages.interfaces.ConversationsDao	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/interfaces/ConversationsDao.kt	55	method	unarchive	org.fossify.messages.interfaces.ConversationsDao	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/interfaces/ConversationsDao.kt	58	method	deleteThreadId	org.fossify.messages.interfaces.ConversationsDao	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/interfaces/DraftsDao.kt	10	interface	DraftsDao	org.fossify.messages.interfaces	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/interfaces/DraftsDao.kt	12	method	insertOrUpdate	org.fossify.messages.interfaces.DraftsDao	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/interfaces/DraftsDao.kt	15	method	getAll	org.fossify.messages.interfaces.DraftsDao	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/interfaces/DraftsDao.kt	18	method	getDraftById	org.fossify.messages.interfaces.DraftsDao	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/interfaces/DraftsDao.kt	21	method	delete	org.fossify.messages.interfaces.DraftsDao	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/interfaces/MessageAttachmentsDao.kt	8	interface	MessageAttachmentsDao	org.fossify.messages.interfaces	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/interfaces/MessageAttachmentsDao.kt	10	method	getAll	org.fossify.messages.interfaces.MessageAttachmentsDao	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/interfaces/MessagesDao.kt	13	interface	MessagesDao	org.fossify.messages.interfaces	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/interfaces/MessagesDao.kt	15	method	insertOrUpdate	org.fossify.messages.interfaces.MessagesDao	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/interfaces/MessagesDao.kt	18	method	insertRecycleBinEntry	org.fossify.messages.interfaces.MessagesDao	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/interfaces/MessagesDao.kt	21	method	insertOrIgnore	org.fossify.messages.interfaces.MessagesDao	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/interfaces/MessagesDao.kt	24	method	insertMessages	org.fossify.messages.interfaces.MessagesDao	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/interfaces/MessagesDao.kt	27	method	getAll	org.fossify.messages.interfaces.MessagesDao	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/interfaces/MessagesDao.kt	30	method	getAllRecycleBinMessages	org.fossify.messages.interfaces.MessagesDao	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/interfaces/MessagesDao.kt	33	method	getAllScheduledMessages	org.fossify.messages.interfaces.MessagesDao	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/interfaces/MessagesDao.kt	36	method	getOldRecycleBinMessages	org.fossify.messages.interfaces.MessagesDao	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/interfaces/MessagesDao.kt	39	method	getThreadMessages	org.fossify.messages.interfaces.MessagesDao	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/interfaces/MessagesDao.kt	42	method	getNonRecycledThreadMessages	org.fossify.messages.interfaces.MessagesDao	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/interfaces/MessagesDao.kt	45	method	getThreadMessagesFromRecycleBin	org.fossify.messages.interfaces.MessagesDao	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/interfaces/MessagesDao.kt	48	method	getScheduledThreadMessages	org.fossify.messages.interfaces.MessagesDao	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/interfaces/MessagesDao.kt	51	method	getScheduledMessageWithId	org.fossify.messages.interfaces.MessagesDao	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/interfaces/MessagesDao.kt	54	method	getArchivedCount	org.fossify.messages.interfaces.MessagesDao	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/interfaces/MessagesDao.kt	57	method	getMessagesWithText	org.fossify.messages.interfaces.MessagesDao	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/interfaces/MessagesDao.kt	60	method	markRead	org.fossify.messages.interfaces.MessagesDao	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/interfaces/MessagesDao.kt	63	method	markThreadRead	org.fossify.messages.interfaces.MessagesDao	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/interfaces/MessagesDao.kt	66	method	updateType	org.fossify.messages.interfaces.MessagesDao	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/interfaces/MessagesDao.kt	69	method	updateStatus	org.fossify.messages.interfaces.MessagesDao	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/interfaces/MessagesDao.kt	72	method	delete	org.fossify.messages.interfaces.MessagesDao	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/interfaces/MessagesDao.kt	78	method	deleteFromMessages	org.fossify.messages.interfaces.MessagesDao	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/interfaces/MessagesDao.kt	81	method	deleteFromRecycleBin	org.fossify.messages.interfaces.MessagesDao	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/interfaces/MessagesDao.kt	84	method	deleteThreadMessages	org.fossify.messages.interfaces.MessagesDao	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/interfaces/MessagesDao.kt	90	method	deleteAllThreadMessages	org.fossify.messages.interfaces.MessagesDao	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/interfaces/MessagesDao.kt	93	method	deleteThreadMessagesFromRecycleBin	org.fossify.messages.interfaces.MessagesDao	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/interfaces/MessagesDao.kt	96	method	deleteAll	org.fossify.messages.interfaces.MessagesDao	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/messaging/Messaging.kt	21	method	getSendMessageSettings	org.fossify.messages.messaging	SMS/MMS
+app/src/main/kotlin/org/fossify/messages/messaging/Messaging.kt	31	method	isLongMmsMessage	org.fossify.messages.messaging	SMS/MMS
+app/src/main/kotlin/org/fossify/messages/messaging/Messaging.kt	38	method	sendMessageCompat	org.fossify.messages.messaging	SMS/MMS
+app/src/main/kotlin/org/fossify/messages/messaging/Messaging.kt	100	method	isShortCodeWithLetters	org.fossify.messages.messaging	SMS/MMS
+app/src/main/kotlin/org/fossify/messages/messaging/MessagingUtils.kt	23	class	MessagingUtils	org.fossify.messages.messaging	SMS/MMS
+app/src/main/kotlin/org/fossify/messages/messaging/MessagingUtils.kt	28	method	insertSmsMessage	org.fossify.messages.messaging.MessagingUtils	SMS/MMS
+app/src/main/kotlin/org/fossify/messages/messaging/MessagingUtils.kt	84	method	sendSmsMessage	org.fossify.messages.messaging.MessagingUtils	SMS/MMS
+app/src/main/kotlin/org/fossify/messages/messaging/MessagingUtils.kt	122	method	updateSmsMessageSendingStatus	org.fossify.messages.messaging.MessagingUtils	SMS/MMS
+app/src/main/kotlin/org/fossify/messages/messaging/MessagingUtils.kt	150	method	getSmsMessageFromDeliveryReport	org.fossify.messages.messaging.MessagingUtils	SMS/MMS
+app/src/main/kotlin/org/fossify/messages/messaging/MessagingUtils.kt	157	method	sendMmsMessage	org.fossify.messages.messaging.MessagingUtils	SMS/MMS
+app/src/main/kotlin/org/fossify/messages/messaging/MessagingUtils.kt	198	method	maybeShowErrorToast	org.fossify.messages.messaging.MessagingUtils	SMS/MMS
+app/src/main/kotlin/org/fossify/messages/messaging/MessagingUtils.kt	204	object	Companion	org.fossify.messages.messaging.MessagingUtils	SMS/MMS
+app/src/main/kotlin/org/fossify/messages/messaging/ScheduledMessage.kt	17	method	getScheduleSendPendingIntent	org.fossify.messages.messaging	SMS/MMS
+app/src/main/kotlin/org/fossify/messages/messaging/ScheduledMessage.kt	26	method	scheduleMessage	org.fossify.messages.messaging	SMS/MMS
+app/src/main/kotlin/org/fossify/messages/messaging/ScheduledMessage.kt	34	method	cancelScheduleSendPendingIntent	org.fossify.messages.messaging	SMS/MMS
+app/src/main/kotlin/org/fossify/messages/messaging/SendingErrors.kt	10	method	getSmsSendingError	org.fossify.messages.messaging	SMS/MMS
+app/src/main/kotlin/org/fossify/messages/messaging/SendingErrors.kt	114	method	getMmsSendingError	org.fossify.messages.messaging	SMS/MMS
+app/src/main/kotlin/org/fossify/messages/messaging/SmsException.kt	3	class	SmsException	org.fossify.messages.messaging	SMS/MMS
+app/src/main/kotlin/org/fossify/messages/messaging/SmsException.kt	4	object	Companion	org.fossify.messages.messaging.SmsException	SMS/MMS
+app/src/main/kotlin/org/fossify/messages/messaging/SmsManager.kt	10	method	getSmsManager	org.fossify.messages.messaging	SMS/MMS
+app/src/main/kotlin/org/fossify/messages/messaging/SmsSender.kt	16	class	SmsSender	org.fossify.messages.messaging	SMS/MMS
+app/src/main/kotlin/org/fossify/messages/messaging/SmsSender.kt	22	method	sendMessage	org.fossify.messages.messaging.SmsSender	SMS/MMS
+app/src/main/kotlin/org/fossify/messages/messaging/SmsSender.kt	51	method	sendInternal	org.fossify.messages.messaging.SmsSender	SMS/MMS
+app/src/main/kotlin/org/fossify/messages/messaging/SmsSender.kt	112	method	getSendStatusIntent	org.fossify.messages.messaging.SmsSender	SMS/MMS
+app/src/main/kotlin/org/fossify/messages/messaging/SmsSender.kt	118	method	getDeliveredStatusIntent	org.fossify.messages.messaging.SmsSender	SMS/MMS
+app/src/main/kotlin/org/fossify/messages/messaging/SmsSender.kt	124	object	Companion	org.fossify.messages.messaging.SmsSender	SMS/MMS
+app/src/main/kotlin/org/fossify/messages/messaging/SmsSender.kt	126	method	getInstance	org.fossify.messages.messaging.SmsSender.Companion	SMS/MMS
+app/src/main/kotlin/org/fossify/messages/models/ArchivedConversation.kt	12	class	ArchivedConversation	org.fossify.messages.models	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/models/Attachment.kt	10	class	Attachment	org.fossify.messages.models	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/models/Attachment.kt	20	method	getUri	org.fossify.messages.models.Attachment	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/models/AttachmentSelection.kt	13	class	AttachmentSelection	org.fossify.messages.models	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/models/AttachmentSelection.kt	21	object	Companion	org.fossify.messages.models.AttachmentSelection	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/models/AttachmentSelection.kt	22	method	getViewTypeForMimeType	org.fossify.messages.models.AttachmentSelection.Companion	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/models/AttachmentSelection.kt	31	method	areItemsTheSame	org.fossify.messages.models.AttachmentSelection.Companion	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/models/AttachmentSelection.kt	35	method	areContentsTheSame	org.fossify.messages.models.AttachmentSelection.Companion	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/models/BackupType.kt	7	class	BackupType	org.fossify.messages.models	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/models/Conversation.kt	9	class	Conversation	org.fossify.messages.models	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/models/Conversation.kt	24	object	Companion	org.fossify.messages.models.Conversation	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/models/Conversation.kt	25	method	areItemsTheSame	org.fossify.messages.models.Conversation.Companion	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/models/Conversation.kt	29	method	areContentsTheSame	org.fossify.messages.models.Conversation.Companion	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/models/ConversationWithSnippetOverride.kt	6	class	ConversationWithSnippetOverride	org.fossify.messages.models	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/models/ConversationWithSnippetOverride.kt	10	method	toConversation	org.fossify.messages.models.ConversationWithSnippetOverride	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/models/Draft.kt	8	class	Draft	org.fossify.messages.models	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/models/Events.kt	3	class	Events	org.fossify.messages.models	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/models/Events.kt	4	class	RefreshMessages	org.fossify.messages.models.Events	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/models/Events.kt	5	class	RefreshConversations	org.fossify.messages.models.Events	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/models/ExportedMessage.kt	5	class	ExportedMessage	org.fossify.messages.models	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/models/ImportResult.kt	3	class	ImportResult	org.fossify.messages.models	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/models/Message.kt	17	class	Message	org.fossify.messages.models	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/models/Message.kt	35	method	isReceivedMessage	org.fossify.messages.models.Message	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/models/Message.kt	37	method	millis	org.fossify.messages.models.Message	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/models/Message.kt	39	method	getSender	org.fossify.messages.models.Message	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/models/Message.kt	44	method	getStableId	org.fossify.messages.models.Message	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/models/Message.kt	51	method	getSelectionKey	org.fossify.messages.models.Message	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/models/Message.kt	55	object	Companion	org.fossify.messages.models.Message	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/models/Message.kt	56	method	areItemsTheSame	org.fossify.messages.models.Message.Companion	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/models/Message.kt	60	method	areContentsTheSame	org.fossify.messages.models.Message.Companion	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/models/MessageAttachment.kt	8	class	MessageAttachment	org.fossify.messages.models	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/models/MessagesBackup.kt	13	class	MessagesBackup	org.fossify.messages.models	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/models/MessagesBackup.kt	18	object	BackupSerializer	org.fossify.messages.models	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/models/MessagesBackup.kt	20	method	selectDeserializer	org.fossify.messages.models.BackupSerializer	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/models/MmsAddress.kt	10	class	MmsAddress	org.fossify.messages.models	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/models/MmsAddress.kt	19	method	toContentValues	org.fossify.messages.models.MmsAddress	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/models/MmsBackup.kt	10	class	MmsBackup	org.fossify.messages.models	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/models/MmsBackup.kt	53	method	toContentValues	org.fossify.messages.models.MmsBackup	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/models/MmsPart.kt	10	class	MmsPart	org.fossify.messages.models	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/models/MmsPart.kt	37	method	toContentValues	org.fossify.messages.models.MmsPart	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/models/MmsPart.kt	53	method	isNonText	org.fossify.messages.models.MmsPart	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/models/NamePhoto.kt	3	class	NamePhoto	org.fossify.messages.models	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/models/RecycleBinMessage.kt	12	class	RecycleBinMessage	org.fossify.messages.models	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/models/SIMCard.kt	3	class	SIMCard	org.fossify.messages.models	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/models/SearchResult.kt	3	class	SearchResult	org.fossify.messages.models	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/models/SmsBackup.kt	11	class	SmsBackup	org.fossify.messages.models	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/models/SmsBackup.kt	38	method	toContentValues	org.fossify.messages.models.SmsBackup	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/models/ThreadItems.kt	6	class	ThreadItem	org.fossify.messages.models	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/models/ThreadItems.kt	7	class	ThreadDateTime	org.fossify.messages.models.ThreadItem	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/models/ThreadItems.kt	8	class	ThreadError	org.fossify.messages.models.ThreadItem	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/models/ThreadItems.kt	9	class	ThreadSent	org.fossify.messages.models.ThreadItem	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/models/ThreadItems.kt	10	class	ThreadSending	org.fossify.messages.models.ThreadItem	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/models/VCard.kt	15	class	VCardWrapper	org.fossify.messages.models	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/models/VCard.kt	17	object	Companion	org.fossify.messages.models.VCardWrapper	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/models/VCard.kt	19	method	from	org.fossify.messages.models.VCardWrapper.Companion	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/models/VCard.kt	31	class	VCardPropertyWrapper	org.fossify.messages.models	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/models/VCard.kt	33	object	Companion	org.fossify.messages.models.VCardPropertyWrapper	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/models/VCard.kt	38	method	getPropertyTypeString	org.fossify.messages.models.VCardPropertyWrapper.Companion	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/models/VCard.kt	47	method	from	org.fossify.messages.models.VCardPropertyWrapper.Companion	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/receivers/DeleteSmsReceiver.kt	16	class	DeleteSmsReceiver	org.fossify.messages.receivers	SMS/MMS
+app/src/main/kotlin/org/fossify/messages/receivers/DeleteSmsReceiver.kt	18	method	onReceive	org.fossify.messages.receivers.DeleteSmsReceiver	SMS/MMS
+app/src/main/kotlin/org/fossify/messages/receivers/DirectReplyReceiver.kt	19	class	DirectReplyReceiver	org.fossify.messages.receivers	SMS/MMS
+app/src/main/kotlin/org/fossify/messages/receivers/DirectReplyReceiver.kt	21	method	onReceive	org.fossify.messages.receivers.DirectReplyReceiver	SMS/MMS
+app/src/main/kotlin/org/fossify/messages/receivers/MarkAsReadReceiver.kt	14	class	MarkAsReadReceiver	org.fossify.messages.receivers	SMS/MMS
+app/src/main/kotlin/org/fossify/messages/receivers/MarkAsReadReceiver.kt	15	method	onReceive	org.fossify.messages.receivers.MarkAsReadReceiver	SMS/MMS
+app/src/main/kotlin/org/fossify/messages/receivers/MmsReceiver.kt	35	class	MmsReceiver	org.fossify.messages.receivers	SMS/MMS
+app/src/main/kotlin/org/fossify/messages/receivers/MmsReceiver.kt	37	method	isAddressBlocked	org.fossify.messages.receivers.MmsReceiver	SMS/MMS
+app/src/main/kotlin/org/fossify/messages/receivers/MmsReceiver.kt	48	method	isContentBlocked	org.fossify.messages.receivers.MmsReceiver	SMS/MMS
+app/src/main/kotlin/org/fossify/messages/receivers/MmsReceiver.kt	52	method	onMessageReceived	org.fossify.messages.receivers.MmsReceiver	SMS/MMS
+app/src/main/kotlin/org/fossify/messages/receivers/MmsReceiver.kt	66	method	onError	org.fossify.messages.receivers.MmsReceiver	SMS/MMS
+app/src/main/kotlin/org/fossify/messages/receivers/MmsReceiver.kt	70	method	handleMmsMessage	org.fossify.messages.receivers.MmsReceiver	SMS/MMS
+app/src/main/kotlin/org/fossify/messages/receivers/MmsSentReceiver.kt	21	class	MmsSentReceiver	org.fossify.messages.receivers	SMS/MMS
+app/src/main/kotlin/org/fossify/messages/receivers/MmsSentReceiver.kt	23	method	updateAndroidDatabase	org.fossify.messages.receivers.MmsSentReceiver	SMS/MMS
+app/src/main/kotlin/org/fossify/messages/receivers/MmsSentReceiver.kt	59	method	updateAppDatabase	org.fossify.messages.receivers.MmsSentReceiver	SMS/MMS
+app/src/main/kotlin/org/fossify/messages/receivers/MmsSentReceiver.kt	64	object	Companion	org.fossify.messages.receivers.MmsSentReceiver	SMS/MMS
+app/src/main/kotlin/org/fossify/messages/receivers/RescheduleAlarmsReceiver.kt	12	class	RescheduleAlarmsReceiver	org.fossify.messages.receivers	SMS/MMS
+app/src/main/kotlin/org/fossify/messages/receivers/RescheduleAlarmsReceiver.kt	13	method	onReceive	org.fossify.messages.receivers.RescheduleAlarmsReceiver	SMS/MMS
+app/src/main/kotlin/org/fossify/messages/receivers/ScheduledMessageReceiver.kt	22	class	ScheduledMessageReceiver	org.fossify.messages.receivers	SMS/MMS
+app/src/main/kotlin/org/fossify/messages/receivers/ScheduledMessageReceiver.kt	24	method	onReceive	org.fossify.messages.receivers.ScheduledMessageReceiver	SMS/MMS
+app/src/main/kotlin/org/fossify/messages/receivers/ScheduledMessageReceiver.kt	47	method	handleIntent	org.fossify.messages.receivers.ScheduledMessageReceiver	SMS/MMS
+app/src/main/kotlin/org/fossify/messages/receivers/SendStatusReceiver.kt	8	class	SendStatusReceiver	org.fossify.messages.receivers	SMS/MMS
+app/src/main/kotlin/org/fossify/messages/receivers/SendStatusReceiver.kt	10	method	updateAndroidDatabase	org.fossify.messages.receivers.SendStatusReceiver	SMS/MMS
+app/src/main/kotlin/org/fossify/messages/receivers/SendStatusReceiver.kt	13	method	updateAppDatabase	org.fossify.messages.receivers.SendStatusReceiver	SMS/MMS
+app/src/main/kotlin/org/fossify/messages/receivers/SendStatusReceiver.kt	15	method	onReceive	org.fossify.messages.receivers.SendStatusReceiver	SMS/MMS
+app/src/main/kotlin/org/fossify/messages/receivers/SendStatusReceiver.kt	23	object	Companion	org.fossify.messages.receivers.SendStatusReceiver	SMS/MMS
+app/src/main/kotlin/org/fossify/messages/receivers/SmsReceivedReceiver.kt	39	class	SmsReceivedReceiver	org.fossify.messages.receivers	SMS/MMS
+app/src/main/kotlin/org/fossify/messages/receivers/SmsReceivedReceiver.kt	41	method	onReceive	org.fossify.messages.receivers.SmsReceivedReceiver	SMS/MMS
+app/src/main/kotlin/org/fossify/messages/receivers/SmsReceiver.kt	33	class	SmsReceiver	org.fossify.messages.receivers	SMS/MMS
+app/src/main/kotlin/org/fossify/messages/receivers/SmsReceiver.kt	35	method	onReceive	org.fossify.messages.receivers.SmsReceiver	SMS/MMS
+app/src/main/kotlin/org/fossify/messages/receivers/SmsReceiver.kt	80	method	handleMessageSync	org.fossify.messages.receivers.SmsReceiver	SMS/MMS
+app/src/main/kotlin/org/fossify/messages/receivers/SmsStatusDeliveredReceiver.kt	15	class	SmsStatusDeliveredReceiver	org.fossify.messages.receivers	SMS/MMS
+app/src/main/kotlin/org/fossify/messages/receivers/SmsStatusDeliveredReceiver.kt	19	method	updateAndroidDatabase	org.fossify.messages.receivers.SmsStatusDeliveredReceiver	SMS/MMS
+app/src/main/kotlin/org/fossify/messages/receivers/SmsStatusDeliveredReceiver.kt	62	method	updateSmsStatusAndDateSent	org.fossify.messages.receivers.SmsStatusDeliveredReceiver	SMS/MMS
+app/src/main/kotlin/org/fossify/messages/receivers/SmsStatusDeliveredReceiver.kt	88	method	updateAppDatabase	org.fossify.messages.receivers.SmsStatusDeliveredReceiver	SMS/MMS
+app/src/main/kotlin/org/fossify/messages/receivers/SmsStatusSentReceiver.kt	24	class	SmsStatusSentReceiver	org.fossify.messages.receivers	SMS/MMS
+app/src/main/kotlin/org/fossify/messages/receivers/SmsStatusSentReceiver.kt	26	method	updateAndroidDatabase	org.fossify.messages.receivers.SmsStatusSentReceiver	SMS/MMS
+app/src/main/kotlin/org/fossify/messages/receivers/SmsStatusSentReceiver.kt	43	method	updateAppDatabase	org.fossify.messages.receivers.SmsStatusSentReceiver	SMS/MMS
+app/src/main/kotlin/org/fossify/messages/receivers/SmsStatusSentReceiver.kt	62	method	showSendingFailedNotification	org.fossify.messages.receivers.SmsStatusSentReceiver	SMS/MMS
+app/src/main/kotlin/org/fossify/messages/services/HeadlessSmsSendService.kt	9	class	HeadlessSmsSendService	org.fossify.messages.services	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/services/HeadlessSmsSendService.kt	10	method	onBind	org.fossify.messages.services.HeadlessSmsSendService	SMS/data inherited
+app/src/main/kotlin/org/fossify/messages/services/HeadlessSmsSendService.kt	12	method	onStartCommand	org.fossify.messages.services.HeadlessSmsSendService	SMS/data inherited
