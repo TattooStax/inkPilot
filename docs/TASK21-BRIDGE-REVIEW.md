@@ -35,7 +35,7 @@ not a latency deadline; Android can defer it further.
 
 Passed locally:
 
-- `:transport:test`: 192 tests, including pairing redaction and HTTP policy cases.
+- `:transport:test`: 201 tests, including pairing redaction and HTTP policy cases.
 - `:app:testFossDebugUnitTest`: 17 host tests.
 - Default `:app:compileFossDebugKotlin` and
   `:app:compileFossDebugAndroidTestKotlin`.
@@ -74,3 +74,21 @@ A user-deleted provider row is not recreated by a late callback.
 
 To keep the integration off, omit the Gradle opt-in property. This is the
 default for both debug and release builds.
+
+## Independent review fixes
+
+P1: provider updates require a positive affected-row count. A zero result only
+settles when querying the receipt verifies that it is absent. Existing rows,
+query exceptions and unreadable answers retain the completed verdict for
+recovery. Five pure host tests exercise the production settlement policy.
+Synthetic worker tests cover zero-row/existing OUTBOX, unreadable
+query, successful later retry, and deletion without reinsertion.
+
+P2: one active default subscription is captured through an injected snapshot
+provider and passed to both the native receipt and explicit SmsManager.
+Immediately before radio handoff, the same selection rejects a changed default,
+removed SIM or unavailable subscription metadata. Dispatch still uses the
+captured explicit id, so a later default change cannot redirect it. Four pure
+host tests cover pinning, default changes, removal, missing selection and
+permission loss; a synthetic receipt test changes the default after insertion
+and verifies that no radio handoff occurs and the receipt still names its SIM.

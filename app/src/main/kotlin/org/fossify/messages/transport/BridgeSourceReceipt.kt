@@ -4,8 +4,8 @@ import android.content.ContentValues
 import android.content.Context
 import android.net.Uri
 import android.provider.Telephony.Sms
-import android.telephony.SubscriptionManager
 import android.util.Base64
+import inkstax.sms.transport.bridgeReceiptUpdateSettles
 import inkstax.sms.transport.DeviceCredential
 import inkstax.sms.transport.OutboundAckEvent
 import inkstax.sms.transport.OutboundWork
@@ -39,7 +39,8 @@ internal fun Context.claimBridgeSource(credential: DeviceCredential, sourceId: S
  * A crash between provider insert and URI commit may leave an unsent outbox row;
  * the source tombstone prevents replay from producing another SMS.
  */
-internal fun Context.createBridgeReceipt(credential: DeviceCredential, work: OutboundWork, destination: String): Uri? {
+internal fun Context.createBridgeReceipt(credential: DeviceCredential, work: OutboundWork, destination: String, subscriptionId: Int): Uri? {
+    if (subscriptionId < 0 || subscriptionId == Int.MAX_VALUE) return null
     val key = receiptKey(credential, work.sourceId)
     val prefs = receiptPrefs()
     if (prefs.getString(key, null) != "claimed") return null
@@ -54,7 +55,7 @@ internal fun Context.createBridgeReceipt(credential: DeviceCredential, work: Out
             put(Sms.TYPE, Sms.MESSAGE_TYPE_OUTBOX)
             put(Sms.READ, 1)
             put(Sms.SEEN, 1)
-            put(Sms.SUBSCRIPTION_ID, SubscriptionManager.getDefaultSmsSubscriptionId())
+            put(Sms.SUBSCRIPTION_ID, subscriptionId)
         }
         val uri = contentResolver.insert(Sms.CONTENT_URI, values) ?: return null
         if (!prefs.edit().putString(key, uri.toString()).commit() ||
@@ -81,7 +82,11 @@ internal fun Context.reconcileBridgeReceipt(
         val values = ContentValues().apply {
             put(Sms.TYPE, if (event == OutboundAckEvent.PHONE_ACKED_SENT) Sms.MESSAGE_TYPE_SENT else Sms.MESSAGE_TYPE_FAILED)
         }
-        contentResolver.update(uri, values, null, null)
-        true
+        val updated = contentResolver.update(uri, values, null, null)
+        bridgeReceiptUpdateSettles(updated) {
+            contentResolver.query(uri, arrayOf(Sms._ID), null, null, null)?.use {
+                it.moveToFirst()
+            }
+        }
     }.getOrDefault(false)
 }

@@ -6,6 +6,8 @@ import android.content.Intent
 import android.net.Uri
 import android.telephony.PhoneNumberUtils
 import android.telephony.SubscriptionManager
+import inkstax.sms.transport.BridgeSubscriptionSelection
+import inkstax.sms.transport.BridgeSubscriptionSnapshot
 import inkstax.sms.transport.DeviceCredential
 import inkstax.sms.transport.OutboundAckEvent
 import inkstax.sms.transport.OutboundWork
@@ -73,10 +75,17 @@ private fun Context.sendGuardedOutboundWork(
         return synchronousFailure(credential, work, TransportOutcome.EMPTY_DESTINATION_ADDRESS)
     }
     return try {
-        if (createBridgeReceipt(credential, work, destination) == null) {
+        val subscription = BridgeSubscriptionSelection.capture {
+            BridgeSubscriptionSnapshot(
+                SubscriptionManager.getDefaultSmsSubscriptionId(),
+                getSystemService(SubscriptionManager::class.java).activeSubscriptionInfoList.orEmpty()
+                    .map { it.subscriptionId }.toSet()
+            )
+        } ?: return synchronousFailure(credential, work, TransportOutcome.ERROR_SENDING_MESSAGE)
+        if (createBridgeReceipt(credential, work, destination, subscription.subscriptionId) == null) {
             return synchronousFailure(credential, work, TransportOutcome.ERROR_PERSISTING_MESSAGE)
         }
-        val smsManager = getSmsManager(SubscriptionManager.getDefaultSmsSubscriptionId())
+        val smsManager = getSmsManager(subscription.subscriptionId)
         val parts = smsManager.divideMessage(work.body)
         if (parts == null || parts.size < 1) {
             return synchronousFailure(credential, work, TransportOutcome.ERROR_SENDING_MESSAGE)
@@ -87,17 +96,21 @@ private fun Context.sendGuardedOutboundWork(
         if (!opened) {
             return synchronousFailure(credential, work, TransportOutcome.UNKNOWN_ERROR)
         }
-        if (parts.size == 1) {
-            val sentIntent = outboundSentResultIntent(credential, work.sourceId, 0, 1)
-            @Suppress("DEPRECATION")
-            smsManager.sendTextMessage(destination, null, work.body, sentIntent, null)
-        } else {
-            val sentIntents = ArrayList(
-                parts.indices.map { outboundSentResultIntent(credential, work.sourceId, it, parts.size) }
-            )
-            @Suppress("DEPRECATION")
-            smsManager.sendMultipartTextMessage(destination, null, parts, sentIntents, null)
+        val dispatched = subscription.dispatchIfCurrent { pinnedId ->
+            val pinnedManager = getSmsManager(pinnedId)
+            if (parts.size == 1) {
+                val sentIntent = outboundSentResultIntent(credential, work.sourceId, 0, 1)
+                @Suppress("DEPRECATION")
+                pinnedManager.sendTextMessage(destination, null, work.body, sentIntent, null)
+            } else {
+                val sentIntents = ArrayList(
+                    parts.indices.map { outboundSentResultIntent(credential, work.sourceId, it, parts.size) }
+                )
+                @Suppress("DEPRECATION")
+                pinnedManager.sendMultipartTextMessage(destination, null, parts, sentIntents, null)
+            }
         }
+        if (!dispatched) return synchronousFailure(credential, work, TransportOutcome.ERROR_SENDING_MESSAGE)
         OutboundWorkSendResult.Submitted
     } catch (e: SmsException) {
         synchronousFailure(credential, work, e.errorCode)

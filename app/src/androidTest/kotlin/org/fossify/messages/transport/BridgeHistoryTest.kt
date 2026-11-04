@@ -32,7 +32,7 @@ class BridgeHistoryTest {
 
     @Test fun receiptAndMultipartFailureSurviveReplayAndProgressCleanup() = fixture { context, provider ->
         assertEquals(BridgeSourceClaim.OWNED, context.claimBridgeSource(credential, work.sourceId))
-        val uri = context.createBridgeReceipt(credential, work, work.recipient)!!
+        val uri = context.createBridgeReceipt(credential, work, work.recipient, 7)!!
         context.contentResolver.query(uri, arrayOf(Sms.BODY, Sms.TYPE, Sms.THREAD_ID), null, null, null)!!.use {
             assertTrue(it.moveToFirst())
             assertEquals(work.body, it.getString(0))
@@ -54,7 +54,7 @@ class BridgeHistoryTest {
         context.clearOutboundSendProgress(credential.endpointBase, credential.deviceId, work.sourceId)
         val reopened = ReceiptContext(base, provider, context.prefix)
         assertEquals(BridgeSourceClaim.EXISTING, reopened.claimBridgeSource(credential.copy(), work.sourceId))
-        assertNull(reopened.createBridgeReceipt(credential, work, work.recipient))
+        assertNull(reopened.createBridgeReceipt(credential, work, work.recipient, 7))
         assertEquals(1, provider.inserts)
     }
 
@@ -63,14 +63,14 @@ class BridgeHistoryTest {
         val reopened = ReceiptContext(base, provider, context.prefix)
         assertEquals(BridgeSourceClaim.EXISTING, reopened.claimBridgeSource(credential, work.sourceId))
         provider.failInsert = true
-        assertNull(context.createBridgeReceipt(credential, work, work.recipient))
+        assertNull(context.createBridgeReceipt(credential, work, work.recipient, 7))
         assertEquals(BridgeSourceClaim.EXISTING, reopened.claimBridgeSource(credential, work.sourceId))
         assertEquals(0, provider.inserts)
     }
 
     @Test fun reconciliationFailureRetriesWithoutReinsertion() = fixture { context, provider ->
         assertEquals(BridgeSourceClaim.OWNED, context.claimBridgeSource(credential, work.sourceId))
-        assertNotNull(context.createBridgeReceipt(credential, work, work.recipient))
+        assertNotNull(context.createBridgeReceipt(credential, work, work.recipient, 7))
         provider.failUpdate = true
         assertFalse(context.reconcileBridgeReceipt(credential.endpointBase, credential.deviceId, work.sourceId, OutboundAckEvent.PHONE_ACKED_SENT))
         provider.failUpdate = false
@@ -81,7 +81,7 @@ class BridgeHistoryTest {
 
     @Test fun disconnectedRecoveryWorkerRetriesUntilNativeStatusIsStored() = fixture { context, provider ->
         assertEquals(BridgeSourceClaim.OWNED, context.claimBridgeSource(credential, work.sourceId))
-        assertNotNull(context.createBridgeReceipt(credential, work, work.recipient))
+        assertNotNull(context.createBridgeReceipt(credential, work, work.recipient, 7))
         assertTrue(context.storeCompletedOutboundVerdict(credential.endpointBase, credential.deviceId,
             work.sourceId, OutboundAckEvent.PHONE_ACKED_SENT, null, 123L))
         val worker = androidx.work.testing.TestWorkerBuilder<PendingReportDrainWorker>(
@@ -94,6 +94,55 @@ class BridgeHistoryTest {
         assertTrue(context.storedCompletedOutboundVerdicts().isEmpty())
         assertEquals(Sms.MESSAGE_TYPE_SENT, provider.row!!.getAsInteger(Sms.TYPE))
         assertEquals(BridgeSourceClaim.EXISTING, context.claimBridgeSource(credential, work.sourceId))
+    }
+
+    @Test fun zeroUpdateRetainsExistingReceiptUntilRecoverySucceeds() = fixture { context, provider ->
+        assertEquals(BridgeSourceClaim.OWNED, context.claimBridgeSource(credential, work.sourceId))
+        assertNotNull(context.createBridgeReceipt(credential, work, work.recipient, 7))
+        assertTrue(context.storeCompletedOutboundVerdict(credential.endpointBase, credential.deviceId,
+            work.sourceId, OutboundAckEvent.PHONE_ACKED_SENT, null, 123L))
+        val worker = androidx.work.testing.TestWorkerBuilder<PendingReportDrainWorker>(
+            context, java.util.concurrent.Executor { it.run() }).build()
+        provider.zeroUpdate = true
+        assertEquals(androidx.work.ListenableWorker.Result.retry(), worker.doWork())
+        assertEquals(Sms.MESSAGE_TYPE_OUTBOX, provider.row!!.getAsInteger(Sms.TYPE))
+        assertEquals(1, context.storedCompletedOutboundVerdicts().size)
+        provider.failReceiptRead = true
+        assertEquals(androidx.work.ListenableWorker.Result.retry(), worker.doWork())
+        assertEquals(1, context.storedCompletedOutboundVerdicts().size)
+        provider.failReceiptRead = false
+        provider.zeroUpdate = false
+        assertEquals(androidx.work.ListenableWorker.Result.success(), worker.doWork())
+        assertEquals(Sms.MESSAGE_TYPE_SENT, provider.row!!.getAsInteger(Sms.TYPE))
+        assertTrue(context.storedCompletedOutboundVerdicts().isEmpty())
+    }
+
+    @Test fun verifiedDeletedReceiptSettlesWithoutRecreatingHistory() = fixture { context, provider ->
+        assertEquals(BridgeSourceClaim.OWNED, context.claimBridgeSource(credential, work.sourceId))
+        assertNotNull(context.createBridgeReceipt(credential, work, work.recipient, 7))
+        assertTrue(context.storeCompletedOutboundVerdict(credential.endpointBase, credential.deviceId,
+            work.sourceId, OutboundAckEvent.PHONE_ACKED_SENT, null, 123L))
+        provider.row = null
+        val worker = androidx.work.testing.TestWorkerBuilder<PendingReportDrainWorker>(
+            context, java.util.concurrent.Executor { it.run() }).build()
+        assertEquals(androidx.work.ListenableWorker.Result.success(), worker.doWork())
+        assertTrue(context.storedCompletedOutboundVerdicts().isEmpty())
+        assertNull(provider.row)
+        assertEquals(1, provider.inserts)
+        assertEquals(BridgeSourceClaim.EXISTING, context.claimBridgeSource(credential, work.sourceId))
+    }
+
+    @Test fun changedDefaultAfterReceiptPreventsRadioHandoff() = fixture { context, provider ->
+        var snapshot = BridgeSubscriptionSnapshot(7, setOf(7, 8))
+        val selection = BridgeSubscriptionSelection.capture { snapshot }!!
+        assertEquals(BridgeSourceClaim.OWNED, context.claimBridgeSource(credential, work.sourceId))
+        assertNotNull(context.createBridgeReceipt(credential, work, work.recipient, selection.subscriptionId))
+        assertEquals(7, provider.row!!.getAsInteger(Sms.SUBSCRIPTION_ID))
+        snapshot = BridgeSubscriptionSnapshot(8, setOf(7, 8))
+        var submissions = 0
+        assertFalse(selection.dispatchIfCurrent { submissions++ })
+        assertEquals(0, submissions)
+        assertEquals(7, provider.row!!.getAsInteger(Sms.SUBSCRIPTION_ID))
     }
 
     private fun fixture(block: (ReceiptContext, SyntheticProvider) -> Unit) {
@@ -115,6 +164,8 @@ class BridgeHistoryTest {
         var inserts = 0
         var failInsert = false
         var failUpdate = false
+        var zeroUpdate = false
+        var failReceiptRead = false
         override fun onCreate() = true
         override fun getType(uri: Uri): String? = null
         override fun insert(uri: Uri, values: ContentValues?): Uri? {
@@ -125,12 +176,14 @@ class BridgeHistoryTest {
         }
         override fun update(uri: Uri, values: ContentValues?, selection: String?, selectionArgs: Array<out String>?): Int {
             if (failUpdate) error("synthetic provider unavailable")
+            if (zeroUpdate || row == null) return 0
             row!!.putAll(values)
             return 1
         }
         override fun delete(uri: Uri, selection: String?, selectionArgs: Array<out String>?) = 0
         override fun query(uri: Uri, projection: Array<out String>?, selection: String?, selectionArgs: Array<out String>?, sortOrder: String?): Cursor {
             if (uri.path?.contains("threadID") == true) return MatrixCursor(arrayOf("_id")).apply { addRow(arrayOf(17L)) }
+            if (failReceiptRead) error("synthetic query refusal")
             val columns = projection ?: arrayOf(Sms._ID)
             return MatrixCursor(columns).apply { row?.let { value -> addRow(columns.map { value.get(it) }.toTypedArray()) } }
         }
