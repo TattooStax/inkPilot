@@ -17,3 +17,6 @@ scripts/run-inkpilot-test-class.sh "$serial" org.fossify.messages.inkpilot.smoke
 # Model-free, disposable provider/UI regressions run after the clean-install baseline.
 scripts/run-inkpilot-test-class.sh "$serial" org.fossify.messages.inkpilot.smoke.InShellThreadTest
 scripts/run-inkpilot-test-class.sh "$serial" org.fossify.messages.inkpilot.smoke.ThreadReviewRegressionTest
+scripts/run-inkpilot-test-class.sh "$serial" org.fossify.messages.inkpilot.smoke.InShellComposerTest
+scripts/run-inkpilot-test-class.sh "$serial" org.fossify.messages.inkpilot.studio.StudioImageLinksTest
+scripts/run-inkpilot-test-class.sh "$serial" org.fossify.messages.inkpilot.studio.StudioImageImportUiTest
