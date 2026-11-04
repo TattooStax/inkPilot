@@ -1,5 +1,6 @@
 package org.fossify.messages.receivers
 
+import org.fossify.messages.messaging.recordScheduledCallback
 import android.app.Activity
 import android.content.ContentValues
 import android.content.Context
@@ -46,7 +47,7 @@ class MmsSentReceiver : SendStatusReceiver() {
         }
 
         // In case of resent message, delete original to prevent duplication
-        if (originalResentMessageId != -1L) {
+        if (originalResentMessageId != -1L && receiverResultCode == Activity.RESULT_OK) {
             context.deleteMessage(originalResentMessageId, true)
         }
 
@@ -57,6 +58,7 @@ class MmsSentReceiver : SendStatusReceiver() {
     }
 
     override fun updateAppDatabase(context: Context, intent: Intent, receiverResultCode: Int) {
+        context.recordScheduledCallback(intent, receiverResultCode == Activity.RESULT_OK)
         refreshMessages()
         refreshConversations()
     }

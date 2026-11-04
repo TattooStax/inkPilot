@@ -25,21 +25,25 @@ internal fun SQLiteDatabase.recordStudioSendPart(draftId: String, partIndex: Int
             if (!it.moveToFirst()) return@transaction null
             it.getInt(0)
         }
-        if (claim.status != SendStatus.SENDING) return@transaction claim.status
+        if (claim.status != SendStatus.SENDING && claim.status != SendStatus.UNKNOWN) return@transaction claim.status
         if (previous == 0) {
             update("send_parts", ContentValues().apply {
                 put("outcome", if (success) 1 else 2)
                 if (error != null) put("error", error)
             }, "draft_id = ? AND part_index = ? AND outcome = 0", arrayOf(draftId, partIndex.toString()))
         }
+        // Keep the held send pending until all carrier part callbacks arrive.
+        // A mixed completed set is UNKNOWN and cannot be automatically replayed.
         var waiting = false
         var failure: String? = null
         var succeeded = false
         rawQuery("SELECT outcome, error FROM send_parts WHERE draft_id = ? ORDER BY part_index", arrayOf(draftId)).use {
             while (it.moveToNext()) {
-                if (it.getInt(0) == 0) waiting = true
-                if (it.getInt(0) == 1) succeeded = true
-                if (it.getInt(0) == 2) failure = if (it.isNull(1)) "Carrier rejected a message part" else it.getString(1)
+                when (it.getInt(0)) {
+                    0 -> waiting = true
+                    1 -> succeeded = true
+                    2 -> failure = if (it.isNull(1)) "Carrier rejected a message part" else it.getString(1)
+                }
             }
         }
         val status = when {
@@ -49,7 +53,7 @@ internal fun SQLiteDatabase.recordStudioSendPart(draftId: String, partIndex: Int
             else -> SendStatus.SENT
         }
         if (status != SendStatus.SENDING) {
-            update("held_drafts", ContentValues().apply { put("state", status.name) }, "draft_id = ? AND state = 'SENDING'", arrayOf(draftId))
+            update("held_drafts", ContentValues().apply { put("state", status.name) }, "draft_id = ? AND state IN ('SENDING', 'UNKNOWN')", arrayOf(draftId))
             if (failure != null) update("send_claims", ContentValues().apply { put("error", failure) }, "draft_id = ?", arrayOf(draftId))
         }
         status

@@ -1,5 +1,6 @@
 package org.fossify.messages.receivers
 
+import org.fossify.messages.messaging.recordScheduledCallback
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
@@ -41,6 +42,7 @@ class SmsStatusSentReceiver : SendStatusReceiver() {
     }
 
     override fun updateAppDatabase(context: Context, intent: Intent, receiverResultCode: Int) {
+        context.recordScheduledCallback(intent, receiverResultCode == Activity.RESULT_OK)
         val messageUri = intent.data
         if (messageUri != null) {
             val messageId = messageUri.lastPathSegment?.toLong() ?: 0L

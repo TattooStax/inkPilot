@@ -45,6 +45,7 @@ class StudioSendPartsTest : StudioDatabaseTestBase() {
         reopen()
         assertEquals(SendStatus.UNKNOWN, repository.recordSendPart(id, 0, true))
         assertEquals("RADIO_OFF", repository.getSendClaim(id)?.error)
+        assertNull(repository.claimDraftForSend(id, "retry", "retry", 3))
     }
 
     @Test

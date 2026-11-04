@@ -21,7 +21,8 @@ class SmsSender(val app: Application) {
     // This should be called from a RequestWriter queue thread
     fun sendMessage(
         subId: Int, destination: String, body: String, serviceCenter: String?,
-        requireDeliveryReport: Boolean, messageUri: Uri
+        requireDeliveryReport: Boolean, messageUri: Uri,
+        scheduledCallback: ScheduledCallback? = null
     ) {
         var dest = destination
         if (body.isEmpty()) {
@@ -43,7 +44,7 @@ class SmsSender(val app: Application) {
         }
         // Actually send the sms
         sendInternal(
-            subId, dest, messages, serviceCenter, requireDeliveryReport, messageUri
+            subId, dest, messages, serviceCenter, requireDeliveryReport, messageUri, scheduledCallback
         )
     }
 
@@ -51,7 +52,8 @@ class SmsSender(val app: Application) {
     private fun sendInternal(
         subId: Int, dest: String,
         messages: ArrayList<String>, serviceCenter: String?,
-        requireDeliveryReport: Boolean, messageUri: Uri
+        requireDeliveryReport: Boolean, messageUri: Uri,
+        scheduledCallback: ScheduledCallback? = null
     ) {
         val smsManager = getSmsManager(subId)
         val messageCount = messages.size
@@ -82,7 +84,7 @@ class SmsSender(val app: Application) {
                 PendingIntent.getBroadcast(
                     app,
                     partId,
-                    getSendStatusIntent(messageUri, subId),
+                    getSendStatusIntent(messageUri, subId).apply { scheduledCallback?.attach(this, i) },
                     flags
                 )
             )

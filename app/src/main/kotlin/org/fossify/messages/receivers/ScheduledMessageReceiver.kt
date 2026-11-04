@@ -1,23 +1,14 @@
 package org.fossify.messages.receivers
 
-import org.fossify.messages.messaging.key
+import org.fossify.messages.messaging.scheduledKey
+import org.fossify.messages.messaging.dispatchScheduled
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import android.os.Handler
-import android.os.Looper
 import android.os.PowerManager
-import org.fossify.commons.extensions.showErrorToast
 import org.fossify.commons.helpers.ensureBackgroundThread
-import org.fossify.messages.extensions.conversationsDB
-import org.fossify.messages.extensions.deleteScheduledMessage
-import org.fossify.messages.extensions.getAddresses
 import org.fossify.messages.extensions.messagesDB
-import org.fossify.messages.helpers.SCHEDULED_MESSAGE_ID
 import org.fossify.messages.helpers.THREAD_ID
-import org.fossify.messages.helpers.refreshConversations
-import org.fossify.messages.helpers.refreshMessages
-import org.fossify.messages.messaging.sendMessageCompat
 import kotlin.time.Duration.Companion.minutes
 
 class ScheduledMessageReceiver : BroadcastReceiver() {
@@ -46,34 +37,9 @@ class ScheduledMessageReceiver : BroadcastReceiver() {
     }
 
     private fun handleIntent(context: Context, intent: Intent) {
+        val key = intent.scheduledKey() ?: return // Legacy raw-ID alarms cannot authorize a send.
         val threadId = intent.getLongExtra(THREAD_ID, 0L)
-        val messageId = intent.getLongExtra(SCHEDULED_MESSAGE_ID, 0L)
-        val message = try {
-            context.messagesDB.getScheduledMessageWithId(threadId, messageId)
-        } catch (e: Exception) {
-            e.printStackTrace()
-            return
-        }
-
-        val addresses = message.participants.getAddresses()
-        val attachments = message.attachment?.attachments ?: emptyList()
-
-        try {
-            Handler(Looper.getMainLooper()).post {
-                context.sendMessageCompat(message.body, addresses, message.subscriptionId, attachments)
-            }
-
-            // delete temporary conversation and message as it's already persisted to the telephony db now
-            context.deleteScheduledMessage(message.key())
-            context.conversationsDB.deleteThreadId(messageId)
-            refreshMessages()
-            refreshConversations()
-        } catch (e: Exception) {
-            context.showErrorToast(e)
-        } catch (e: Error) {
-            context.showErrorToast(
-                e.localizedMessage ?: context.getString(org.fossify.commons.R.string.unknown_error_occurred)
-            )
-        }
+        val message = context.messagesDB.get(key)?.takeIf { it.threadId == threadId } ?: return
+        context.dispatchScheduled(message)
     }
 }

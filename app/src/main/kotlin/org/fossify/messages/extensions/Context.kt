@@ -1326,24 +1326,13 @@ fun Context.updateScheduledMessagesThreadId(messages: List<Message>, newThreadId
 }
 
 fun Context.clearExpiredScheduledMessages(threadId: Long, messagesToDelete: List<Message>? = null) {
+    // Only a durable all-parts carrier confirmation permits automatic cleanup.
     val messages = messagesToDelete ?: messagesDB.getScheduledThreadMessages(threadId)
-    val cutoff = System.currentTimeMillis() - 1.minutes.inWholeMilliseconds
-
-    try {
-        messages.filter { it.isScheduled && it.millis() < cutoff }.forEach { msg ->
-            messagesDB.delete(msg.key())
-        }
-        if (messages.filterNot { it.isScheduled && it.millis() < cutoff }.isEmpty()) {
-            // delete empty temporary thread
-            val conversation = conversationsDB.getConversationWithThreadId(threadId)
-            if (conversation != null && conversation.isScheduled) {
-                conversationsDB.deleteThreadId(threadId)
-            }
-        }
-    } catch (e: Exception) {
-        e.printStackTrace()
-        return
+    org.fossify.messages.messaging.ScheduledVerdicts(this).use { journal ->
+        messages.filter { it.isScheduled && journal.state(it.key()) == "CONFIRMED" }
+            .forEach { messagesDB.delete(it.key()) }
     }
+
 }
 
 fun Context.rescheduleAllScheduledMessages() {

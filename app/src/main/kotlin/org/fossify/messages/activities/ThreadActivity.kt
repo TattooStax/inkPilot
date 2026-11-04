@@ -741,7 +741,7 @@ class ThreadActivity : SimpleActivity() {
             val messageId = message.id
             if (message.isScheduled) {
                 deleteScheduledMessage(message.key())
-                cancelScheduleSendPendingIntent(messageId)
+                cancelScheduleSendPendingIntent(message.key())
             } else {
                 if (toRecycleBin) {
                     moveMessageToRecycleBin(message.key())
@@ -1932,7 +1932,7 @@ class ThreadActivity : SimpleActivity() {
         }
         ensureBackgroundThread {
             deleteScheduledMessage(key)
-            cancelScheduleSendPendingIntent(key.id)
+            cancelScheduleSendPendingIntent(key)
             refreshMessages()
         }
     }

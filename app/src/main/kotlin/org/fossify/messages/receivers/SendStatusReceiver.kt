@@ -14,9 +14,12 @@ abstract class SendStatusReceiver : BroadcastReceiver() {
 
     override fun onReceive(context: Context, intent: Intent) {
         val resultCode = resultCode
+        val pending = goAsync()
         ensureBackgroundThread {
-            updateAndroidDatabase(context, intent, resultCode)
-            updateAppDatabase(context, intent, resultCode)
+            try {
+                updateAppDatabase(context, intent, resultCode)
+                updateAndroidDatabase(context, intent, resultCode)
+            } finally { pending.finish() }
         }
     }
 
