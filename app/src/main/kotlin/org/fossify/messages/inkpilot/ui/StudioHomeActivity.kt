@@ -36,8 +36,9 @@ class StudioHomeActivity : AppCompatActivity() {
     private lateinit var heading: TextView
     private lateinit var agent: AgentPanel
     private lateinit var studio: StudioPanels
-    private var tab = StudioTab.SMS
-    private var screen = "tab"
+    private lateinit var navigator: StudioNavigator
+    private lateinit var panels: StudioCanvasState
+    private val tab get() = navigator.selectedTab
     private var smsObserver: SmsRefreshObserver? = null
     private val appLock by lazy { StudioAppLock(this) }
 
@@ -49,19 +50,24 @@ class StudioHomeActivity : AppCompatActivity() {
             isAppearanceLightStatusBars = true
             isAppearanceLightNavigationBars = true
         }
-        tab = StudioTab.entries.find { it.name == savedInstanceState?.getString("tab") } ?: StudioTab.SMS
-        screen = savedInstanceState?.getString("screen")
-            ?: if (intent.getStringExtra("inkpilot_panel") == "drafts") "drafts" else "tab"
+        navigator = StudioNavigator(savedInstanceState)
+        panels = StudioCanvasState(savedInstanceState?.getBundle("studio.panels") ?: Bundle())
+        if (savedInstanceState == null && intent.getStringExtra("inkpilot_panel") == "drafts") {
+            navigator.open(StudioRoute.Auxiliary("drafts"))
+        }
         repository = StudioRepository(applicationContext)
         work = StudioWork(this, executor)
-        agent = AgentPanel(this, work, ::render, savedInstanceState?.getString("soul_draft"))
+        agent = AgentPanel(this, work, ::refreshPanels, savedInstanceState?.getString("soul_draft"))
         studio = StudioPanels(this, executor, { StudioUi.error(this, it) }, repository)
         buildFrame()
         appLaunched(BuildConfig.APPLICATION_ID)
-        smsObserver = SmsRefreshObserver(this) { if (screen == "tab" && tab == StudioTab.SMS) render() }
+        smsObserver = SmsRefreshObserver(this) {
+            panels.invalidate(StudioRoute.Tab(StudioTab.SMS))
+            if (navigator.current == StudioRoute.Tab(StudioTab.SMS)) render()
+        }
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
-                if (screen != "tab") { screen = "tab"; render() }
+                if (navigator.pop()) { render() }
                 else { appLockManager.lock(); finish() }
             }
         })
@@ -97,29 +103,43 @@ class StudioHomeActivity : AppCompatActivity() {
 
     private fun render() {
         if (isDestroyed || isFinishing) return
-        canvas.removeAllViews()
-        if (appLockManager.isLocked()) return
+        if (appLockManager.isLocked()) { canvas.removeAllViews(); return }
+        val route = navigator.current
         val messages = MessagePanel(this, work, ::setupSms) { openAgent("drafts") }
-        val view = when (screen) {
-            "drafts" -> DraftPanel(this, repository, work, ::render).view()
-            "soul" -> agent.soul()
-            "model" -> agent.model()
+        val view = panels.view(route) { when (route) {
+            StudioRoute.Auxiliary("drafts") -> DraftPanel(this, repository, work, ::refreshPanels).view()
+            StudioRoute.Soul -> agent.soul()
+            StudioRoute.Model -> agent.model()
             else -> when (tab) {
                 StudioTab.SMS -> messages.messages()
                 StudioTab.PHONE -> messages.phone()
-                StudioTab.CONTACTS -> ContactPanel(this, repository, work, ::render).view()
+                StudioTab.CONTACTS -> ContactPanel(this, repository, work, ::refreshPanels).view()
                 StudioTab.STUDIO -> studio.albums()
                 StudioTab.CALENDAR -> studio.calendar()
             }
         }
-        heading.text = if (screen == "tab") tab.label else "Assistant"
-        canvas.addView(view, FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT))
-        footer.removeAllViews()
-        footer.addView(navigation(this, tab) { chosen -> tab = chosen; screen = "tab"; render() },
-            LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
+        }
+        heading.text = if (route is StudioRoute.Tab) tab.label else "Assistant"
+        if (canvas.getChildAt(0) !== view) {
+            canvas.removeAllViews()
+            canvas.addView(view, FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT))
+        }
+        if (footer.tag != tab) {
+            footer.removeAllViews()
+            footer.addView(navigation(this, tab) { chosen -> navigator.open(StudioRoute.Tab(chosen)); render() },
+                LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
+            footer.tag = tab
+        }
     }
 
-    private fun openAgent(value: String) { screen = value; render() }
+    private fun openAgent(value: String) {
+        navigator.open(when (value) {
+            "soul" -> StudioRoute.Soul
+            "model" -> StudioRoute.Model
+            else -> StudioRoute.Auxiliary(value)
+        })
+        render()
+    }
 
     private fun setupSms() {
         if (!org.fossify.messages.helpers.SmsRole.isHeld(this)) {
@@ -139,12 +159,12 @@ class StudioHomeActivity : AppCompatActivity() {
         val permissions = mutableListOf(Manifest.permission.READ_SMS, Manifest.permission.SEND_SMS, Manifest.permission.READ_CONTACTS)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) permissions += Manifest.permission.POST_NOTIFICATIONS
         val needed = permissions.filter { ContextCompat.checkSelfPermission(this, it) != PackageManager.PERMISSION_GRANTED }
-        if (needed.isNotEmpty()) requestPermissions(needed.toTypedArray(), SMS_ROLE_REQUEST) else render()
+        if (needed.isNotEmpty()) requestPermissions(needed.toTypedArray(), SMS_ROLE_REQUEST) else refreshPanels()
     }
 
     override fun onResume() {
         super.onResume()
-        if (appLock.onResume()) { render(); smsObserver?.start() }
+        if (appLock.onResume()) { refreshPanels(); smsObserver?.start() }
         else { canvas.removeAllViews(); smsObserver?.stop() }
     }
     override fun onPause() { smsObserver?.stop(); super.onPause() }
@@ -154,7 +174,8 @@ class StudioHomeActivity : AppCompatActivity() {
         if (intent.getStringExtra("inkpilot_panel") == "drafts") openAgent("drafts")
     }
     override fun onSaveInstanceState(outState: Bundle) {
-        outState.putString("tab", tab.name); outState.putString("screen", screen)
+        navigator.save(outState)
+        outState.putBundle("studio.panels", panels.save())
         agent.soulDraft?.let { outState.putString("soul_draft", it) }
         super.onSaveInstanceState(outState)
     }
@@ -165,6 +186,13 @@ class StudioHomeActivity : AppCompatActivity() {
     }
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        refreshPanels()
+        if (lifecycle.currentState.isAtLeast(androidx.lifecycle.Lifecycle.State.RESUMED) && !appLockManager.isLocked()) smsObserver?.start()
+    }
+    private fun refreshPanels() {
+        // External activities may change provider/repository data. Preserve hierarchy while reloading.
+        panels.save()
+        panels.clear()
         render()
     }
     override fun onDestroy() {
