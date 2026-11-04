@@ -42,6 +42,27 @@ The Actions artifact contains instrumentation output, screenshots,
 model hash, local-loop evidence, and virtual-send evidence. A missing
 model, failed test, crash, or skipped required test fails the gate.
 
+## Model-family qualification gate
+
+`scripts/inkpilot-model-benchmark.sh` uses an existing, digest-qualified
+LFM3 text GGUF and the pinned native engine with the production 2,048/256
+token, 800-character and 120-second limits. It runs 120 synthetic studio
+cases per variant, records P50/P95 generation time and peak host RSS, and
+flags booking, price, image, medical, cross-contact, recipient, tool and
+truncation failures. The raw synthetic replies stay outside the repository.
+The report contains hashes and case IDs for staff adjudication; a mechanical
+zero-flag result is never a beta pass by itself.
+
+Run both available text quantizations separately. A missing or unqualified
+weight is `UNTESTED`. The 4 GB target remains unmeasured. On the intended
+8 GB OnePlus, measure at least 20 consecutive offline turns, queue-to-held
+P95, peak RSS, battery and thermal state, and have staff score the replies.
+The provisional bar is at least 90% acceptable routine drafts, at most
+60 seconds P95 queue-to-held, and zero unsafe actions. Source-only and
+host-only results do not satisfy the physical gate. See the dated
+`LFM3-MODEL-FAMILY-BENCHMARK-2026-11-04.md` pilot and the qualification
+report generated for the exact model hash.
+
 ## Physical phone checklist
 
 Use the intended studio phone and a separate receiving phone:
