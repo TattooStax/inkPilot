@@ -10,6 +10,8 @@ on:
       - 'gradle/**'
       - '*gradle*'
       - 'scripts/inkpilot-device-*'
+      - 'scripts/run-inkpilot-test-class.sh'
+      - 'scripts/test-run-inkpilot-test-class.py'
       - '.github/workflows/inkpilot-device.yml'
   pull_request:
     branches: [main]
@@ -23,6 +25,59 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  shell-baseline:
+    # Independent of the model download and long inference proof below.
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    env:
+      CMAKE_BUILD_PARALLEL_LEVEL: '2'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify exact-class runner contract without a device
+        run: python3 scripts/test-run-inkpilot-test-class.py
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
+          log-accepted-android-sdk-licenses: false
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Build model-free baseline APKs
+        run: >-
+          ./gradlew :app:assembleFossDebug :app:assembleFossDebugAndroidTest
+          --console=plain --no-daemon --max-workers=2
+          -Dorg.gradle.jvmargs=-Xmx3g -PinkpilotAbi=x86_64
+      - name: Enable emulator acceleration
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: First-launch preservation then inherited UI baseline
+        uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2
+        with:
+          api-level: 35
+          arch: x86_64
+          target: google_apis
+          ram-size: 2048M
+          disk-size: 2048M
+          emulator-boot-timeout: 300
+          disable-animations: true
+          emulator-options: -no-window -no-snapshot -noaudio -no-boot-anim -gpu swiftshader_indirect -camera-back none
+          script: |
+            shopt -s nullglob; apks=(app/build/outputs/apk/foss/debug/*.apk); test "${#apks[@]}" -eq 1; adb -s emulator-5554 install -r "${apks[0]}"
+            adb -s emulator-5554 shell cmd role add-role-holder --user 0 android.app.role.SMS app.inkpilot.android.debug
+            for permission in READ_SMS SEND_SMS RECEIVE_SMS READ_CONTACTS READ_PHONE_STATE POST_NOTIFICATIONS; do adb -s emulator-5554 shell pm grant app.inkpilot.android.debug "android.permission.$permission"; done
+            scripts/run-inkpilot-test-class.sh emulator-5554 org.fossify.messages.inkpilot.data.LegacyFirstLaunchTest
+            scripts/run-inkpilot-test-class.sh emulator-5554 org.fossify.messages.inkpilot.smoke.ShellBaselineTest
+      - name: Upload redacted baseline verdicts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: inkPilot-shell-baseline
+          path: app/build/test-class-evidence/
+          if-no-files-found: warn
   local-loop:
     runs-on: ubuntu-latest
     timeout-minutes: 45
