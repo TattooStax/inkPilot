@@ -71,7 +71,11 @@ internal fun SQLiteDatabase.pendingStudioRequests(limit: Int): List<DraftRequest
             SELECT e.event_id, e.thread_id, e.contact_id, c.revision
             FROM studio_contacts c JOIN inbound_events e ON e.event_id = c.latest_event_id
             WHERE c.paused = 0 AND (SELECT drafting_enabled FROM agent_settings WHERE id = 1) = 1 AND NOT EXISTS (
-                SELECT 1 FROM held_drafts d WHERE d.event_id = e.event_id AND d.kind = ?
+                SELECT 1 FROM held_drafts d WHERE d.event_id = e.event_id AND d.kind = ? AND (d.source_revision = c.revision OR NOT EXISTS (
+                    SELECT 1 FROM draft_regenerations r WHERE r.event_id = e.event_id AND r.source_revision = c.revision
+                ))
+            ) AND NOT EXISTS (
+                SELECT 1 FROM send_claims s JOIN held_drafts h ON h.draft_id = s.draft_id WHERE h.event_id = e.event_id
             ) AND NOT EXISTS (
                 SELECT 1 FROM draft_attempts a WHERE a.event_id = e.event_id AND a.source_revision = c.revision
             ) ORDER BY e.received_at ASC, e.event_id LIMIT ?

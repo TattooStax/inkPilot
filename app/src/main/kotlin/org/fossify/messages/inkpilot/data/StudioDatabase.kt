@@ -7,7 +7,7 @@ import android.database.sqlite.SQLiteOpenHelper
 import org.fossify.messages.inkpilot.studio.StudioFeatureSchema
 
 /** Business records are never placed in the inherited, destructively rebuildable SMS cache. */
-internal class StudioDatabase(context: Context, name: String) : SQLiteOpenHelper(context, name, null, 1) {
+internal class StudioDatabase(context: Context, name: String) : SQLiteOpenHelper(context, name, null, 2) {
     init {
         setWriteAheadLoggingEnabled(true)
     }
@@ -67,7 +67,7 @@ internal class StudioDatabase(context: Context, name: String) : SQLiteOpenHelper
                 body TEXT NOT NULL,
                 state TEXT NOT NULL DEFAULT 'HELD',
                 created_at INTEGER NOT NULL,
-                UNIQUE(event_id, kind)
+                UNIQUE(event_id, kind, source_revision)
             )
         """.trimIndent())
         db.execSQL("CREATE INDEX held_state_created ON held_drafts(state, created_at)")
@@ -92,10 +92,12 @@ internal class StudioDatabase(context: Context, name: String) : SQLiteOpenHelper
             )
         """.trimIndent())
         StudioFeatureSchema.create(db)
+        StudioRevisionSchema.create(db)
     }
 
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
-        throw SQLiteException("No studio migration from $oldVersion to $newVersion")
+        if (oldVersion == 1 && newVersion == 2) StudioRevisionSchema.upgrade(db)
+        else throw SQLiteException("No studio migration from $oldVersion to $newVersion")
     }
 
     companion object { private val openLock = Any() }

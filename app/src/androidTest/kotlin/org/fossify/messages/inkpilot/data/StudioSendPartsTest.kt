@@ -15,6 +15,17 @@ class StudioSendPartsTest : StudioDatabaseTestBase() {
     }
 
     @Test
+    fun everyRejectedPartProducesFailedOnlyAfterLastVerdict() {
+        val id = sending(2)
+        assertEquals(SendStatus.SENDING, repository.recordSendPart(id, 1, false, "RADIO_OFF"))
+        reopen()
+        assertEquals(SendStatus.FAILED, repository.recordSendPart(id, 0, false, "RADIO_OFF"))
+        assertEquals(SendStatus.FAILED, repository.getSendClaim(id)?.status)
+        repository.clearDraftAttempts()
+        assertTrue(repository.pendingRequests().isEmpty())
+    }
+
+    @Test
     fun outOfOrderSuccessWaitsForEveryPartAndSurvivesReopen() {
         val id = sending(3)
         assertFalse(repository.prepareSendParts(id, 3))
@@ -28,11 +39,11 @@ class StudioSendPartsTest : StudioDatabaseTestBase() {
     }
 
     @Test
-    fun anyFailedPartPreventsLaterSuccessFromClaimingWholeMessageSent() {
+    fun mixedPartOutcomesWaitForEveryVerdictAndRequireManualReview() {
         val id = sending(2)
-        assertEquals(SendStatus.FAILED, repository.recordSendPart(id, 1, false, "RADIO_OFF"))
+        assertEquals(SendStatus.SENDING, repository.recordSendPart(id, 1, false, "RADIO_OFF"))
         reopen()
-        assertEquals(SendStatus.FAILED, repository.recordSendPart(id, 0, true))
+        assertEquals(SendStatus.UNKNOWN, repository.recordSendPart(id, 0, true))
         assertEquals("RADIO_OFF", repository.getSendClaim(id)?.error)
     }
 

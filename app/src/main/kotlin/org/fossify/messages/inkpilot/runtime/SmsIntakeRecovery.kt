@@ -15,14 +15,23 @@ object SmsIntakeRecovery {
     fun recover(context: Context): Unit = synchronized(checkpointLock) {
         val app = context.applicationContext
         if (!canReadInbox(app)) return@synchronized
-        val preferences = app.getSharedPreferences("inkpilot-intake-recovery", Context.MODE_PRIVATE)
-        val afterId = preferences.getLong("provider-id", 0).coerceAtLeast(0)
         @Suppress("DEPRECATION")
         val installedAt = app.packageManager.getPackageInfo(app.packageName, 0).firstInstallTime
-        val checkpoint = StudioRepository(app).use { scan(app, it, afterId, installedAt, 200) }
-        if (checkpoint != afterId) {
-            check(preferences.edit().putLong("provider-id", checkpoint).commit()) { "Could not save SMS recovery checkpoint" }
+        StudioRepository(app).use { repository ->
+            if (recoverPages(app, repository, installedAt)) enqueueContinuation(app)
         }
+    }
+
+    /** True means the bounded wake exhausted its page budget and needs durable continuation. */
+    internal fun recoverPages(context: Context, repository: StudioRepository, sinceMillis: Long, maxPages: Int = 10): Boolean {
+        require(maxPages in 1..10)
+        repeat(maxPages) {
+            val afterId = repository.intakeCheckpoint()
+            val checkpoint = scan(context, repository, afterId, sinceMillis, 200)
+            if (checkpoint == afterId) return false
+            repository.advanceIntakeCheckpoint(checkpoint)
+        }
+        return true
     }
 
     /** Returns the last committed or deliberately skipped row. Any storage failure aborts progress. */
@@ -60,6 +69,12 @@ object SmsIntakeRecovery {
             }
         }
         return checkpoint
+    }
+
+    internal fun enqueueContinuation(context: Context) {
+        androidx.work.WorkManager.getInstance(context).enqueue(
+            androidx.work.OneTimeWorkRequestBuilder<SmsIntakeRecoveryWorker>().build(),
+        )
     }
 
     private fun canReadInbox(context: Context): Boolean =

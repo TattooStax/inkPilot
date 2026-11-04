@@ -9,7 +9,7 @@ internal fun SQLiteDatabase.recordStudioDraftAttempt(eventId: String, sourceRevi
     return transaction {
         val source = studioSource(eventId) ?: return@transaction false
         if (source.revision != sourceRevision) return@transaction false
-        rawQuery("SELECT 1 FROM held_drafts WHERE event_id = ? LIMIT 1", arrayOf(eventId)).use {
+        rawQuery("SELECT 1 FROM held_drafts WHERE event_id = ? AND source_revision = ? LIMIT 1", arrayOf(eventId, sourceRevision.toString())).use {
             if (it.moveToFirst()) return@transaction false
         }
         insertWithOnConflict("draft_attempts", null, ContentValues().apply {

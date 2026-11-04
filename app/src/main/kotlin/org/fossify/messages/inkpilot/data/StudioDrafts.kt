@@ -10,7 +10,7 @@ import inkpilot.agent.HeldDraftWrite
 import java.util.UUID
 
 internal fun SQLiteDatabase.studioReceipt(key: DraftKey): HeldDraftReceipt? = rawQuery(
-    "SELECT draft_id, thread_id, contact_id, recipient, source_revision, body FROM held_drafts WHERE event_id = ? AND kind = ?",
+    "SELECT draft_id, thread_id, contact_id, recipient, source_revision, body FROM held_drafts WHERE event_id = ? AND kind = ? AND source_revision = (SELECT revision FROM studio_contacts WHERE id = held_drafts.contact_id)",
     arrayOf(key.eventId, key.kind.name),
 ).use {
     if (!it.moveToFirst()) null else HeldDraftReceipt(
@@ -31,6 +31,12 @@ internal fun SQLiteDatabase.holdStudioDraft(write: HeldDraftWrite): DraftStoreRe
                 DraftStoreResult.Held(it, DraftDisposition.ALREADY_HELD)
             } else DraftStoreResult.SourceChanged
         }
+        if (rawQuery("SELECT 1 FROM send_claims s JOIN held_drafts d ON d.draft_id = s.draft_id WHERE d.event_id = ?", arrayOf(write.key.eventId)).use { it.moveToFirst() }) return@transaction DraftStoreResult.SourceChanged
+        val historyNeedsAuthorization = rawQuery(
+            "SELECT 1 FROM held_drafts WHERE event_id = ? AND kind = ? AND NOT EXISTS (SELECT 1 FROM draft_regenerations WHERE event_id = ? AND source_revision = ?)",
+            arrayOf(write.key.eventId, write.key.kind.name, write.key.eventId, write.expectedRevision.toString()),
+        ).use { it.moveToFirst() }
+        if (historyNeedsAuthorization) return@transaction DraftStoreResult.SourceChanged
         val id = UUID.randomUUID().toString()
         insertOrThrow("held_drafts", null, ContentValues().apply {
             put("draft_id", id); put("event_id", write.key.eventId); put("kind", write.key.kind.name)

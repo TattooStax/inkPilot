@@ -24,10 +24,22 @@ object AgentRuntime {
         runPending(context)
     }
 
+    fun regenerate(context: Context, eventId: String, expectedRevision: Long): org.fossify.messages.inkpilot.data.DraftRegenerationOutcome {
+        val result = StudioRepository(context).use { it.regenerate(eventId, expectedRevision) }
+        if (result is org.fossify.messages.inkpilot.data.DraftRegenerationOutcome.Held) runPending(context)
+        return result
+    }
+
+    fun cancelPending(context: Context) { StudioRepository(context).use { it.cancelPending() } }
+
     fun reconcileHistory(context: Context) = SmsProviderHistory.reconcile(context)
 
     fun runPending(context: Context) {
-        SmsIntakeRecovery.recover(context)
+        runCatching { SmsIntakeRecovery.recover(context) }
+            .onFailure {
+                SmsIntakeRecovery.enqueueContinuation(context)
+                AgentSettings(context).recordStatus("Inbox recovery will retry. Existing drafts remain available.")
+            }
         if (!AgentSettings(context).enabled) return
         WorkManager.getInstance(context).enqueueUniqueWork(
             "inkpilot-local-drafts", ExistingWorkPolicy.APPEND_OR_REPLACE,

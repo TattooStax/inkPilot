@@ -34,15 +34,18 @@ internal fun SQLiteDatabase.recordStudioSendPart(draftId: String, partIndex: Int
         }
         var waiting = false
         var failure: String? = null
+        var succeeded = false
         rawQuery("SELECT outcome, error FROM send_parts WHERE draft_id = ? ORDER BY part_index", arrayOf(draftId)).use {
             while (it.moveToNext()) {
                 if (it.getInt(0) == 0) waiting = true
+                if (it.getInt(0) == 1) succeeded = true
                 if (it.getInt(0) == 2) failure = if (it.isNull(1)) "Carrier rejected a message part" else it.getString(1)
             }
         }
         val status = when {
-            failure != null -> SendStatus.FAILED
             waiting -> SendStatus.SENDING
+            failure != null && succeeded -> SendStatus.UNKNOWN
+            failure != null -> SendStatus.FAILED
             else -> SendStatus.SENT
         }
         if (status != SendStatus.SENDING) {

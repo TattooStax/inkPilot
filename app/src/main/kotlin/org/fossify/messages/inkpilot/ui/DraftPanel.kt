@@ -39,6 +39,12 @@ internal class DraftPanel(
                     })
                 }
                 if (draft.status == "HELD") {
+                    if (!draft.canReview) list.addView(StudioUi.button(activity, "Regenerate with current memory") {
+                        work.load({
+                            val source = repository.readSource(draft.eventId)
+                            source?.let { org.fossify.messages.inkpilot.runtime.AgentRuntime.regenerate(activity, it.eventId, it.revision) }
+                        }) { refresh() }
+                    })
                     if (draft.canReview) list.addView(StudioUi.button(activity, "Review draft") {
                         DraftReview(activity, work, refresh).show(draft)
                     }.apply { contentDescription = "Review draft" })

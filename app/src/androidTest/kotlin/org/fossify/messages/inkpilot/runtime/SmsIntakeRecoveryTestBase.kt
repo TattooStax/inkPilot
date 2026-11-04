@@ -56,6 +56,11 @@ abstract class SmsIntakeRecoveryTestBase {
         }
     }
 
+    protected fun reopenRepository() {
+        repository.close()
+        repository = StudioRepository(context, databaseName)
+    }
+
     protected fun insertInbox(address: String, body: String, date: Long = since, type: Int = Telephony.Sms.MESSAGE_TYPE_INBOX): Long {
         val thread = Telephony.Threads.getOrCreateThreadId(context, "+12025550991")
         val values = ContentValues().apply {

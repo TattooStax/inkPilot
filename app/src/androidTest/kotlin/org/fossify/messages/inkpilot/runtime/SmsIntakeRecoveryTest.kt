@@ -10,6 +10,24 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 class SmsIntakeRecoveryTest : SmsIntakeRecoveryTestBase() {
     @Test
+    fun moreThan200RowsResumeFromDurablePageAcrossRestart() {
+        var latest = afterId
+        repeat(405) { latest = insertInbox("+12025550991", "Synthetic page row $it") }
+        repository.advanceIntakeCheckpoint(afterId)
+        assertTrue(SmsIntakeRecovery.recoverPages(context, repository, since, maxPages = 1))
+        val firstPage = repository.intakeCheckpoint()
+        assertTrue(firstPage > afterId && firstPage < latest)
+        reopenRepository()
+        assertTrue(SmsIntakeRecovery.recoverPages(context, repository, since, maxPages = 1))
+        reopenRepository()
+        assertFalse(SmsIntakeRecovery.recoverPages(context, repository, since))
+        assertEquals(latest, repository.intakeCheckpoint())
+        assertEquals("sms:$latest", repository.contacts().single().latestEventId)
+        assertEquals("Synthetic page row 404", nativeBody(latest))
+        assertTrue(repository.heldDrafts().isEmpty())
+    }
+
+    @Test
     fun backfillAndReplayCommitIntakeWithoutChangingNativeHistory() {
         val body = "Synthetic recovery consultation"
         val id = insertInbox("+12025550991", body)
@@ -53,12 +71,12 @@ class SmsIntakeRecoveryTest : SmsIntakeRecoveryTestBase() {
     @Test
     fun actualDatabaseFailureAbortsCheckpointProgressAndLeavesNativeMessageIntact() {
         val id = insertInbox("+12025550991", "Retained after storage failure")
+        repository.advanceIntakeCheckpoint(afterId)
         repository.database.execSQL("DROP TABLE studio_contacts")
-        var checkpoint = afterId
         assertThrows(SQLiteException::class.java) {
-            checkpoint = SmsIntakeRecovery.scan(context, repository, afterId, since, 10)
+            SmsIntakeRecovery.recoverPages(context, repository, since)
         }
-        assertEquals(afterId, checkpoint)
+        assertEquals(afterId, repository.intakeCheckpoint())
         assertEquals("Retained after storage failure", nativeBody(id))
     }
 }
