@@ -18,8 +18,19 @@ Membership removal leaves both provenance and the original intact.
 Contact reference navigation uses StudioRoute.ImageLinks, persisted through the
 existing route codec and rendered in the host. StudioPanels exposes the same
 paged gallery for a thread ID, and its internal MMS import hook accepts a typed
-StudioImageLink. Task 9's thread media controls must call this hook and open the
-typed route when integrated; this branch does not add a second thread UI.
+StudioImageLink. Each MMS image now has Save to Client References, which passes
+its typed key, thread ID and original Attachment through MessagePanel to the
+host. Staff explicitly select a canonical client; successful import invalidates
+relevant cached galleries and opens the linked route while still on that thread.
+Async completion preserves navigation if staff have moved elsewhere.
+
+Document picker results return to the StudioAlbumsPanel instance that launched
+them. Scoped gallery imports retain the contact/thread context and refresh that
+same view. Contact-only gallery imports need no thread; thread-only imports ask
+staff to select a client. These staff-selected files carry NULL source-message
+provenance, with no fabricated MMS key. MMS imports still require typed MMS
+origin. A unique expression index keeps nullable provenance links idempotent.
+Client References album matching respects the case-insensitive album identity.
 
 Validation:
 - App Kotlin and Android test Kotlin compilation passed with JDK 17 / SDK.
@@ -35,7 +46,13 @@ Validation:
   and rollback on invalid contact/origin.
 - Instrumentation tests are compiled, not executed: local emulator fails before
   boot. Hosted CI must run StudioImageLinksTest and StudioAlbumStorageTest.
-- No live MMS/customer data, phone role changes, deployment, merge or push.
+- StudioImageImportUiTest compiles: scoped picker result refreshes its owning
+  gallery and keeps contact/thread links; MMS image action carries original
+  Attachment/typed key/thread and is absent for scheduled MMS.
+- The source test also covers differently cased Client References album names.
+- No live MMS/customer data or physical-phone changes. An isolated Task9 merge
+  supports this UI integration; apply only the separate review fix commit after
+  integrating Tasks 9 and 14 in main. No push.
 
 Ratchet growth is deliberate for the v4 migration, link/source store, private-copy
 import, typed route and contact gallery action, with synthetic regression tests.

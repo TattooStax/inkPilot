@@ -107,7 +107,7 @@ class StudioHomeActivity : AppCompatActivity() {
         if (isDestroyed || isFinishing) return
         if (appLockManager.isLocked()) { canvas.removeAllViews(); return }
         val route = navigator.current
-        val messages = MessagePanel(this, work, ::setupSms, { openAgent("drafts") }, ::openRoute)
+        val messages = MessagePanel(this, work, ::setupSms, { openAgent("drafts") }, ::openRoute, importImage = ::importMmsImage)
         val view = panels.view(route) { when (route) {
             StudioRoute.Auxiliary("drafts") -> DraftPanel(this, repository, work, ::refreshPanels).view()
             is StudioRoute.Thread -> messages.thread(route.threadId)
@@ -142,6 +142,25 @@ class StudioHomeActivity : AppCompatActivity() {
             footer.addView(navigation(this, tab) { chosen -> navigator.open(StudioRoute.Tab(chosen)); render() },
                 LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
             footer.tag = tab
+        }
+    }
+
+    private fun importMmsImage(key: org.fossify.messages.messaging.MessageKey, threadId: Long,
+                               attachment: org.fossify.messages.models.Attachment) {
+        work.load(repository::contacts) { contacts ->
+            if (contacts.isEmpty()) { StudioUi.error(this, "Add a client before saving reference images."); return@load }
+            androidx.appcompat.app.AlertDialog.Builder(this).setTitle("Save reference for client")
+                .setItems(contacts.map { it.displayName.ifBlank { it.number } }.toTypedArray()) { _, index ->
+                    val contactId = contacts[index].id
+                    studio.importMmsOriginal(attachment.getUri(),
+                        org.fossify.messages.inkpilot.studio.StudioImageLink(contactId, key, threadId)) {
+                        val affected = listOf(StudioRoute.ImageLinks(contactId), StudioRoute.ImageLinks(threadId = threadId),
+                            StudioRoute.ImageLinks(contactId, threadId))
+                        affected.forEach(panels::invalidate)
+                        if (navigator.current == StudioRoute.Thread(threadId)) openRoute(StudioRoute.ImageLinks(contactId, threadId))
+                        else if (navigator.current in affected) render()
+                    }
+                }.setNegativeButton("Cancel", null).show()
         }
     }
 

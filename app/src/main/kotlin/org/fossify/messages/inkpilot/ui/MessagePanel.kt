@@ -16,6 +16,7 @@ internal class MessagePanel(
     private val open: (StudioRoute) -> Unit = {},
     private val threadFooter: ((Long) -> View)? = null,
     private val gateway: StudioConversations = ConversationGateway(activity.applicationContext),
+    private val importImage: (org.fossify.messages.messaging.MessageKey, Long, org.fossify.messages.models.Attachment) -> Unit = { _, _, _ -> },
 ) {
     fun messages(): View {
         val body = StudioUi.column(activity)
@@ -54,7 +55,8 @@ internal class MessagePanel(
     /** Task10 can supply a composer footer without replacing the shell or message list. */
     fun thread(threadId: Long): View {
         val body = StudioUi.column(activity)
-        val adapter = ThreadAdapter(activity)
+        body.addView(StudioUi.button(activity, "Client reference images") { open(StudioRoute.ImageLinks(threadId = threadId)) })
+        val adapter = ThreadAdapter(activity, importImage)
         val list = recycler().apply {
             this.adapter = adapter
             layoutManager = androidx.recyclerview.widget.LinearLayoutManager(activity).apply { reverseLayout = true }

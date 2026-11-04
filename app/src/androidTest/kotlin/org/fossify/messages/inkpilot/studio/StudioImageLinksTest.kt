@@ -33,6 +33,8 @@ class StudioImageLinksTest {
         }
         val uri = FileProvider.getUriForFile(context, context.packageName + ".provider", source)
         var store = StudioAlbumStore(repository)
+        val referenceAlbum = store.albums().single { it.name == "Client References" }
+        store.saveAlbum(referenceAlbum.id, "client references", "")
         val files = StudioImageFiles(context, store)
         repository.database.execSQL("INSERT INTO studio_staff(id,name) VALUES(1901,'Synthetic artist')")
         repository.database.execSQL("""INSERT INTO studio_calendar(id,title,kind,staff_id,starts_at,ends_at,zone_id,room)
@@ -58,6 +60,13 @@ class StudioImageLinksTest {
             assertEquals("MMS", it.getString(3)); assertEquals(41L, it.getLong(4))
         }
         assertTrue(store.linkedImages(threadId = 74).isEmpty())
+        val reopenedFiles = StudioImageFiles(context, store)
+        assertEquals(id, reopenedFiles.importReferenceOriginal(uri, StudioImageLink(contact.id, null, 101)))
+        assertEquals(id, reopenedFiles.importReferenceOriginal(uri, StudioImageLink(contact.id, null, 102)))
+        assertEquals(id, reopenedFiles.importReferenceOriginal(uri, StudioImageLink(contact.id, null, null)))
+        assertEquals(id, store.linkedImages(threadId = 101).single().id)
+        assertEquals(id, store.linkedImages(threadId = 102).single().id)
+        assertEquals(id, store.linkedImages(contactId = contact.id).single().id)
         assertTrue(store.linkedImages(threadId = 73, offset = 100).isEmpty())
         assertArrayEquals(bytes, original.readBytes())
         repository.database.rawQuery("SELECT ownership,byte_count,width,height FROM image_original_sources", null).use {

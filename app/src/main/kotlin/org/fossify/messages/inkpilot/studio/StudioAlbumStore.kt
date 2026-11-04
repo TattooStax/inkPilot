@@ -46,6 +46,8 @@ internal class StudioAlbumStore(private val repository: StudioRepository) {
         imageId
     }
 
+    fun contacts() = repository.contacts()
+
     fun originalForSource(uri: String): Long? = db.rawQuery(
         "SELECT image_id FROM image_original_sources WHERE source_uri=?", arrayOf(uri),
     ).use { if (it.moveToFirst()) it.getLong(0) else null }
@@ -54,7 +56,7 @@ internal class StudioAlbumStore(private val repository: StudioRepository) {
                         bytes: Long, width: Int, height: Int, link: StudioImageLink): Long = db.transaction {
         val existing = originalForSource(uri)
         val id = existing ?: run {
-            val album = albums().firstOrNull { it.name == "Client References" }?.id
+            val album = albums().firstOrNull { it.name.equals("Client References", ignoreCase = true) }?.id
                 ?: saveAlbum(null, "Client References", "")
             addOriginal(album, filename, name).also { imageId ->
                 db.execSQL("INSERT INTO image_original_sources VALUES(?,?,?,?,?,?, 'PRIVATE_COPY')",
@@ -66,18 +68,19 @@ internal class StudioAlbumStore(private val repository: StudioRepository) {
     }
 
     fun linkOriginal(imageId: Long, link: StudioImageLink) {
-        require(link.sourceMessageKey.origin == org.fossify.messages.messaging.MessageOrigin.MMS)
-        require(link.sourceMessageKey.id >= 0 && link.threadId >= 0)
+        require(link.sourceMessageKey == null || link.sourceMessageKey.origin == org.fossify.messages.messaging.MessageOrigin.MMS)
+        require(link.sourceMessageKey == null || link.threadId != null)
+        require((link.sourceMessageKey?.id ?: 0) >= 0 && (link.threadId ?: 0) >= 0)
         val values = ContentValues().apply {
             put("image_id", imageId); put("contact_id", link.contactId); put("project_id", link.projectId)
             put("staff_id", link.staffId); put("appointment_id", link.appointmentId)
-            put("source_origin", link.sourceMessageKey.origin.name); put("source_id", link.sourceMessageKey.id)
+            put("source_origin", link.sourceMessageKey?.origin?.name); put("source_id", link.sourceMessageKey?.id)
             put("thread_id", link.threadId)
         }
         db.transaction {
             val updated = db.update("image_links", values,
-                "image_id=? AND contact_id=? AND source_origin=? AND source_id=?",
-                arrayOf(imageId.toString(), link.contactId, link.sourceMessageKey.origin.name, link.sourceMessageKey.id.toString()))
+                "image_id=? AND contact_id=? AND source_origin IS ? AND source_id IS ? AND thread_id IS ?",
+                arrayOf(imageId.toString(), link.contactId, link.sourceMessageKey?.origin?.name, link.sourceMessageKey?.id?.toString(), link.threadId?.toString()))
             if (updated == 0) db.insertOrThrow("image_links", null, values)
         }
     }

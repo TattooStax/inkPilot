@@ -7,7 +7,9 @@ import androidx.recyclerview.widget.RecyclerView
 import org.fossify.messages.messaging.key
 import org.fossify.messages.models.Message
 
-internal class ThreadAdapter(private val activity: android.app.Activity) : RecyclerView.Adapter<ThreadAdapter.Row>(), StudioMessageRows {
+internal class ThreadAdapter(private val activity: android.app.Activity,
+    private val importImage: (org.fossify.messages.messaging.MessageKey, Long, org.fossify.messages.models.Attachment) -> Unit = { _, _, _ -> },
+) : RecyclerView.Adapter<ThreadAdapter.Row>(), StudioMessageRows {
     private val rows = mutableListOf<Message>()
     init { setHasStableIds(true); stateRestorationPolicy = StateRestorationPolicy.PREVENT_WHEN_EMPTY }
     class Row(val body: LinearLayout) : RecyclerView.ViewHolder(body)
@@ -39,6 +41,11 @@ internal class ThreadAdapter(private val activity: android.app.Activity) : Recyc
                 }
                 bubble.addView(image, LinearLayout.LayoutParams(StudioUi.dp(body, 240), StudioUi.dp(body, 180)))
                 com.bumptech.glide.Glide.with(activity).load(attachment.getUri()).into(image)
+                if (message.key().origin == org.fossify.messages.messaging.MessageOrigin.MMS) {
+                    bubble.addView(StudioUi.button(activity, "Save to Client References") {
+                        importImage(message.key(), message.threadId, attachment)
+                    })
+                }
             }
             bubble.addView(StudioUi.button(activity, attachment.filename.ifBlank { attachment.mimetype }) {
                 val intent = attachment.viewIntent()

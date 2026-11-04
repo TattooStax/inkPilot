@@ -16,9 +16,18 @@ internal class StudioImageFiles(private val context: Context, private val store:
 
     /** Own a private copy: future reads never depend on a transient provider URI grant. */
     fun importMmsOriginal(uri: Uri, link: StudioImageLink): Long = synchronized(importLock) {
-        require(link.sourceMessageKey.origin == org.fossify.messages.messaging.MessageOrigin.MMS)
-        store.originalForSource(uri.toString())?.let { id -> store.linkOriginal(id, link); return@synchronized id }
-        copyOriginal(uri, null, link)
+        require(link.sourceMessageKey?.origin == org.fossify.messages.messaging.MessageOrigin.MMS)
+        importLinkedOriginal(uri, link)
+    }
+
+    fun importReferenceOriginal(uri: Uri, link: StudioImageLink): Long = synchronized(importLock) {
+        require(link.sourceMessageKey == null)
+        importLinkedOriginal(uri, link)
+    }
+
+    private fun importLinkedOriginal(uri: Uri, link: StudioImageLink): Long {
+        store.originalForSource(uri.toString())?.let { id -> store.linkOriginal(id, link); return id }
+        return copyOriginal(uri, null, link)
     }
 
     private fun copyOriginal(uri: Uri, albumId: Long?, link: StudioImageLink?): Long {
