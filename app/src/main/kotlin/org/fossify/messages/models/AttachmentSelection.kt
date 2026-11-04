@@ -16,6 +16,7 @@ data class AttachmentSelection(
     val mimetype: String,
     val filename: String,
     var isPending: Boolean,
+    var isUnavailable: Boolean = false,
     val viewType: Int = getViewTypeForMimeType(mimetype)
 ) {
     companion object {

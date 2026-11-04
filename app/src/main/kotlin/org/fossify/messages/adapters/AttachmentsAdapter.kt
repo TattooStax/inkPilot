@@ -189,7 +189,7 @@ class AttachmentsAdapter(
 
                             null -> {
                                 activity.toast(R.string.compress_error)
-                                removeAttachment(attachment)
+                                showUnavailable(this, attachment)
                             }
 
                             else -> {
@@ -208,6 +208,16 @@ class AttachmentsAdapter(
                 loadMediaPreview(this, attachment)
             }
         }
+    }
+
+    private fun showUnavailable(binding: ItemAttachmentMediaPreviewBinding, attachment: AttachmentSelection) {
+        attachment.isPending = false
+        attachment.isUnavailable = true
+        binding.thumbnail.beGone()
+        binding.playIcon.beGone()
+        binding.compressionProgress.beGone()
+        binding.unavailableMessage.beVisible()
+        onReady()
     }
 
     private fun loadMediaPreview(binding: ItemAttachmentMediaPreviewBinding, attachment: AttachmentSelection) {
@@ -230,8 +240,7 @@ class AttachmentsAdapter(
                     target: Target<Drawable>,
                     isFirstResource: Boolean
                 ): Boolean {
-                    removeAttachment(attachment)
-                    activity.toast(org.fossify.commons.R.string.unknown_error_occurred)
+                    showUnavailable(binding, attachment)
                     return false
                 }
 
@@ -242,6 +251,8 @@ class AttachmentsAdapter(
                     d: DataSource,
                     i: Boolean
                 ): Boolean {
+                    attachment.isUnavailable = false
+                    binding.unavailableMessage.beGone()
                     binding.thumbnail.beVisible()
                     binding.playIcon.beVisibleIf(attachment.mimetype.isVideoMimeType())
                     binding.compressionProgress.beGone()

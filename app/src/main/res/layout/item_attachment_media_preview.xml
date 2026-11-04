@@ -36,6 +36,17 @@
             android:visibility="gone"
             tools:visibility="visible" />
 
+        <TextView
+            android:id="@+id/unavailable_message"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:padding="4dp"
+            android:text="@string/attachment_unavailable"
+            android:textColor="@android:color/white"
+            android:background="#CC000000"
+            android:visibility="gone" />
+
         <ProgressBar
             android:id="@+id/compression_progress"
             android:layout_width="@dimen/remove_attachment_size"
