@@ -19,6 +19,14 @@ collect() {
   adb exec-out screencap -p > "$evidence/last-screen.png" 2>/dev/null || true
   adb shell uiautomator dump /sdcard/inkpilot-test-ui.xml >/dev/null 2>&1 || true
   adb pull /sdcard/inkpilot-test-ui.xml "$evidence/last-ui.xml" >/dev/null 2>&1 || true
+  for artifact in local-loop.json worker-wakeup.json native-send.json batch-failure.json \
+    local-draft-review.png tab-sms.png tab-phone.png tab-contacts.png tab-studio.png tab-calendar.png; do
+    if adb exec-out run-as "$package" cat "files/device-test-evidence/$artifact" > "$evidence/$artifact.partial" 2>/dev/null; then
+      mv "$evidence/$artifact.partial" "$evidence/$artifact"
+    else
+      rm -f "$evidence/$artifact.partial"
+    fi
+  done
 }
 trap collect EXIT
 

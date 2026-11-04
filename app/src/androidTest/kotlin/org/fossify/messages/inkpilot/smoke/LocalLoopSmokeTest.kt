@@ -13,7 +13,6 @@ import org.fossify.messages.inkpilot.runtime.AgentSettings
 import org.fossify.messages.inkpilot.ui.StudioHomeActivity
 import org.json.JSONObject
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -60,11 +59,10 @@ class LocalLoopSmokeTest {
 
             val started = System.currentTimeMillis()
             AgentRuntime.processPending(context)
-            val receipt = SmokeViews.await("durable real-model held receipt", 180_000) {
-                repository.findHeldDraft(DraftKey(current.eventId))
+            val receipt = requireNotNull(repository.findHeldDraft(DraftKey(current.eventId))) {
+                "Local inference finished without a durable held receipt: ${AgentSettings(context).status}"
             }
             val elapsed = System.currentTimeMillis() - started
-            assertNotNull("Real inference must produce a durable held receipt", receipt)
             assertTrue(receipt.body.isNotBlank())
             assertTrue(receipt.body.length <= 800)
             assertEquals(source.recipient, receipt.recipient)

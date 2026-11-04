@@ -30,6 +30,13 @@ jobs:
       CMAKE_BUILD_PARALLEL_LEVEL: '2'
     steps:
       - uses: actions/checkout@v4
+      - name: Reclaim unused hosted runner toolchains
+        if: runner.environment == 'github-hosted'
+        run: |
+          if [[ "${RUNNER_ENVIRONMENT:-}" != github-hosted ]]; then exit 0; fi
+          df -h "$GITHUB_WORKSPACE"
+          sudo rm -rf -- /usr/share/dotnet /opt/ghc /usr/local/.ghcup /usr/local/share/boost /opt/hostedtoolcache/CodeQL
+          df -h "$GITHUB_WORKSPACE"
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -58,6 +65,15 @@ jobs:
           key: ${{ steps.native-cache.outputs.cache-primary-key }}
       - name: Download checksum-pinned local model
         run: scripts/inkpilot-device-model.sh "$RUNNER_TEMP/inkpilot-model.gguf"
+      - name: Verify emulator disk budget
+        run: |
+          mkdir -p app/build/device-test-evidence
+          df -h "$GITHUB_WORKSPACE" | tee app/build/device-test-evidence/runner-disk.txt
+          available=$(df --output=avail -B1 "$GITHUB_WORKSPACE" | tail -n 1)
+          if (( available < 10 * 1024 * 1024 * 1024 )); then
+            echo 'At least 10 GiB must remain for the system image, 4 GiB AVD, and runtime files.' >&2
+            exit 1
+          fi
       - name: Enable emulator acceleration
         run: |
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
@@ -71,6 +87,8 @@ jobs:
           target: google_apis
           ram-size: 4096M
           heap-size: 512M
+          disk-size: 4096M
+          emulator-boot-timeout: 300
           disable-animations: true
           emulator-options: -no-window -no-snapshot -noaudio -no-boot-anim -gpu swiftshader_indirect -camera-back none
           script: scripts/inkpilot-device-run.sh "$RUNNER_TEMP/inkpilot-model.gguf"
