@@ -21,8 +21,8 @@ internal class StudioToolReads(
     override fun contact(contactId: String): List<ToolRecord> {
         require(contactId == scope.contactId)
         val contact = repository.contact(contactId) ?: return emptyList()
-        // Phone numbers and recipient routing are deliberately absent.
-        return listOf(record("studio_contact:${contact.id}", contact.displayName.take(160) + "\n" + contact.memory.take(1800)))
+        // Routing fields and number-as-name fallbacks are deliberately absent.
+        return listOf(record("studio_contact:${contact.id}", toolContactText(contact)))
     }
 
     override fun thread(contactId: String, threadId: String, limit: Int): List<ToolRecord> {
