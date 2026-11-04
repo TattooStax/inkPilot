@@ -1008,15 +1008,6 @@ fun Context.deleteMessage(id: Long, isMMS: Boolean) {
     }
 }
 
-fun Context.deleteScheduledMessage(key: MessageKey) {
-    try {
-        require(key.origin == MessageOrigin.SCHEDULED_SMS || key.origin == MessageOrigin.SCHEDULED_MMS)
-        messagesDB.delete(key)
-    } catch (e: Exception) {
-        showErrorToast(e)
-    }
-}
-
 fun Context.markMessageRead(id: Long, isMMS: Boolean) {
     val uri = if (isMMS) Mms.CONTENT_URI else Sms.CONTENT_URI
     val contentValues = ContentValues().apply {

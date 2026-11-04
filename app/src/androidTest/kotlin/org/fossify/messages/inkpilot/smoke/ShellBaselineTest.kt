@@ -26,6 +26,8 @@ import org.fossify.messages.extensions.draftsDB
 import org.fossify.messages.extensions.messagesDB
 import org.fossify.messages.helpers.THREAD_ID
 import org.fossify.messages.inkpilot.ui.StudioHomeActivity
+import org.fossify.messages.messaging.MessageKey
+import org.fossify.messages.messaging.MessageOrigin
 import org.junit.After
 import org.junit.Assert.*
 import org.junit.Before
@@ -112,7 +114,7 @@ class ShellBaselineTest {
     fun removeOnlyOwnedSyntheticRows() {
         fixtureUri?.let {
             context.contentResolver.delete(it, null, null)
-            context.messagesDB.delete(ContentUris.parseId(it))
+            context.messagesDB.delete(MessageKey(MessageOrigin.SMS, ContentUris.parseId(it)))
             context.draftsDB.delete(fixtureThread)
             context.conversationsDB.deleteThreadId(fixtureThread)
         }
