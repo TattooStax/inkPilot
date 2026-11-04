@@ -19,6 +19,7 @@ internal class ContactPanel(
     private val repository: StudioRepository,
     private val work: StudioWork,
     private val refresh: () -> Unit,
+    private val openImages: (String) -> Unit = {},
 ) {
     fun view(): View {
         val body = StudioUi.column(activity)
@@ -95,6 +96,7 @@ internal class ContactPanel(
         })
         AlertDialog.Builder(activity).setTitle(contact.displayName.ifBlank { "Client" })
             .setView(StudioUi.scroll(activity, body)).setNegativeButton("Cancel", null)
+            .setNeutralButton("Reference images") { _, _ -> openImages(contact.id) }
             .setPositiveButton("Save") { _, _ ->
                 val text = memory.text.toString()
                 val pause = paused.isChecked

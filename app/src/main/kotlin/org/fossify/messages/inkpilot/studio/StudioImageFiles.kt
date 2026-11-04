@@ -12,8 +12,18 @@ import java.util.UUID
 internal class StudioImageFiles(private val context: Context, private val store: StudioAlbumStore) {
     private val directory get() = File(context.filesDir, "studio-images").apply { mkdirs() }
 
-    fun import(uri: Uri, albumId: Long): Long {
-        require(context.contentResolver.getType(uri)?.startsWith("image/") == true) { "Choose an image." }
+    fun import(uri: Uri, albumId: Long): Long = copyOriginal(uri, albumId, null)
+
+    /** Own a private copy: future reads never depend on a transient provider URI grant. */
+    fun importMmsOriginal(uri: Uri, link: StudioImageLink): Long = synchronized(importLock) {
+        require(link.sourceMessageKey.origin == org.fossify.messages.messaging.MessageOrigin.MMS)
+        store.originalForSource(uri.toString())?.let { id -> store.linkOriginal(id, link); return@synchronized id }
+        copyOriginal(uri, null, link)
+    }
+
+    private fun copyOriginal(uri: Uri, albumId: Long?, link: StudioImageLink?): Long {
+        val mime = context.contentResolver.getType(uri)
+        require(mime?.startsWith("image/") == true) { "Choose an image." }
         val name = context.contentResolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)?.use {
             if (it.moveToFirst()) it.getString(0) else null
         } ?: "Reference image"
@@ -41,7 +51,9 @@ internal class StudioImageFiles(private val context: Context, private val store:
                 bounds.outWidth.toLong() * bounds.outHeight <= 80_000_000) { "This image format or size is not supported." }
             original = File(directory, "${UUID.randomUUID()}.image")
             check(temporary.renameTo(original)) { "The image could not be saved." }
-            return store.addOriginal(albumId, original.name, name)
+            return if (link == null) store.addOriginal(requireNotNull(albumId), original.name, name)
+            else store.saveMmsOriginal(uri.toString(), original.name, name,
+                requireNotNull(mime), original.length(), bounds.outWidth, bounds.outHeight, link)
         } catch (error: Exception) {
             original?.delete()
             throw error
@@ -49,6 +61,8 @@ internal class StudioImageFiles(private val context: Context, private val store:
             temporary.delete()
         }
     }
+
+    companion object { private val importLock = Any() }
 
     fun originalFile(image: StudioImage): File {
         val file = File(directory, image.filename)

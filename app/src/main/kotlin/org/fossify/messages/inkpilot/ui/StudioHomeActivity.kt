@@ -112,18 +112,27 @@ class StudioHomeActivity : AppCompatActivity() {
             StudioRoute.Auxiliary("drafts") -> DraftPanel(this, repository, work, ::refreshPanels).view()
             is StudioRoute.Thread -> messages.thread(route.threadId)
             is StudioRoute.Compose -> StudioUi.text(this, "New messages will be available in the composer update.")
+            is StudioRoute.ImageLinks -> studio.linkedImages(route.contactId, route.threadId)
             StudioRoute.Soul -> agent.soul()
             StudioRoute.Model -> agent.model()
             else -> when (tab) {
                 StudioTab.SMS -> messages.messages()
                 StudioTab.PHONE -> messages.phone()
-                StudioTab.CONTACTS -> ContactPanel(this, repository, work, ::refreshPanels).view()
+                StudioTab.CONTACTS -> ContactPanel(this, repository, work, ::refreshPanels) { contactId ->
+                    navigator.open(StudioRoute.ImageLinks(contactId = contactId)); render()
+                }.view()
                 StudioTab.STUDIO -> studio.albums()
                 StudioTab.CALENDAR -> studio.calendar()
             }
         }
         }
-        heading.text = when (route) { is StudioRoute.Tab -> tab.label; is StudioRoute.Thread -> "Conversation"; is StudioRoute.Compose -> "New message"; else -> "Assistant" }
+        heading.text = when (route) {
+            is StudioRoute.Tab -> tab.label
+            is StudioRoute.Thread -> "Conversation"
+            is StudioRoute.Compose -> "New message"
+            is StudioRoute.ImageLinks -> "Client References"
+            else -> "Assistant"
+        }
         if (canvas.getChildAt(0) !== view) {
             canvas.removeAllViews()
             canvas.addView(view, FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT))

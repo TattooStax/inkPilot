@@ -6,6 +6,7 @@ import android.os.Bundle
 /** Host destinations; carrier and compatibility screens migrate to these incrementally. */
 internal sealed interface StudioRoute {
     data class Tab(val tab: StudioTab) : StudioRoute
+    data class ImageLinks(val contactId: String? = null, val threadId: Long? = null) : StudioRoute
     data class Thread(val threadId: Long) : StudioRoute
     data class Compose(val recipients: List<String>, val body: String, val mediaUris: List<Uri>) : StudioRoute
     data class Draft(val draftId: String) : StudioRoute
@@ -17,11 +18,14 @@ internal sealed interface StudioRoute {
 
 internal fun StudioRoute.encode() = Bundle().apply {
     putString("kind", when (this@encode) {
-        is StudioRoute.Tab -> "tab"; is StudioRoute.Thread -> "thread"; is StudioRoute.Compose -> "compose"
+        is StudioRoute.ImageLinks -> "image-links"; is StudioRoute.Tab -> "tab"; is StudioRoute.Thread -> "thread"; is StudioRoute.Compose -> "compose"
         is StudioRoute.Draft -> "draft"; is StudioRoute.Settings -> "settings"
         StudioRoute.Soul -> "soul"; StudioRoute.Model -> "model"; is StudioRoute.Auxiliary -> "auxiliary"
     })
     when (val route = this@encode) {
+        is StudioRoute.ImageLinks -> {
+            putString("contact", route.contactId); route.threadId?.let { putLong("thread", it) }
+        }
         is StudioRoute.Tab -> putString("value", route.tab.name)
         is StudioRoute.Thread -> putLong("thread", route.threadId)
         is StudioRoute.Compose -> {
@@ -36,6 +40,8 @@ internal fun StudioRoute.encode() = Bundle().apply {
 }
 
 internal fun Bundle.decodeRoute(): StudioRoute? = when (getString("kind")) {
+    "image-links" -> if (getString("contact") != null || containsKey("thread"))
+        StudioRoute.ImageLinks(getString("contact"), if (containsKey("thread")) getLong("thread") else null) else null
     "tab" -> StudioTab.entries.find { it.name == getString("value") }?.let(StudioRoute::Tab)
     "thread" -> if (containsKey("thread")) StudioRoute.Thread(getLong("thread")) else null
     "compose" -> StudioRoute.Compose(getStringArrayList("recipients") ?: emptyList(), getString("body").orEmpty(),

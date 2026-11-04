@@ -46,6 +46,54 @@ internal class StudioAlbumStore(private val repository: StudioRepository) {
         imageId
     }
 
+    fun originalForSource(uri: String): Long? = db.rawQuery(
+        "SELECT image_id FROM image_original_sources WHERE source_uri=?", arrayOf(uri),
+    ).use { if (it.moveToFirst()) it.getLong(0) else null }
+
+    fun saveMmsOriginal(uri: String, filename: String, name: String, mime: String,
+                        bytes: Long, width: Int, height: Int, link: StudioImageLink): Long = db.transaction {
+        val existing = originalForSource(uri)
+        val id = existing ?: run {
+            val album = albums().firstOrNull { it.name == "Client References" }?.id
+                ?: saveAlbum(null, "Client References", "")
+            addOriginal(album, filename, name).also { imageId ->
+                db.execSQL("INSERT INTO image_original_sources VALUES(?,?,?,?,?,?, 'PRIVATE_COPY')",
+                    arrayOf<Any>(uri, imageId, mime, bytes, width, height))
+            }
+        }
+        linkOriginal(id, link)
+        id
+    }
+
+    fun linkOriginal(imageId: Long, link: StudioImageLink) {
+        require(link.sourceMessageKey.origin == org.fossify.messages.messaging.MessageOrigin.MMS)
+        require(link.sourceMessageKey.id >= 0 && link.threadId >= 0)
+        val values = ContentValues().apply {
+            put("image_id", imageId); put("contact_id", link.contactId); put("project_id", link.projectId)
+            put("staff_id", link.staffId); put("appointment_id", link.appointmentId)
+            put("source_origin", link.sourceMessageKey.origin.name); put("source_id", link.sourceMessageKey.id)
+            put("thread_id", link.threadId)
+        }
+        db.transaction {
+            val updated = db.update("image_links", values,
+                "image_id=? AND contact_id=? AND source_origin=? AND source_id=?",
+                arrayOf(imageId.toString(), link.contactId, link.sourceMessageKey.origin.name, link.sourceMessageKey.id.toString()))
+            if (updated == 0) db.insertOrThrow("image_links", null, values)
+        }
+    }
+
+    fun linkedImages(contactId: String? = null, threadId: Long? = null, offset: Int = 0): List<StudioImage> {
+        require(offset >= 0 && (contactId != null || threadId != null))
+        val filters = mutableListOf<String>(); val args = mutableListOf<String>()
+        contactId?.let { filters.add("l.contact_id=?"); args.add(it) }
+        threadId?.let { filters.add("l.thread_id=?"); args.add(it.toString()) }
+        return db.rawQuery("""SELECT i.id,i.filename,i.display_name FROM studio_images i
+            WHERE EXISTS(SELECT 1 FROM image_links l WHERE l.image_id=i.id AND ${filters.joinToString(" AND ")})
+            ORDER BY i.imported_at DESC,i.id DESC LIMIT 100 OFFSET $offset""", args.toTypedArray()).use { cursor ->
+            buildList { while (cursor.moveToNext()) add(StudioImage(cursor.getLong(0), cursor.getString(1), cursor.getString(2))) }
+        }
+    }
+
     fun addMembership(albumId: Long, imageId: Long) {
         db.execSQL("INSERT OR IGNORE INTO studio_album_images(album_id,image_id) VALUES(?,?)", arrayOf(albumId, imageId))
     }

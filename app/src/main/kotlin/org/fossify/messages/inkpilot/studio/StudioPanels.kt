@@ -12,13 +12,17 @@ class StudioPanels(
     activity: AppCompatActivity,
     executor: Executor,
     onError: (String) -> Unit,
-    repository: StudioRepository,
+    private val repository: StudioRepository,
 ) {
     private val host = StudioPanelHost(activity, executor, onError)
     private val albums = StudioAlbumsPanel(host, StudioAlbumStore(repository))
     private val calendar = StudioCalendarPanel(host, StudioCalendarStore(repository))
 
     fun albums(): View = albums.view()
+    fun linkedImages(contactId: String? = null, threadId: Long? = null): View = StudioAlbumsPanel(host, StudioAlbumStore(repository)).linkedView(contactId, threadId)
+
+    internal fun importMmsOriginal(uri: android.net.Uri, link: StudioImageLink) = albums.acceptMmsOriginal(uri, link)
+
     fun calendar(): View = calendar.view()
 
     fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?): Boolean {

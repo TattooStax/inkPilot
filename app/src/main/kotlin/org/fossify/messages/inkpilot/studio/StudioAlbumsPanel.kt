@@ -13,6 +13,22 @@ internal class StudioAlbumsPanel(private val host: StudioPanelHost, private val 
     private var selected: StudioAlbum? = null
     private var showingImages = false
     private var renderVersion = 0
+    private var linkedContact: String? = null
+    private var linkedThread: Long? = null
+
+    fun linkedView(contactId: String?, threadId: Long?): View {
+        require(contactId != null || threadId != null)
+        linkedContact = contactId; linkedThread = threadId
+        selected = null; showingImages = true
+        return view()
+    }
+
+    fun acceptMmsOriginal(uri: Uri, link: StudioImageLink) {
+        host.load({ files.importMmsOriginal(uri, link) }) {
+            linkedContact = link.contactId; linkedThread = link.threadId
+            selected = null; showingImages = true; render()
+        }
+    }
 
     fun view(): View {
         content = host.column()
@@ -41,8 +57,8 @@ internal class StudioAlbumsPanel(private val host: StudioPanelHost, private val 
 
     private fun renderImages() {
         val album = selected
-        content.addView(host.button("‹ Albums") { showingImages = false; render() })
-        content.addView(host.text(album?.name ?: "All images", 22f))
+        content.addView(host.button("‹ Albums") { showingImages = false; linkedContact = null; linkedThread = null; render() })
+        content.addView(host.text(album?.name ?: if (linkedContact != null || linkedThread != null) "Client References" else "All images", 22f))
         if (album != null) content.addView(host.button("Edit album") { editAlbum(album) })
         content.addView(host.button("Import image") {
             host.activity.startActivityForResult(Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
@@ -56,7 +72,10 @@ internal class StudioAlbumsPanel(private val host: StudioPanelHost, private val 
     }
 
     private fun loadImages(listing: LinearLayout, album: StudioAlbum?, offset: Int) {
-        host.load({ store.images(album?.id, offset) }) { images ->
+        host.load({
+            if (linkedContact != null || linkedThread != null) store.linkedImages(linkedContact, linkedThread, offset)
+            else store.images(album?.id, offset)
+        }) { images ->
             if (images.isEmpty() && offset == 0) listing.addView(host.text("No images yet."))
             images.forEach { image ->
                 val row = LinearLayout(host.activity).apply {
@@ -89,6 +108,7 @@ internal class StudioAlbumsPanel(private val host: StudioPanelHost, private val 
     fun acceptImage(uri: Uri) {
         chooseAlbum("Add image to album") { album ->
             host.load({ files.import(uri, album.id) }) {
+                linkedContact = null; linkedThread = null
                 selected = album; showingImages = true; render()
             }
         }
