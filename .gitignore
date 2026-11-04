@@ -21,3 +21,4 @@ fastlane/report.xml
 /app/build/
 /app/.cxx/
 __pycache__/
+/.superpowers/
