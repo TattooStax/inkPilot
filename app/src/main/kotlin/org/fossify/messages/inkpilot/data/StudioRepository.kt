@@ -62,6 +62,35 @@ class StudioRepository(context: Context, databaseName: String = DATABASE_NAME) :
 
     fun saveMemory(contactId: String, text: String) = db.saveStudioMemory(contactId, text)
 
+    fun saveContactEdit(contactId: String, text: String, paused: Boolean, source: String) =
+        db.saveStudioContactEdit(contactId, text, paused, source)
+
+    fun memoryEntry(contactId: String): MemoryEntry? = db.studioMemoryEntry(contactId)
+
+    fun resolveContact(address: String, region: String): ContactMatch = db.resolveStudioContact(address, region)
+
+    fun reviewAlias(address: String, region: String, contactId: String) {
+        val normalized = canonicalStudioNumber(address)
+        require(region.length <= 8)
+        db.transaction {
+            requireNotNull(db.studioContact(contactId))
+            db.execSQL("""UPDATE studio_contacts SET revision = revision + 1 WHERE number = ? OR id IN (
+                SELECT contact_id FROM contact_aliases WHERE address = ? AND region = ?
+            )""", arrayOf(normalized, normalized, region.uppercase()))
+            db.execSQL("DELETE FROM contact_aliases WHERE address = ? AND region = ?", arrayOf(normalized, region.uppercase()))
+            db.execSQL("INSERT INTO contact_aliases VALUES(?, ?, ?, 'REVIEWED')", arrayOf(normalized, region.uppercase(), contactId))
+            db.execSQL("UPDATE studio_contacts SET revision = revision + 1 WHERE id = ?", arrayOf(contactId))
+        }
+    }
+
+    fun forgetMemory(contactId: String) = db.transaction {
+        db.saveStudioContactEdit(contactId, "", requireNotNull(db.studioContact(contactId)).paused, "Staff removal")
+    }
+
+    fun exportMemory(contactId: String): String = memoryEntry(contactId)?.let {
+        "Source: ${it.source}\nReview: ${it.reviewState}\n${it.body}"
+    }.orEmpty()
+
     fun setPaused(contactId: String, paused: Boolean) = db.setStudioPaused(contactId, paused)
 
     fun heldDrafts(): List<ReviewDraft> = db.reviewStudioDrafts()

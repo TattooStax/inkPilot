@@ -17,18 +17,22 @@ class App : FossifyApp() {
 
     override fun onCreate() {
         super.onCreate()
-        if (hasPermission(PERMISSION_READ_CONTACTS)) {
-            listOf(
-                ContactsContract.Contacts.CONTENT_URI,
-                ContactsContract.Data.CONTENT_URI,
-                ContactsContract.DisplayPhoto.CONTENT_URI
-            ).forEach {
-                try {
-                    contentResolver.registerContentObserver(it, true, contactsObserver)
-                } catch (_: Exception) {
-                }
+        reconcileContactsObserver()
+        registerActivityLifecycleCallbacks(object : android.app.Application.ActivityLifecycleCallbacks {
+            override fun onActivityResumed(activity: android.app.Activity) { reconcileContactsObserver() }
+            override fun onActivityCreated(activity: android.app.Activity, state: android.os.Bundle?) = Unit
+            override fun onActivityStarted(activity: android.app.Activity) = Unit
+            override fun onActivityPaused(activity: android.app.Activity) = Unit
+            override fun onActivityStopped(activity: android.app.Activity) = Unit
+            override fun onActivitySaveInstanceState(activity: android.app.Activity, state: android.os.Bundle) = Unit
+            override fun onActivityDestroyed(activity: android.app.Activity) = Unit
+        })
+        getSystemService(android.app.AppOpsManager::class.java).startWatchingMode(
+            android.app.AppOpsManager.OPSTR_READ_CONTACTS, packageName,
+            android.app.AppOpsManager.OnOpChangedListener { _, _ ->
+                Handler(Looper.getMainLooper()).post { reconcileContactsObserver() }
             }
-        }
+        )
 
         ensureBackgroundThread {
             rescheduleAllScheduledMessages()
@@ -39,6 +43,21 @@ class App : FossifyApp() {
                         .recordStatus("Local message recovery needs another try. Open Agent and retry.")
                 }
         }
+    }
+
+    private val contactsPermissionLifecycle = ContactsPermissionLifecycle()
+
+    internal fun reconcileContactsObserver() {
+        contactsPermissionLifecycle.reconcile(hasPermission(PERMISSION_READ_CONTACTS), start = {
+            listOf(ContactsContract.Contacts.CONTENT_URI, ContactsContract.Data.CONTENT_URI,
+                ContactsContract.DisplayPhoto.CONTENT_URI).forEach {
+                contentResolver.registerContentObserver(it, true, contactsObserver)
+            }
+        }, stop = {
+            contentResolver.unregisterContentObserver(contactsObserver)
+            MessagingCache.namePhoto.evictAll()
+            MessagingCache.participantsCache.evictAll()
+        })
     }
 
     private val contactsObserver = object : ContentObserver(Handler(Looper.getMainLooper())) {

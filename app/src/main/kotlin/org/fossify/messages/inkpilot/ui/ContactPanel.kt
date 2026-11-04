@@ -10,6 +10,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SwitchCompat
 import org.fossify.messages.R
+import org.fossify.messages.inkpilot.data.MemoryEntry
 import org.fossify.messages.inkpilot.data.StudioContact
 import org.fossify.messages.inkpilot.data.StudioRepository
 
@@ -35,7 +36,7 @@ internal class ContactPanel(
                 row.addView(StudioUi.text(activity, contact.number, 14f))
                 row.isClickable = true
                 row.isFocusable = true
-                row.setOnClickListener { edit(contact) }
+                row.setOnClickListener { work.load({ repository.memoryEntry(contact.id) }) { edit(contact, it) } }
                 list.addView(row)
                 list.addView(StudioUi.rule(activity))
             }
@@ -44,7 +45,7 @@ internal class ContactPanel(
         return scroll
     }
 
-    private fun edit(contact: StudioContact) {
+    private fun edit(contact: StudioContact, entry: MemoryEntry?) {
         val body = StudioUi.column(activity)
         body.addView(StudioUi.text(activity, contact.number, 15f))
         body.addView(StudioUi.text(activity, "Client memory", 18f, true))
@@ -65,6 +66,27 @@ internal class ContactPanel(
             isChecked = contact.paused
             setTextColor(StudioUi.ink)
         }
+        val source = EditText(activity).apply {
+            hint = "Memory source (for example: consultation with client)"
+            setText(entry?.source ?: "Staff note")
+            filters = arrayOf(InputFilter.LengthFilter(256))
+        }
+        if (entry != null) body.addView(StudioUi.text(activity, "Memory review: ${entry.reviewState}"))
+        body.addView(source)
+        body.addView(StudioUi.button(activity, "Review phone identity") { reviewIdentity(contact) })
+        body.addView(StudioUi.button(activity, "Forget memory") {
+            AlertDialog.Builder(activity).setMessage("Remove this client's stored memory?")
+                .setNegativeButton("Cancel", null).setPositiveButton("Forget") { _, _ ->
+                    work.load({ repository.forgetMemory(contact.id) }) { memory.setText(""); refresh() }
+                }.show()
+        })
+        body.addView(StudioUi.button(activity, "Export memory") {
+            work.load({ repository.exportMemory(contact.id) }) { text ->
+                activity.startActivity(Intent.createChooser(Intent(Intent.ACTION_SEND).apply {
+                    type = "text/plain"; putExtra(Intent.EXTRA_TEXT, text)
+                }, "Export memory"))
+            }
+        })
         body.addView(memory)
         body.addView(paused)
         body.addView(StudioUi.button(activity, "Call client") {
@@ -76,7 +98,21 @@ internal class ContactPanel(
             .setPositiveButton("Save") { _, _ ->
                 val text = memory.text.toString()
                 val pause = paused.isChecked
-                work.load({ repository.saveMemory(contact.id, text); repository.setPaused(contact.id, pause) }) { refresh() }
+                val provenance = source.text.toString()
+                work.load({ repository.saveContactEdit(contact.id, text, pause, provenance) }) { refresh() }
+            }.show()
+    }
+
+    private fun reviewIdentity(contact: StudioContact) {
+        val body = StudioUi.column(activity)
+        val address = EditText(activity).apply { hint = "Phone address"; setText(contact.number) }
+        val region = EditText(activity).apply { hint = "Region (US, CA, or blank)" }
+        body.addView(StudioUi.text(activity, "Confirm this address belongs to ${contact.displayName}. This does not merge message history."))
+        body.addView(address); body.addView(region)
+        AlertDialog.Builder(activity).setTitle("Review identity").setView(body)
+            .setNegativeButton("Cancel", null).setPositiveButton("Confirm") { _, _ ->
+                val phone = address.text.toString(); val country = region.text.toString().trim()
+                work.load({ repository.reviewAlias(phone, country, contact.id) }) { refresh() }
             }.show()
     }
 
