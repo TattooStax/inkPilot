@@ -22,6 +22,9 @@ internal class StudioDatabase(context: Context, name: String) : SQLiteOpenHelper
     override fun onOpen(db: SQLiteDatabase) {
         super.onOpen(db)
         db.execSQL("CREATE INDEX IF NOT EXISTS held_thread_state_created ON held_drafts(thread_id, state, created_at)")
+        db.execSQL(
+            "CREATE INDEX IF NOT EXISTS inbound_thread_received ON inbound_events(thread_id, received_at, event_id)"
+        )
     }
 
     override fun onCreate(db: SQLiteDatabase) {

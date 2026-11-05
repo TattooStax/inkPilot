@@ -92,7 +92,7 @@ class LocalLoopSmokeTest {
             }.toString(2))
             ActivityScenario.launch(StudioHomeActivity::class.java).use {
                 SmokeViews.clickDescription("Open agent controls")
-                SmokeViews.clickText("Drafts to review")
+                SmokeViews.clickText("Drafts & staff replies")
                 SmokeViews.clickDescription("Review draft")
                 SmokeViews.assertText(receipt.body)
                 SmokeViews.assertText("Choose business SIM")

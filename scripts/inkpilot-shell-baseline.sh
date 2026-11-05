@@ -24,6 +24,7 @@ scripts/run-inkpilot-test-class.sh "$serial" org.fossify.messages.inkpilot.studi
 scripts/run-inkpilot-test-class.sh "$serial" org.fossify.messages.inkpilot.studio.StudioImageImportUiTest
 scripts/run-inkpilot-test-class.sh "$serial" org.fossify.messages.inkpilot.data.StudioArchiveTest
 scripts/run-inkpilot-test-class.sh "$serial" org.fossify.messages.inkpilot.data.StudioArchiveCleanupNoticeTest
+scripts/run-inkpilot-test-class.sh "$serial" org.fossify.messages.inkpilot.ui.StudioStaffAttentionTest
 scripts/run-inkpilot-test-class.sh "$serial" org.fossify.messages.inkpilot.ui.StudioArchiveHandoffTest
 scripts/run-inkpilot-test-class.sh "$serial" org.fossify.messages.inkpilot.data.ScheduledVerdictTest
 scripts/run-inkpilot-test-class.sh "$serial" org.fossify.messages.inkpilot.data.ScheduledQueueTest

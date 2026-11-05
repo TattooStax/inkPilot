@@ -54,7 +54,7 @@ internal fun showStudioDrawer(activity: Activity, open: (String) -> Unit) {
     body.addView(StudioUi.text(activity, "inkPilot", 26f, true))
     body.addView(StudioUi.text(activity, "Your studio assistant", 14f))
     body.addView(StudioUi.rule(activity))
-    listOf("Drafts to review" to "drafts", "Action proposals" to "proposals",
+    listOf("Drafts & staff replies" to "drafts", "Action proposals" to "proposals",
         "Soul & studio memory" to "soul", "Local model" to "model").forEach { (label, key) ->
         body.addView(StudioUi.button(activity, label) { dialog.dismiss(); open(key) })
     }
