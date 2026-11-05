@@ -130,7 +130,7 @@ original_auto_time=$(adb -s "$serial" shell settings get global auto_time | tr -
 [[ $original_auto_time == 0 || $original_auto_time == 1 ]]
 clock_changed=1
 adb -s "$serial" shell settings put global auto_time 0
-target_time=$((periodic_due + 60_000))
+target_time=$((periodic_due + 60000))
 if ! adb -s "$serial" shell cmd alarm set-time "$target_time" > "$temporary/clock-command" 2>&1; then
   adb -s "$serial" root >/dev/null 2>&1 || { echo 'Emulator clock advance unavailable.' >&2; exit 1; }
   adb -s "$serial" wait-for-device
