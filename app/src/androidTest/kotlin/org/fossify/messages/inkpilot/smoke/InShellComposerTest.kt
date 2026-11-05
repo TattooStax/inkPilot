@@ -11,6 +11,25 @@ import org.junit.Test
 
 /** Synthetic dispatcher only: this suite never reaches a carrier. */
 class InShellComposerTest {
+    @Test fun missingSmsRoleRefusesBeforeSimLookupOrComposerClaim() {
+        androidx.test.core.app.ActivityScenario.launch(org.fossify.messages.inkpilot.ui.StudioHomeActivity::class.java).use { scenario ->
+            scenario.onActivity { activity ->
+                val store = ComposerStore(activity)
+                val id = -81029L
+                store.clear(id)
+                try {
+                    val request = OutgoingMessage(id, "+15550101012", "Human reply", emptyList(), 1)
+                    val outcome = org.fossify.messages.inkpilot.ui.prepareInShellComposerSend(
+                        activity, store, request, smsRoleHeld = { false },
+                        activeSimIds = { error("SIM lookup must not occur without SMS role") }).getOrThrow()
+                    assertEquals(DispatchOutcome.Rejected("Set inkPilot as the default SMS app before sending."), outcome)
+                    assertNull(store.load(id))
+                    assertFalse(store.isUnknown(id))
+                    assertTrue(store.save(request.copy(body = "Still editable")))
+                } finally { store.clear(id) }
+            }
+        }
+    }
     @Test fun groupSmsIsVisibleRefusalBeforeSimOrComposerClaim() {
         androidx.test.core.app.ActivityScenario.launch(org.fossify.messages.inkpilot.ui.StudioHomeActivity::class.java).use { scenario ->
             scenario.onActivity { activity ->

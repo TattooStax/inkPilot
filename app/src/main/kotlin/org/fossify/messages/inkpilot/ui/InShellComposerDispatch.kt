@@ -22,8 +22,10 @@ import android.widget.TextView
 import org.fossify.messages.extensions.getThreadParticipants
 import org.fossify.messages.extensions.getAddresses
 import org.fossify.messages.extensions.getThreadId
+import org.fossify.messages.helpers.SmsRole
 
 private const val MAX_IN_SHELL_TEXT_CHARS = 2_000
+private const val SMS_ROLE_REQUIRED = "Set inkPilot as the default SMS app before sending."
 
 @SuppressLint("MissingPermission")
 private fun AppCompatActivity.activeComposerSubscriptions(): Set<Int>? {
@@ -37,6 +39,7 @@ private fun AppCompatActivity.activeComposerSubscriptions(): Set<Int>? {
 
 internal fun prepareInShellComposerSend(
     activity: AppCompatActivity, store: ComposerStore, value: OutgoingMessage,
+    smsRoleHeld: () -> Boolean = { SmsRole.isHeld(activity) },
     activeSimIds: () -> Set<Int>? = { activity.activeComposerSubscriptions() },
 ): Result<DispatchOutcome> {
     if (value.body.length > MAX_IN_SHELL_TEXT_CHARS) {
@@ -46,6 +49,9 @@ internal fun prepareInShellComposerSend(
     val rejection = activity.inShellMmsRejection(value.attachmentUris)
         ?: activity.smsRecipientRejection(value.body, recipients, value.attachmentUris.isNotEmpty())
     if (rejection != null) return Result.success(DispatchOutcome.Rejected(rejection))
+    if (!runCatching { smsRoleHeld() }.getOrDefault(false)) {
+        return Result.success(DispatchOutcome.Rejected(SMS_ROLE_REQUIRED))
+    }
     val active = try { activeSimIds() } catch (_: SecurityException) { null }
         ?: return Result.success(DispatchOutcome.Rejected("Allow SIM access, then choose a SIM"))
     if (value.subscriptionId !in active) {
@@ -54,6 +60,7 @@ internal fun prepareInShellComposerSend(
     return prepareComposerSend(store, value) {
         MessageDispatcher.local(activity) { outgoing ->
             when {
+                !runCatching { smsRoleHeld() }.getOrDefault(false) -> DispatchOutcome.Rejected(SMS_ROLE_REQUIRED)
                 outgoing.subscriptionId !in active -> DispatchOutcome.Rejected("Choose an active SIM")
                 outgoing.attachmentUris.size > 1 -> DispatchOutcome.Rejected("Send one image per message")
                 else -> activity.sendMessageCompat(
