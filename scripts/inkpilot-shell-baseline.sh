@@ -81,6 +81,13 @@ run_class org.fossify.messages.inkpilot.studio.StudioReminderGateTest
 run_class org.fossify.messages.inkpilot.data.StudioProposalTest
 run_class org.fossify.messages.inkpilot.smoke.ModelQualificationTest
 run_class org.fossify.messages.inkpilot.smoke.OneShellAcceptanceTest
+if adb -s "$serial" exec-out run-as "$package" cat files/device-test-evidence/studio-tab-window.json \
+    > app/build/test-class-evidence/studio-tab-window.json.partial 2>/dev/null; then
+  mv app/build/test-class-evidence/studio-tab-window.json.partial \
+    app/build/test-class-evidence/studio-tab-window.json
+else
+  rm -f app/build/test-class-evidence/studio-tab-window.json.partial
+fi
 run_class org.fossify.messages.inkpilot.phone.PhoneRoleQualificationTest
 run_class org.fossify.messages.inkpilot.phone.PhoneCallAlertsTest
 run_class org.fossify.messages.inkpilot.phone.CallNotificationActionsTest

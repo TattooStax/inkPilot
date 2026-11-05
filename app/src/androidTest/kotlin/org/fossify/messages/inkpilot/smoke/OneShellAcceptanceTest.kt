@@ -109,6 +109,7 @@ class OneShellAcceptanceTest {
     }
 
     @Test fun tabsRemainVisibleAtLargeTextAndLandscape() = atLargeText { scenario ->
+        java.io.File(instrumentation.targetContext.filesDir, "device-test-evidence/studio-tab-window.json").delete()
         // Separate callsites preserve the original sequence and identify a redacted failing tab.
         SmokeViews.clickDescription("SMS")
         scenario.onActivity { assertLargeTab(it, "SMS", R.id.inkpilot_tab_sms) }
@@ -128,7 +129,11 @@ class OneShellAcceptanceTest {
             contactsNode.performAction(AccessibilityNodeInfo.ACTION_CLICK))
         instrumentation.waitForIdleSync()
         scenario.onActivity { assertLargeTab(it, "Contacts", R.id.inkpilot_tab_contacts) }
-        SmokeViews.clickDescription("Studio")
+        try { SmokeViews.clickDescription("Studio") }
+        catch (failure: AssertionError) {
+            recordStudioTabWindow(instrumentation.targetContext)
+            throw failure
+        }
         scenario.onActivity { assertLargeTab(it, "Studio", R.id.inkpilot_tab_studio) }
         SmokeViews.clickDescription("Calendar")
         scenario.onActivity { assertLargeTab(it, "Calendar", R.id.inkpilot_tab_calendar) }
