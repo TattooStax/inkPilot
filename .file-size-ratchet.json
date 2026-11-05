@@ -38,7 +38,7 @@
     "agent-core/src/main/kotlin/inkpilot/agent/ToolProposals.kt": 112,
     "agent-core/src/main/kotlin/inkpilot/agent/ToolTypes.kt": 39,
     "agent-core/src/test/kotlin/inkpilot/agent/BookingClaimGateTest.kt": 49,
-    "agent-core/src/test/kotlin/inkpilot/agent/BoundedIntentDraftsTest.kt": 202,
+    "agent-core/src/test/kotlin/inkpilot/agent/BoundedIntentDraftsTest.kt": 203,
     "agent-core/src/test/kotlin/inkpilot/agent/CustomerServiceDraftsTest.kt": 105,
     "agent-core/src/test/kotlin/inkpilot/agent/DraftFixture.kt": 64,
     "agent-core/src/test/kotlin/inkpilot/agent/DraftFreshnessTest.kt": 88,

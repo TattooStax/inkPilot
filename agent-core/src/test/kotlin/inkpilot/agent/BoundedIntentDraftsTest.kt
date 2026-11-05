@@ -115,9 +115,10 @@ class BoundedIntentDraftsTest {
             LocalDraftModel { value, _ -> prompt = value; "EN:STYLE" },
             evidenceReader = DraftEvidenceReader { packet }, replyRenderer = BoundedIntentReplyRenderer)
         assertTrue(coordinator.draft(fixture.request) is DraftOutcome.Held)
-        assertTrue(prompt!!.instructions.contains("only these reviewed missing details: STYLE"))
-        assertFalse(prompt!!.instructions.contains("confirmed appointment"))
-        assertEquals(packet.source.inboundText, prompt!!.inboundText)
+        val generated = requireNotNull(prompt)
+        assertTrue(generated.instructions.contains("only these reviewed missing details: STYLE"))
+        assertFalse(generated.instructions.contains("confirmed appointment"))
+        assertEquals(packet.source.inboundText, generated.inboundText)
     }
 
     @Test fun allLocalizedReviewedQuestionsRenderWithoutModelProse() {
