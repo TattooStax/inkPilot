@@ -41,7 +41,9 @@ class ReviewedScopeRuntimeSmokeTest {
         synchronized(AgentRuntime.inferenceLock) {
             StudioRepository(context).use { repository ->
                 assertTrue(repository.pendingRequests().isEmpty())
-                repository.setDraftingEnabled(false)
+                // Toggling this policy bumps every contact revision. Set it before
+                // creating either exact-event scope; inferenceLock excludes workers.
+                repository.setDraftingEnabled(true)
                 val arrivedAt = System.currentTimeMillis()
                 val queued = repository.recordInbound(
                     "smoke:review-scope-pending", 900_131, "+12025550131",
@@ -56,16 +58,11 @@ class ReviewedScopeRuntimeSmokeTest {
                 val oldBody = "A staff-written synthetic test reply"
                 val write = HeldDraftWrite(DraftKey(priorHeld.eventId), priorHeld.threadId,
                     priorHeld.contactId, "+12025550132", priorHeld.expectedRevision, oldBody)
-                // holdIfCurrent enforces the drafting switch; create this fixture before
-                // pausing again for the staff review/revision transition.
-                repository.setDraftingEnabled(true)
                 assertTrue(repository.holdIfCurrent(write) is DraftStoreResult.Held)
-                repository.setDraftingEnabled(false)
                 val heldReview = repository.reviewLeadIntake(priorHeld, ReplyLanguage.EN,
                     setOf(LeadQuestion.PLACEMENT)) as LeadIntakeReviewResult.Saved
                 val queuedSource = repository.readSource(queued.eventId)
                 val heldSource = repository.readSource(priorHeld.eventId)
-                repository.setDraftingEnabled(true)
                 assertEquals(listOf(queued.eventId), repository.pendingRequests().map { it.eventId })
 
                 assertEquals(0, AgentRuntime.processPending(context))

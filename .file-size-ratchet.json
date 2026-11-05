@@ -103,7 +103,7 @@
     "app/src/androidTest/kotlin/org/fossify/messages/inkpilot/smoke/ModelQualificationTest.kt": 49,
     "app/src/androidTest/kotlin/org/fossify/messages/inkpilot/smoke/NativeSendSmokeTest.kt": 142,
     "app/src/androidTest/kotlin/org/fossify/messages/inkpilot/smoke/OneShellAcceptanceTest.kt": 189,
-    "app/src/androidTest/kotlin/org/fossify/messages/inkpilot/smoke/ReviewedScopeRuntimeSmokeTest.kt": 119,
+    "app/src/androidTest/kotlin/org/fossify/messages/inkpilot/smoke/ReviewedScopeRuntimeSmokeTest.kt": 116,
     "app/src/androidTest/kotlin/org/fossify/messages/inkpilot/smoke/RevocablePreviewProvider.kt": 41,
     "app/src/androidTest/kotlin/org/fossify/messages/inkpilot/smoke/ShellBaselineTest.kt": 163,
     "app/src/androidTest/kotlin/org/fossify/messages/inkpilot/smoke/ShellIngressTest.kt": 311,
