@@ -37,6 +37,7 @@ run_class org.fossify.messages.inkpilot.smoke.ShellBaselineTest
 # Model-free, disposable provider/UI regressions run after the clean-install baseline.
 run_class org.fossify.messages.inkpilot.smoke.InShellThreadTest
 run_class org.fossify.messages.inkpilot.smoke.ThreadReviewRegressionTest
+run_class org.fossify.messages.inkpilot.smoke.FocusedReviewRouteTest
 run_class org.fossify.messages.inkpilot.smoke.InShellComposerTest
 run_class org.fossify.messages.inkpilot.smoke.ComposerClaimRecoveryTest
 run_class org.fossify.messages.inkpilot.studio.StudioImageLinksTest

@@ -233,14 +233,30 @@ class StudioHomeActivity : AppCompatActivity() {
     }
     private fun threadFooter(threadId: Long, selectedDraftId: String? = null): android.view.View {
         val root = StudioUi.column(this, 0)
-        work.load({ repository.draftsForThread(threadId) }) { drafts ->
-            prioritizeThreadDrafts(drafts, selectedDraftId).forEachIndexed { index, draft ->
-                root.addView(InlineDraftReview(this, work, ::refreshPanels).view(draft), index)
+        val scroll = StudioUi.scroll(this, root).apply {
+            layoutParams = LinearLayout.LayoutParams(-1, StudioUi.dp(root, 280))
+        }
+        if (selectedDraftId == null) {
+            work.load({ repository.draftsForThread(threadId) }) { drafts ->
+                drafts.forEachIndexed { index, draft ->
+                    root.addView(InlineDraftReview(this, work, ::refreshPanels).view(draft), index)
+                }
+            }
+            root.addView(ThreadComposer(this, work, ::pickAttachment, ::refreshPanels, ::openRoute,
+                composerRoutes::acceptedThread).view(threadId))
+        } else {
+            root.isFocusableInTouchMode = true
+            root.requestFocus()
+            root.addView(StudioUi.text(this, "Loading held reply…"))
+            work.load({ repository.draftsForThread(threadId) }) { drafts ->
+                root.removeAllViews()
+                val selected = drafts.firstOrNull { it.draftId == selectedDraftId }
+                root.addView(if (selected == null) StudioUi.text(this, "Held draft is no longer available.")
+                    else InlineDraftReview(this, work, ::refreshPanels).view(selected))
+                scroll.post { scroll.scrollTo(0, 0) }
             }
         }
-        root.addView(ThreadComposer(this, work, ::pickAttachment, ::refreshPanels, ::openRoute,
-            composerRoutes::acceptedThread).view(threadId))
-        return StudioUi.scroll(this, root).apply { layoutParams = LinearLayout.LayoutParams(-1, StudioUi.dp(root, 280)) }
+        return scroll
     }
     private fun inlineDraft(id: String): android.view.View {
         val root = StudioUi.column(this, 0)
