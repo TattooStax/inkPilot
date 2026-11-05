@@ -9,7 +9,14 @@ import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
-internal class StudioCalendarPanel(private val host: StudioPanelHost, private val store: StudioCalendarStore) {
+internal class StudioCalendarPanel(
+    private val host: StudioPanelHost,
+    private val store: StudioCalendarStore,
+    private val remindersAvailable: () -> Boolean = {
+        CalendarReminderGate.canPost(host.activity,
+            host.activity.getSystemService(android.app.NotificationManager::class.java))
+    },
+) {
     private var zone = ZoneId.systemDefault()
     private var day = LocalDate.now(zone)
     private var content = host.column()
@@ -45,6 +52,10 @@ internal class StudioCalendarPanel(private val host: StudioPanelHost, private va
         val generation = ++renderGeneration
         content.removeAllViews()
         content.addView(host.text("Calendar", 22f))
+        if (!remindersAvailable()) {
+            content.addView(host.text("Reminders paused. Enable inkPilot notifications in Android settings. " +
+                "Saved reminders will retry.", 14f))
+        }
         if (!zoneReady) {
             content.addView(host.text(if (zoneSaving) "Saving studio time zone…" else "Loading studio time zone…"))
             if (!zoneSaving) content.addView(host.button("Retry calendar") { loadZone() })

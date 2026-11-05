@@ -69,6 +69,25 @@ class StudioCalendarUiTest {
         collect(root)
     }
 
+    @Test fun blockedReminderStatusIsVisibleAndClearsAfterAccessReturns() {
+        assumeTrue(Build.FINGERPRINT.contains("generic") || Build.MODEL.contains("sdk"))
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        val name = "synthetic-reminder-banner-${UUID.randomUUID()}.db"
+        val repository = StudioRepository(context, name)
+        try {
+            val store = StudioCalendarStore(repository) { _, _, _ -> }
+            ActivityScenario.launch(StudioHomeActivity::class.java).use { scenario ->
+                scenario.onActivity { activity ->
+                    val host = StudioPanelHost(activity, Executor { it.run() }) { fail(it) }
+                    val blocked = StudioCalendarPanel(host, store, remindersAvailable = { false }).view()
+                    assertTrue(labels(blocked).any { it.startsWith("Reminders paused.") })
+                    val enabled = StudioCalendarPanel(host, store, remindersAvailable = { true }).view()
+                    assertFalse(labels(enabled).any { it.startsWith("Reminders paused.") })
+                }
+            }
+        } finally { repository.close(); context.deleteDatabase(name) }
+    }
+
     @Test fun renderedActionListsCanEditAndCompleteAndOpenHours() {
         assumeTrue(Build.FINGERPRINT.contains("generic") || Build.MODEL.contains("sdk"))
         val context = ApplicationProvider.getApplicationContext<Context>()

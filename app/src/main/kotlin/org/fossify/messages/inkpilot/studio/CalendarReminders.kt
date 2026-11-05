@@ -1,6 +1,5 @@
 package org.fossify.messages.inkpilot.studio
 
-import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
@@ -39,25 +38,23 @@ internal class CalendarReminderWorker(context: Context, params: WorkerParameters
         return try {
             StudioRepository(applicationContext).use { repository ->
                 val calendar = StudioCalendarStore(repository)
-                val due = calendar.pendingReminder(id, revision) ?: return Result.success()
-                if (requireNotNull(due.reminderAt) > System.currentTimeMillis()) return Result.retry()
                 val manager = applicationContext.getSystemService(NotificationManager::class.java)
-                manager.createNotificationChannel(NotificationChannel(
-                    "inkpilot-calendar", "Studio reminders", NotificationManager.IMPORTANCE_DEFAULT,
-                ))
-                val intent = Intent(applicationContext, StudioHomeActivity::class.java)
-                    .putExtra("inkpilot_panel", "calendar")
-                val pending = PendingIntent.getActivity(applicationContext, 9081, intent,
-                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
-                val notification = NotificationCompat.Builder(applicationContext, "inkpilot-calendar")
-                    .setSmallIcon(R.drawable.inkpilot_nav_studio)
-                    .setContentTitle("Studio calendar reminder")
-                    .setContentText("Open inkPilot to review an upcoming entry.")
-                    .setContentIntent(pending).setAutoCancel(true)
-                    .setVisibility(NotificationCompat.VISIBILITY_PRIVATE).build()
-                manager.notify((due.id xor (due.id ushr 32)).toInt(), notification)
-                calendar.markReminderDelivered(id, revision)
-                Result.success()
+                val outcome = attemptDueCalendarReminder(calendar, id, revision, System.currentTimeMillis(),
+                    canPost = { CalendarReminderGate.canPost(applicationContext, manager) },
+                ) { due ->
+                    val intent = Intent(applicationContext, StudioHomeActivity::class.java)
+                        .putExtra("inkpilot_panel", "calendar")
+                    val pending = PendingIntent.getActivity(applicationContext, 9081, intent,
+                        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+                    val notification = NotificationCompat.Builder(applicationContext, CalendarReminderGate.CHANNEL_ID)
+                        .setSmallIcon(R.drawable.inkpilot_nav_studio)
+                        .setContentTitle("Studio calendar reminder")
+                        .setContentText("Open inkPilot to review an upcoming entry.")
+                        .setContentIntent(pending).setAutoCancel(true)
+                        .setVisibility(NotificationCompat.VISIBILITY_PRIVATE).build()
+                    manager.notify((due.id xor (due.id ushr 32)).toInt(), notification)
+                }
+                if (outcome == CalendarReminderAttempt.RETRY) Result.retry() else Result.success()
             }
         } catch (_: Exception) {
             // A missing notification permission or storage failure must not erase the reminder.
