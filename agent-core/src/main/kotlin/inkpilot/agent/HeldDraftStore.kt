@@ -2,6 +2,9 @@ package inkpilot.agent
 
 enum class DraftKind { CUSTOMER_SERVICE_REPLY }
 
+/** LEGACY_RAW includes every row written before the policy-version migration. */
+enum class DraftRendererPolicy { LEGACY_RAW, BOUNDED_INTENT_V1, STAFF_PROPOSAL_V1 }
+
 data class DraftKey(val eventId: String, val kind: DraftKind = DraftKind.CUSTOMER_SERVICE_REPLY)
 
 data class HeldDraftWrite(
@@ -11,6 +14,7 @@ data class HeldDraftWrite(
     val recipient: String,
     val expectedRevision: Long,
     val body: String,
+    val rendererPolicy: DraftRendererPolicy = DraftRendererPolicy.LEGACY_RAW,
 )
 
 data class HeldDraftReceipt(
@@ -21,6 +25,7 @@ data class HeldDraftReceipt(
     val recipient: String,
     val sourceRevision: Long,
     val body: String,
+    val rendererPolicy: DraftRendererPolicy = DraftRendererPolicy.LEGACY_RAW,
 )
 
 enum class DraftDisposition { CREATED, ALREADY_HELD }

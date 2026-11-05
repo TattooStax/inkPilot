@@ -183,6 +183,7 @@ class StudioProposalStore(private val repository: StudioRepository) {
             put("draft_id", draftId); put("event_id", item.eventId); put("kind", "PROPOSAL_REPLY")
             put("thread_id", item.threadId); put("contact_id", item.contactId); put("recipient", recipient)
             put("source_revision", item.sourceRevision); put("body", payload.body)
+            put("renderer_policy", "STAFF_PROPOSAL_V1")
             put("created_at", System.currentTimeMillis())
         })
         db.resolveStaffAttentionForEvent(item.eventId, item.sourceRevision)

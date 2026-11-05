@@ -25,11 +25,12 @@ class CustomerServiceDrafts(
                 ?: return stopped(DraftStopReason.SOURCE_MISSING)
             validateSource(request, source)?.let { return stopped(it) }
             if (!replyRenderer.eligible(evidence)) return stopped(DraftStopReason.UNSAFE_CONTENT)
+            val policy = replyRenderer.receiptPolicy() ?: return stopped(DraftStopReason.UNSAFE_CONTENT)
 
             stage = DraftFailureStage.RECEIPT_READ
             store.findHeldDraft(key)?.let { receipt ->
                 if (cancellation.isCancelled()) return stopped(DraftStopReason.CANCELLED)
-                return if (replyRenderer.acceptsUnprovenReceipt() && validReceipt(receipt, source, key)) {
+                return if (validReceipt(receipt, source, key, policy, evidence)) {
                     DraftOutcome.Held(receipt, DraftDisposition.ALREADY_HELD)
                 } else stopped(DraftStopReason.INVALID_RECEIPT)
             }
@@ -56,17 +57,14 @@ class CustomerServiceDrafts(
             if (body.length > limits.replyCharacters) return stopped(DraftStopReason.REPLY_LIMIT)
             if (!safetyGate.allows(body)) return stopped(DraftStopReason.UNSAFE_CONTENT)
 
-            val write = HeldDraftWrite(key, source.threadId, source.contactId, source.recipient, source.revision, body)
+            val write = HeldDraftWrite(key, source.threadId, source.contactId, source.recipient, source.revision, body, policy)
             writeAttempted = true
             return when (val result = store.holdIfCurrent(write)) {
                 DraftStoreResult.SourceChanged -> stopped(DraftStopReason.SOURCE_CHANGED)
                 DraftStoreResult.StaffPaused -> stopped(DraftStopReason.STAFF_PAUSED)
                 is DraftStoreResult.Held -> {
-                    if (result.disposition == DraftDisposition.ALREADY_HELD && !replyRenderer.acceptsUnprovenReceipt()) {
-                        return stopped(DraftStopReason.INVALID_RECEIPT)
-                    }
                     val validBody = result.disposition == DraftDisposition.ALREADY_HELD || result.receipt.body == body
-                    if (validReceipt(result.receipt, source, key) && validBody) {
+                    if (validReceipt(result.receipt, source, key, policy, evidence) && validBody) {
                         DraftOutcome.Held(result.receipt, result.disposition)
                     } else DraftOutcome.PersistenceUnconfirmed(key)
                 }
@@ -101,11 +99,13 @@ class CustomerServiceDrafts(
         else -> null
     }
 
-    private fun validReceipt(receipt: HeldDraftReceipt, source: DraftSource, key: DraftKey): Boolean =
+    private fun validReceipt(receipt: HeldDraftReceipt, source: DraftSource, key: DraftKey,
+                             policy: DraftRendererPolicy, evidence: DraftEvidence?): Boolean =
         receipt.draftId.isNotBlank() && receipt.key == key && receipt.threadId == source.threadId &&
             receipt.contactId == source.contactId && receipt.recipient == source.recipient &&
-            receipt.sourceRevision == source.revision && receipt.body.isNotBlank() &&
-            receipt.body.length <= limits.replyCharacters
+        receipt.sourceRevision == source.revision && receipt.rendererPolicy == policy &&
+        receipt.body.isNotBlank() && receipt.body.length <= limits.replyCharacters &&
+        replyRenderer.acceptsHeldBody(receipt.body, evidence)
 
     private fun stopped(reason: DraftStopReason) = DraftOutcome.Stopped(reason)
 }

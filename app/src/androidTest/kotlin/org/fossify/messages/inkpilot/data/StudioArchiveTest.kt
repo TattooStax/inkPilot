@@ -60,7 +60,7 @@ class StudioArchiveTest {
             val manifest = JSONObject(requireNotNull(entries["manifest.json"]).toString(Charsets.UTF_8))
             assertEquals("inkpilot-studio-export-v1", manifest.getString("format"))
             assertTrue(manifest.getBoolean("plaintext"))
-            assertEquals(9, manifest.getInt("studioSchemaVersion"))
+            assertEquals(10, manifest.getInt("studioSchemaVersion"))
             assertEquals(StudioArchiveScope.DESCRIPTION, manifest.getString("scope"))
             val inbound = requireNotNull(entries["studio/tables/inbound_events.jsonl"])
                 .toString(Charsets.UTF_8)

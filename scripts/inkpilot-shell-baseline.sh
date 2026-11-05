@@ -48,6 +48,7 @@ adb -s "$serial" shell am force-stop "$package"
 [[ -z $(adb -s "$serial" shell pidof "$package" 2>/dev/null | tr -d '\r') ]]
 run_class org.fossify.messages.inkpilot.studio.StudioImageOrphanRecoveryTest
 run_class org.fossify.messages.inkpilot.data.StudioArchiveTest
+run_class org.fossify.messages.inkpilot.data.StudioDraftPolicyMigrationTest
 run_class org.fossify.messages.inkpilot.data.StudioArchiveCleanupNoticeTest
 run_class org.fossify.messages.inkpilot.ui.StudioStaffAttentionTest
 run_class org.fossify.messages.inkpilot.ui.StudioArchiveHandoffTest

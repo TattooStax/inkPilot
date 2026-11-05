@@ -12,6 +12,7 @@ import org.fossify.messages.inkpilot.data.markStaffAttentionHandled
 import org.fossify.messages.inkpilot.data.staffAttention
 import org.fossify.messages.inkpilot.runtime.AgentRuntime
 import org.fossify.messages.inkpilot.runtime.AgentSettings
+import inkpilot.agent.DraftRendererPolicy
 
 internal class DraftPanel(
     private val activity: AppCompatActivity,
@@ -96,7 +97,7 @@ internal class DraftPanel(
         })
         list.addView(StudioUi.text(activity, draft.sendBody ?: draft.staffEditBody ?: draft.body, DRAFT_SIZE))
         val canReview = draft.canReview && AgentRuntime.BOUNDED_INTENT_QUALIFIED
-        list.addView(StudioUi.text(activity, statusText(draft.status, canReview), DETAIL_SIZE))
+        list.addView(StudioUi.text(activity, statusText(draft, canReview), DETAIL_SIZE))
         renderDraftActions(list, draft, canReview)
         list.addView(StudioUi.rule(activity))
     }
@@ -133,8 +134,9 @@ internal class DraftPanel(
         }
     }
 
-    private fun statusText(status: String, current: Boolean) = when (status) {
-        "HELD" -> if (!AgentRuntime.BOUNDED_INTENT_QUALIFIED)
+    private fun statusText(draft: ReviewDraft, current: Boolean) = when (draft.status) {
+        "HELD" -> if (!AgentRuntime.BOUNDED_INTENT_QUALIFIED ||
+            draft.rendererPolicy == DraftRendererPolicy.LEGACY_RAW)
             "Unqualified model text for history. Reply directly in the conversation."
         else if (current) "Ready for staff review" else
             "Out of date or paused — dismiss and review the conversation."

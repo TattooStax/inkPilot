@@ -6,6 +6,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import inkpilot.agent.DraftStoreResult
 import inkpilot.agent.HeldDraftWrite
 import inkpilot.agent.DraftKey
+import inkpilot.agent.DraftRendererPolicy
 import org.junit.Assert.*
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -32,19 +33,30 @@ class StudioRevisionMigrationTest {
                 assertEquals(1, db.version)
             }
             StudioRepository(context, name).use { repository ->
-                assertEquals(9, repository.database.version)
+                assertEquals(10, repository.database.version)
                 assertEquals("Original guide", repository.soul())
                 assertEquals("Edited approved text", repository.getSendClaim("claimed")?.body)
                 assertEquals(SendStatus.UNKNOWN, repository.getSendClaim("claimed")?.status)
+                assertEquals(DraftRendererPolicy.LEGACY_RAW,
+                    repository.findHeldDraft(DraftKey("e"))?.rendererPolicy)
+                assertFalse(repository.draft("held")!!.canReview)
+                assertNull(repository.claimDraftForSend("held", "Original draft", "Original draft", 3))
                 repository.database.rawQuery("SELECT outcome FROM send_parts WHERE draft_id = 'claimed'", null).use {
                     assertTrue(it.moveToFirst()); assertEquals(1, it.getInt(0))
                 }
                 repository.saveMemory("c", "Revised memory")
                 val source = checkNotNull(repository.readSource("e"))
                 assertTrue(repository.regenerate("e", source.revision) is DraftRegenerationOutcome.Held)
-                assertTrue(repository.holdIfCurrent(HeldDraftWrite(DraftKey("e"), "42", "c", source.recipient, source.revision, "Revised answer")) is DraftStoreResult.Held)
+                assertTrue(repository.holdIfCurrent(HeldDraftWrite(DraftKey("e"), "42", "c",
+                    source.recipient, source.revision, "Revised answer",
+                    DraftRendererPolicy.BOUNDED_INTENT_V1)) is DraftStoreResult.Held)
                 assertEquals(3, repository.drafts().size)
                 assertEquals("Original draft", repository.drafts().single { it.draftId == "held" }.body)
+                val current = repository.heldDrafts().single { it.sourceRevision == source.revision }
+                assertTrue(current.canReview)
+                assertEquals(DraftRendererPolicy.BOUNDED_INTENT_V1,
+                    repository.findHeldDraft(DraftKey("e"))?.rendererPolicy)
+                assertNotNull(repository.claimDraftForSend(current.draftId, current.body, current.body, 3))
                 repository.database.rawQuery("PRAGMA foreign_key_check", null).use { assertFalse(it.moveToFirst()) }
                 repository.advanceIntakeCheckpoint(201)
             }

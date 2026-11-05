@@ -65,13 +65,15 @@ fun interface DraftReplyRenderer {
     /** Constrain the model to the host-approved choices, without free-text facts. */
     fun instructions(evidence: DraftEvidence?): String? = null
 
-    /** Older receipts lack a recorded renderer identity; closed routes must not adopt them. */
-    fun acceptsUnprovenReceipt(): Boolean = false
+    /** A closed route must name its durable policy and verify existing customer text. */
+    fun receiptPolicy(): DraftRendererPolicy? = null
+    fun acceptsHeldBody(body: String, evidence: DraftEvidence?): Boolean = false
 
     companion object {
         val RAW = object : DraftReplyRenderer {
             override fun render(modelOutput: String, evidence: DraftEvidence?): String = modelOutput
-            override fun acceptsUnprovenReceipt(): Boolean = true
+            override fun receiptPolicy(): DraftRendererPolicy = DraftRendererPolicy.LEGACY_RAW
+            override fun acceptsHeldBody(body: String, evidence: DraftEvidence?): Boolean = true
         }
     }
 }
