@@ -12,6 +12,7 @@ import androidx.test.platform.app.InstrumentationRegistry
 import org.fossify.messages.inkpilot.ui.*
 import org.fossify.messages.messaging.MessageKey
 import org.fossify.messages.messaging.MessageOrigin
+import org.fossify.messages.inkpilot.data.ReviewDraft
 import org.fossify.messages.models.*
 import org.junit.Assert.*
 import org.junit.Test
@@ -134,6 +135,61 @@ class ThreadReviewRegressionTest {
                 val route = StudioRoute.Attachment(image.getUri(), image.mimetype, image.filename)
                 assertEquals(route, Bundle().apply { putAll(route.encode()) }.decodeRoute())
                 assertNotEquals(MessageKey(MessageOrigin.SMS, 7), row.let { MessageKey(MessageOrigin.MMS, it.id) })
+            }
+        }
+    }
+
+    @Test fun selectedHeldDraftLeadsReviewWhenNewerDraftSharesThread() {
+        val older = ReviewDraft("older", "event-a", 42, "contact", "+15551234567",
+            "Fixture", "First question", "First reply", 1, -1, 1, true)
+        val newer = older.copy(draftId = "newer", eventId = "event-b", body = "Second reply", createdAt = 2)
+        assertEquals(listOf(newer, older), prioritizeThreadDrafts(listOf(newer, older), null))
+        assertEquals(listOf(older, newer), prioritizeThreadDrafts(listOf(newer, older), older.draftId))
+    }
+
+    @Test fun compactFocusedReviewShowsReplyAndKeepsSimActionReachable() {
+        ActivityScenario.launch(StudioHomeActivity::class.java).use { scenario ->
+            scenario.onActivity { activity ->
+                val draft = ReviewDraft("fixture-draft", "fixture-event", 42, "fixture-contact",
+                    "+15551234567", "Fixture", "Can I book a consultation?",
+                    "Sure! We can set up a 30-minute consultation. What date and time work best for you?",
+                    1, -1, 0, true)
+                val work = StudioWork(activity, Executor { it.run() })
+                val source = object : StudioConversations {
+                    override fun pageThreads(after: ThreadCursor?, limit: Int) =
+                        Page<Conversation, ThreadCursor>(emptyList(), null)
+                    override fun pageMessages(threadId: Long, after: MessageCursor?, limit: Int) =
+                        Page<Message, MessageCursor>(emptyList(), null)
+                    override fun markRead(threadId: Long) = Unit
+                }
+                val footer: (Long) -> View = {
+                    StudioUi.scroll(activity, StudioUi.column(activity, 0).apply {
+                        addView(InlineDraftReview(activity, work, {}).view(draft))
+                    }).apply { layoutParams = android.widget.LinearLayout.LayoutParams(-1, StudioUi.dp(this, 280)) }
+                }
+                val thread = MessagePanel(activity, work, {}, {}, threadFooter = footer, gateway = source)
+                    .thread(42, focusedReview = true)
+                val canvas = activity.findViewById<android.widget.FrameLayout>(org.fossify.messages.R.id.inkpilot_canvas)
+                canvas.removeAllViews()
+                canvas.addView(thread, android.widget.FrameLayout.LayoutParams(
+                    StudioUi.dp(canvas, 320), StudioUi.dp(canvas, 400)))
+            }
+            InstrumentationRegistry.getInstrumentation().waitForIdleSync()
+            scenario.onActivity { activity ->
+                val canvas = activity.findViewById<View>(org.fossify.messages.R.id.inkpilot_canvas)
+                val editor = children(canvas).filterIsInstance<android.widget.EditText>().single()
+                val editorRect = android.graphics.Rect()
+                assertTrue("held reply editor begins inside the focused thread viewport",
+                    editor.getGlobalVisibleRect(editorRect) && editorRect.height() > editor.height / 2)
+                val sim = children(canvas).filterIsInstance<TextView>()
+                    .single { it.text.toString() == "Choose business SIM" }
+                val scroll = children(canvas).filterIsInstance<android.widget.ScrollView>().single()
+                scroll.requestChildRectangleOnScreen(sim,
+                    android.graphics.Rect(0, 0, sim.width, sim.height), true)
+                val simRect = android.graphics.Rect()
+                assertTrue("staff can expose the SIM action before approval", sim.getGlobalVisibleRect(simRect))
+                assertTrue("conversation retains a viewport",
+                    children(canvas).filterIsInstance<RecyclerView>().single().height > 0)
             }
         }
     }

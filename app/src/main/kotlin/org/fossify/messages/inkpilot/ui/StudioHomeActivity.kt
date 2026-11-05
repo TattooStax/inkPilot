@@ -130,7 +130,7 @@ class StudioHomeActivity : AppCompatActivity() {
         composerRoutes.prune()
         val route = navigator.current
         val messages = MessagePanel(this, work, ::setupSms, { openAgent("drafts") }, ::openRoute,
-            threadFooter = ::threadFooter, importImage = ::importMmsImage)
+            threadFooter = { threadFooter(it) }, importImage = ::importMmsImage)
         val auxiliary = AuxiliaryPanel(this, work, ::openRoute, ::refreshPanels, ::exportStudio)
         val view = panels.view(route) {
             supplementalCanvas(this, route, messages, work) { onBackPressedDispatcher.onBackPressed() }
@@ -231,10 +231,12 @@ class StudioHomeActivity : AppCompatActivity() {
             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION)
         }, 7310)
     }
-    private fun threadFooter(threadId: Long): android.view.View {
+    private fun threadFooter(threadId: Long, selectedDraftId: String? = null): android.view.View {
         val root = StudioUi.column(this, 0)
         work.load({ repository.draftsForThread(threadId) }) { drafts ->
-            drafts.forEach { root.addView(InlineDraftReview(this, work, ::refreshPanels).view(it), 0) }
+            prioritizeThreadDrafts(drafts, selectedDraftId).forEachIndexed { index, draft ->
+                root.addView(InlineDraftReview(this, work, ::refreshPanels).view(draft), index)
+            }
         }
         root.addView(ThreadComposer(this, work, ::pickAttachment, ::refreshPanels, ::openRoute,
             composerRoutes::acceptedThread).view(threadId))
@@ -243,8 +245,11 @@ class StudioHomeActivity : AppCompatActivity() {
     private fun inlineDraft(id: String): android.view.View {
         val root = StudioUi.column(this, 0)
         work.load({ repository.draft(id) }) { draft ->
-            if (draft != null) root.addView(MessagePanel(this, work, ::setupSms, { openAgent("drafts") }, ::openRoute, ::threadFooter).thread(draft.threadId))
-            else root.addView(StudioUi.text(this, "Draft is no longer available"))
+            if (draft != null) {
+                val panel = MessagePanel(this, work, ::setupSms, { openAgent("drafts") },
+                    ::openRoute, { threadFooter(it, id) })
+                root.addView(panel.thread(draft.threadId, focusedReview = true))
+            } else root.addView(StudioUi.text(this, "Draft is no longer available"))
         }
         return root
     }

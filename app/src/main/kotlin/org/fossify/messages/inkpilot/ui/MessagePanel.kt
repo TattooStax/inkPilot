@@ -8,6 +8,8 @@ import androidx.core.content.ContextCompat
 import org.fossify.messages.R
 
 private const val THREAD_VIEWPORT_SHARE = 2
+private const val FOCUSED_REVIEW_PARTS = 3
+private const val FOCUSED_REVIEW_TOTAL = 4
 private const val READ_ONLY_MESSAGE_SIZE_SP = 14f
 
 internal class MessagePanel(
@@ -55,7 +57,7 @@ internal class MessagePanel(
     }
 
     /** Task10 can supply a composer footer without replacing the shell or message list. */
-    fun thread(threadId: Long): View {
+    fun thread(threadId: Long, focusedReview: Boolean = false): View {
         val body = StudioUi.column(activity)
         body.addView(StudioUi.button(activity, "Client reference images") { open(StudioRoute.ImageLinks(threadId = threadId)) })
         val adapter = StudioThreadAdapter(activity, forward = { message ->
@@ -90,20 +92,24 @@ internal class MessagePanel(
         val footer = threadFooter?.invoke(threadId)
             ?: StudioUi.text(activity, "Read-only conversation", READ_ONLY_MESSAGE_SIZE_SP)
         body.addView(footer)
-        if (threadFooter != null) reserveThreadViewport(body, list, footer)
+        if (threadFooter != null) reserveThreadViewport(body, list, footer, focusedReview)
         work.load({ gateway.markRead(threadId) }) { }
         load()
         return body
     }
 
-    private fun reserveThreadViewport(body: android.widget.LinearLayout, list: View, footer: View) {
+    private fun reserveThreadViewport(
+        body: android.widget.LinearLayout, list: View, footer: View, focusedReview: Boolean,
+    ) {
         val preferredFooterHeight = footer.layoutParams.height
         body.addOnLayoutChangeListener { _, _, top, _, bottom, _, _, _, _ ->
             val fixed = (0 until body.childCount).sumOf { index ->
                 body.getChildAt(index).takeUnless { it === list || it === footer }?.height ?: 0
             }
             val room = (bottom - top - body.paddingTop - body.paddingBottom - fixed).coerceAtLeast(0)
-            val footerHeight = minOf(preferredFooterHeight, room / THREAD_VIEWPORT_SHARE)
+            val share = if (focusedReview) room * FOCUSED_REVIEW_PARTS / FOCUSED_REVIEW_TOTAL
+                else room / THREAD_VIEWPORT_SHARE
+            val footerHeight = minOf(preferredFooterHeight, share)
             if (footer.layoutParams.height != footerHeight) {
                 footer.layoutParams = (footer.layoutParams as android.widget.LinearLayout.LayoutParams).apply {
                     height = footerHeight

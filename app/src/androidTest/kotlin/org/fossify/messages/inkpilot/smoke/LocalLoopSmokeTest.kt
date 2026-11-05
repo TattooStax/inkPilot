@@ -94,8 +94,13 @@ class LocalLoopSmokeTest {
                 SmokeViews.clickDescription("Open agent controls")
                 SmokeViews.clickText("Drafts & staff replies")
                 SmokeViews.clickDescription("Review draft")
-                SmokeViews.assertText(receipt.body)
-                SmokeViews.assertText("Choose business SIM")
+                try {
+                    SmokeViews.assertText(receipt.body)
+                    SmokeViews.assertText("Choose business SIM")
+                } catch (failure: AssertionError) {
+                    SmokeViews.capture(File(evidence, "local-draft-review.png"))
+                    throw failure
+                }
                 SmokeViews.capture(File(evidence, "local-draft-review.png"))
             }
             assertEquals("Opening staff review must not send SMS", 0, outgoingMessages())

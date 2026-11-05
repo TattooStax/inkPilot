@@ -5,13 +5,19 @@ import androidx.appcompat.app.AppCompatActivity
 import org.fossify.messages.inkpilot.data.ReviewDraft
 import org.fossify.messages.inkpilot.runtime.AgentRuntime
 
+private const val CLIENT_CONTEXT_LINES = 2
+private const val CLIENT_CONTEXT_SP = 14f
+
 /** Staff approval lives in the thread; the model never calls a send API. */
 internal class InlineDraftReview(private val activity: AppCompatActivity, private val work: StudioWork,
     private val refresh: () -> Unit) {
     fun view(draft: ReviewDraft): android.view.View {
         val root = StudioUi.column(activity, 8)
         root.addView(StudioUi.text(activity, "Held assistant reply · ${draft.recipient}", 16f, true))
-        root.addView(StudioUi.text(activity, "Client: ${draft.inboundText}", 14f))
+        root.addView(StudioUi.text(activity, "Client: ${draft.inboundText}", CLIENT_CONTEXT_SP).apply {
+            maxLines = CLIENT_CONTEXT_LINES
+            ellipsize = android.text.TextUtils.TruncateAt.END
+        })
         val prefs = activity.getSharedPreferences("held_staff_edits", 0)
         val editor = EditText(activity).apply {
             id = android.view.View.generateViewId()
@@ -46,3 +52,7 @@ internal class InlineDraftReview(private val activity: AppCompatActivity, privat
         return root
     }
 }
+
+/** The selected review remains first even when a newer held draft shares the conversation. */
+internal fun prioritizeThreadDrafts(drafts: List<ReviewDraft>, selectedDraftId: String?): List<ReviewDraft> =
+    if (selectedDraftId == null) drafts else drafts.sortedByDescending { it.draftId == selectedDraftId }
