@@ -20,6 +20,8 @@ scripts/run-inkpilot-test-class.sh "$serial" org.fossify.messages.inkpilot.smoke
 scripts/run-inkpilot-test-class.sh "$serial" org.fossify.messages.inkpilot.smoke.InShellComposerTest
 scripts/run-inkpilot-test-class.sh "$serial" org.fossify.messages.inkpilot.studio.StudioImageLinksTest
 scripts/run-inkpilot-test-class.sh "$serial" org.fossify.messages.inkpilot.studio.StudioImageImportUiTest
+scripts/run-inkpilot-test-class.sh "$serial" org.fossify.messages.inkpilot.data.StudioArchiveTest
+scripts/run-inkpilot-test-class.sh "$serial" org.fossify.messages.inkpilot.ui.StudioArchiveHandoffTest
 scripts/run-inkpilot-test-class.sh "$serial" org.fossify.messages.inkpilot.data.ScheduledVerdictTest
 scripts/run-inkpilot-test-class.sh "$serial" org.fossify.messages.inkpilot.data.ScheduledQueueTest
 scripts/run-inkpilot-test-class.sh "$serial" org.fossify.messages.inkpilot.data.ScheduledIdentityLifecycleTest
