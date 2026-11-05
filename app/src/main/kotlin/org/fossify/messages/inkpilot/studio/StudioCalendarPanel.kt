@@ -59,9 +59,11 @@ internal class StudioCalendarPanel(private val host: StudioPanelHost, private va
             }, day.year, day.monthValue - 1, day.dayOfMonth).show()
         }, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
         dates.addView(host.button("›") { day = day.plusDays(1); render() })
-        dates.addView(host.button("⋮") { settingsDialog().show() }.apply {
+        dates.addView(host.button("⋮") {
+            CalendarSettingsCard(host, zone, ::chooseStaffForAvailability, ::addStaff, ::editStudioZone).show()
+        }.apply {
             contentDescription = "Calendar settings"
-            minWidth = host.dp(48)
+            minWidth = minHeight
         })
         content.addView(dates)
         content.addView(host.button("Add appointment or task") {
@@ -84,22 +86,6 @@ internal class StudioCalendarPanel(private val host: StudioPanelHost, private va
                 entries.addView(host.button("$from–$until · ${entry.title}\n${entry.staffName}$room$status") { details(entry) })
             }
         }
-    }
-
-    /** Keep occasional administration off the day canvas; Back dismisses this contextual card. */
-    internal fun settingsDialog(): AlertDialog {
-        var selected: (() -> Unit)? = null
-        val actions = arrayOf("Staff hours and time off", "Add staff member", "Studio time zone · ${zone.id}")
-        return AlertDialog.Builder(host.activity).setTitle("Calendar settings")
-            .setItems(actions) { _, index ->
-                selected = when (index) {
-                    0 -> ::chooseStaffForAvailability
-                    1 -> ::addStaff
-                    else -> ::editStudioZone
-                }
-            }.setNegativeButton("Close", null).create().apply {
-                setOnDismissListener { selected?.let(host::onUi) }
-            }
     }
 
     private fun editStudioZone() {
