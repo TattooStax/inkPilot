@@ -47,7 +47,7 @@ internal class CalendarReminderWorker(context: Context, params: WorkerParameters
                     val notification = NotificationCompat.Builder(applicationContext, CalendarReminderGate.CHANNEL_ID)
                         .setSmallIcon(R.drawable.inkpilot_nav_studio)
                         .setContentTitle("Studio calendar reminder")
-                        .setContentText("Open inkPilot to review an upcoming entry.")
+                        .setContentText("Open inkPilot to review a calendar entry.")
                         .setContentIntent(pending).setAutoCancel(true)
                         .setVisibility(NotificationCompat.VISIBILITY_PRIVATE).build()
                     manager.notify((due.id xor (due.id ushr 32)).toInt(), notification)
