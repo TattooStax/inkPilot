@@ -111,9 +111,9 @@ class OneShellAcceptanceTest {
     @Test fun tabsRemainVisibleAtLargeTextAndLandscape() = atLargeText { scenario ->
         java.io.File(instrumentation.targetContext.filesDir, "device-test-evidence/studio-tab-window.json").delete()
         // Separate callsites preserve the original sequence and identify a redacted failing tab.
-        observedNavigation("SMS") { SmokeViews.clickDescription("SMS") }
+        observedNavigation("SMS") { clickDailyTab("SMS", R.id.inkpilot_tab_sms) }
         scenario.onActivity { assertLargeTab(it, "SMS", R.id.inkpilot_tab_sms) }
-        observedNavigation("Phone") { SmokeViews.clickDescription("Phone") }
+        observedNavigation("Phone") { clickDailyTab("Phone", R.id.inkpilot_tab_phone) }
         scenario.onActivity { assertLargeTab(it, "Phone", R.id.inkpilot_tab_phone) }
         observedNavigation("Contacts") {
             val active = SmokeViews.await("active window after Phone") {
@@ -126,14 +126,12 @@ class OneShellAcceptanceTest {
             assertNotNull("Contacts must remain in the active accessibility window", contactsNode)
             assertEquals("Contacts", contactsNode!!.contentDescription?.toString())
             assertTrue("Contacts remains an accessibility action", contactsNode.isClickable)
-            assertTrue("Contacts nav accessibility action",
-                contactsNode.performAction(AccessibilityNodeInfo.ACTION_CLICK))
-            instrumentation.waitForIdleSync()
+            clickDailyTab("Contacts", R.id.inkpilot_tab_contacts)
         }
         scenario.onActivity { assertLargeTab(it, "Contacts", R.id.inkpilot_tab_contacts) }
-        observedNavigation("Studio") { SmokeViews.clickDescription("Studio") }
+        observedNavigation("Studio") { clickDailyTab("Studio", R.id.inkpilot_tab_studio) }
         scenario.onActivity { assertLargeTab(it, "Studio", R.id.inkpilot_tab_studio) }
-        observedNavigation("Calendar") { SmokeViews.clickDescription("Calendar") }
+        observedNavigation("Calendar") { clickDailyTab("Calendar", R.id.inkpilot_tab_calendar) }
         scenario.onActivity { assertLargeTab(it, "Calendar", R.id.inkpilot_tab_calendar) }
         scenario.onActivity { it.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE }
         SmokeViews.await<Boolean>("landscape shell") {
@@ -156,6 +154,19 @@ class OneShellAcceptanceTest {
             runCatching { recordStudioTabWindow(instrumentation.targetContext, label, failure) }
             throw failure
         }
+    }
+
+    /** Re-query the live tab when Android rejects a transient accessibility action. */
+    private fun clickDailyTab(label: String, id: Int) {
+        val context = instrumentation.targetContext
+        val viewId = "${context.packageName}:id/${context.resources.getResourceEntryName(id)}"
+        SmokeViews.await<Boolean>(label) {
+            val node = instrumentation.uiAutomation.rootInActiveWindow
+                ?.findAccessibilityNodeInfosByViewId(viewId)?.firstOrNull()
+            if (node != null && node.contentDescription?.toString() == label && node.isVisibleToUser && node.isEnabled &&
+                node.isClickable && node.performAction(AccessibilityNodeInfo.ACTION_CLICK)) true else null
+        }
+        instrumentation.waitForIdleSync()
     }
 
     private fun assertLargeTab(activity: StudioHomeActivity, label: String, id: Int) {
