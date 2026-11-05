@@ -255,7 +255,7 @@ class ShellIngressTest {
         val instrumentation = InstrumentationRegistry.getInstrumentation()
         val sender = instrumentation.context
         assertNotEquals(context.packageName, sender.packageName)
-        val uri = Uri.parse("content://$INGRESS_AUTHORITY/reference?token=${UUID.randomUUID()}")
+        val uri = Uri.parse("content://${CrossPackageShareProvider.AUTHORITY}/reference?token=${UUID.randomUUID()}")
         @Suppress("DEPRECATION")
         val provider = sender.packageManager.getProviderInfo(ComponentName(sender.packageName, CrossPackageShareProvider::class.java.name), 0)
         assertFalse(provider.exported)
