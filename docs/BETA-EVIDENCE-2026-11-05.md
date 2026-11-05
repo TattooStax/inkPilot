@@ -2,6 +2,8 @@
 
 This is a dated status of the text-first beta defined in [INKPILOT-PLAN.md](INKPILOT-PLAN.md). It updates the 2026-11-04 source audit without rewriting that audit's historical findings. The hosted evidence below belongs to published source `2191ad7`; later local fixes require a new same-source hosted verdict. An isolated patch, a passing unit test, and an emulator receipt are different kinds of evidence from a delivered message on the intended phone.
 
+The table immediately below is the earlier `2191ad7` checkpoint. The later same-day evidence table records newer source separately; its results do not retroactively change that checkpoint.
+
 ## Evidence now in hand
 
 | Area | Observed result | Limit |
@@ -13,6 +15,16 @@ This is a dated status of the text-first beta defined in [INKPILOT-PLAN.md](INKP
 | Local model | Pinned LFM3-1.7B QAD generates held text offline; host and five-turn OnePlus probes executed. Current benchmark found unsupported booking and image/action language. QAD and Q4_K_M are unqualified for studio replies. A fixed read/proposal registry exists in source, but production drafting has no model-loop caller for it and rejects native tool calls. | The held-review barrier prevents automatic sends but does not make generated text accurate. No production calendar tool execution, image understanding, blind staff adjudication, 20-turn phone soak or model-family qualification has passed. |
 | Phone | Manual dial and in-call surfaces exist; the preview's two fake-dial tests passed without making calls or changing roles. | Default-dialer binding, incoming/ringing/locked notification, SIM/audio controls and actual call behavior have no physical acceptance proof. AI answering and call audio integration are absent. |
 | Release and data | A separate preview can install alongside the older debug app. The older debug app's SMS role and OnePlus Dialer's Phone role were restored after an earlier controlled send; the current preview checks kept them unchanged. | The installed old debug signer differs from local candidates. No stable signed canonical APK, private-data migration, native-provider restore or complete backup/import has been accepted. |
+
+## Later same-day evidence (source-specific)
+
+| Source | Observed result | Remaining issue |
+| --- | --- | --- |
+| `d0aa0b7` | Hosted build succeeded. Hosted local-loop ran 159 Android tests and seven staged checks, then displayed a real offline LFM3 held draft and verified restart with zero outgoing carrier messages. Its shell suite passed 29 of 31 classes. Side-by-side OnePlus preview passed 11 selected methods; physical route review found all five daily tabs and the Assistant side card in the shell. | `ShellIngressTest` and large-text `OneShellAcceptanceTest` still failed on hosted emulator. The first physical coordinate tap after a cold alias launch was intermittently missed; cause unproven. |
+| `3be1367` | Hosted build succeeded. `ComposerClaimRecoveryTest` passed on hosted emulator, proving the interrupted send claim is visibly `UNKNOWN` and requires review. The local loop created a durable held record and no outgoing SMS. | Actual QAD output claimed a 30-minute consultation could be set up; the safety filter did not block it. The focused review route showed the ordinary composer while the selected held reply was below the visible canvas. Hosted shell passed 30 of 32 classes with the same alias and large-text failures. |
+| `0038d09` | Hosted build succeeded. A disposable Android 13 device passed 19 of 19 synthetic multipart, scheduled verdict, group-refusal and composer recovery checks. Native multipart SMS now needs all part callbacks for a verified sent verdict; group sends are refused before provider/radio work. Hosted device jobs were started on this source. | The model/content and focused-review defects remained in this source; its local-loop job reproduced the unsafe consultation line and visibility timeout. Carrier SMS/MMS recipient delivery, phone call/audio, and the model's studio utility remain unverified. |
+
+The bounded missing-question selector remains off in production. Its exact corpus and issuer work are isolated pending combined tests and a new same-source device verdict. The status is still **not functional-beta qualified**.
 
 ## Ordered gates to a functional text beta
 

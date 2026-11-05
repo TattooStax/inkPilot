@@ -51,6 +51,11 @@ else
       if (current ~ /^[A-Za-z_][A-Za-z0-9_]*$/) { print current; exit }
     }
   ' "$result")
+  # Some runner failures omit the final status test field but still emit the
+  # JUnit summary. Accept only its method identifier; keep the body private.
+  if [[ -z $method ]]; then
+    method=$(sed -nE 's/^Error in ([A-Za-z_][A-Za-z0-9_]*)\(.*/\1/p' "$result" | head -n 1)
+  fi
   if [[ -n $method ]]; then
     printf 'FAIL %s#%s (%s; raw output withheld)\n' "$class" "$method" "${site:-instrumentation failed}" | tee "$evidence/result.txt" >&2
   else
