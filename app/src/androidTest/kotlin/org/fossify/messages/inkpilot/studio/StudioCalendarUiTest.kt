@@ -52,9 +52,42 @@ class StudioCalendarUiTest {
                     val after = labels(screen)
                     assertFalse(after.contains("Loading studio time zone…"))
                     assertTrue(after.contains("Add appointment or task"))
-                    assertTrue(after.contains("Staff hours and time off"))
-                    assertTrue(after.contains("Studio time zone · $savedZone"))
+                    assertFalse(after.contains("Staff hours and time off"))
+                    assertFalse(after.contains("Add staff member"))
+                    assertFalse(after.contains("Studio time zone · $savedZone"))
+                    assertFalse(after.contains("Calendar"))
                 }
+            }
+        } finally { repository.close(); context.deleteDatabase(name) }
+    }
+
+    @Test fun calendarSettingsOpenFromDayAndReturnToDayAfterCancel() {
+        assumeTrue(Build.FINGERPRINT.contains("generic") || Build.MODEL.contains("sdk"))
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        val name = "synthetic-calendar-settings-ui-${UUID.randomUUID()}.db"
+        val repository = StudioRepository(context, name)
+        try {
+            ActivityScenario.launch(StudioHomeActivity::class.java).use { scenario ->
+                scenario.onActivity { activity ->
+                    val host = StudioPanelHost(activity, Executor { it.run() }) { fail(it) }
+                    val panel = StudioCalendarPanel(host, StudioCalendarStore(repository) { _, _, _ -> })
+                    activity.setContentView(panel.view())
+                }
+                SmokeViews.clickDescription("Calendar settings")
+                SmokeViews.assertText("Staff hours and time off")
+                SmokeViews.assertText("Add staff member")
+                SmokeViews.clickText("Add staff member")
+                SmokeViews.assertText("Save")
+                SmokeViews.clickText("Cancel")
+                SmokeViews.clickDescription("Calendar settings")
+                SmokeViews.clickText("Staff hours and time off")
+                SmokeViews.assertText("Save")
+                SmokeViews.clickText("Cancel")
+                SmokeViews.clickDescription("Calendar settings")
+                SmokeViews.clickText("Studio time zone · ${ZoneId.systemDefault().id}")
+                SmokeViews.assertText("Save")
+                SmokeViews.clickText("Cancel")
+                SmokeViews.assertText("Add appointment or task")
             }
         } finally { repository.close(); context.deleteDatabase(name) }
     }
