@@ -25,8 +25,7 @@ open class LocalDraftWorker(context: Context, parameters: WorkerParameters) : Wo
     }
 
     override fun doWork(): Result = try {
-        if (!qualifiedToDraft()) return Result.success()
-        processDrafts()
+        if (qualifiedToDraft()) processDrafts()
         Result.success()
     } catch (_: Exception) {
         AgentSettings(applicationContext).recordStatus("Drafting will retry. Nothing was sent.")
