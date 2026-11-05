@@ -228,7 +228,7 @@
     "app/src/main/kotlin/org/fossify/messages/inkpilot/studio/CalendarWallHours.kt": 24,
     "app/src/main/kotlin/org/fossify/messages/inkpilot/studio/StudioAlbumStore.kt": 108,
     "app/src/main/kotlin/org/fossify/messages/inkpilot/studio/StudioAlbumsPanel.kt": 173,
-    "app/src/main/kotlin/org/fossify/messages/inkpilot/studio/StudioCalendarPanel.kt": 255,
+    "app/src/main/kotlin/org/fossify/messages/inkpilot/studio/StudioCalendarPanel.kt": 259,
     "app/src/main/kotlin/org/fossify/messages/inkpilot/studio/StudioCalendarSchema.kt": 31,
     "app/src/main/kotlin/org/fossify/messages/inkpilot/studio/StudioCalendarStore.kt": 263,
     "app/src/main/kotlin/org/fossify/messages/inkpilot/studio/StudioFeatureRecords.kt": 61,

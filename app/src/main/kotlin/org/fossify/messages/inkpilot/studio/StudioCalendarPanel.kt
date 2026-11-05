@@ -188,8 +188,12 @@ internal class StudioCalendarPanel(private val host: StudioPanelHost, private va
                     when {
                         // AlertDialog dismisses its list after this callback returns. Open
                         // the child editor on the next UI turn, after that dismissal.
-                        index == 0 -> host.activity.window.decorView.post { setHours(staff) }
-                        index == 1 -> host.activity.window.decorView.post { addTimeOff(staff) }
+                        index == 0 -> host.activity.window.decorView.post {
+                            if (!host.activity.isFinishing && !host.activity.isDestroyed) setHours(staff)
+                        }
+                        index == 1 -> host.activity.window.decorView.post {
+                            if (!host.activity.isFinishing && !host.activity.isDestroyed) addTimeOff(staff)
+                        }
                         index - 2 < hours.size -> host.load({
                             store.clearWeeklyHours(staff.id, hours[index - 2].weekday)
                         }) { availability(staff) }
