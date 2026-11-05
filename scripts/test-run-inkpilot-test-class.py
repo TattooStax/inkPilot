@@ -91,12 +91,15 @@ if 'instrument' in sys.argv:
         self.assertTrue(verdict.read_text().startswith('FAIL '))
 
     def test_raw_assertion_content_is_not_published(self):
-        self.env['INSTRUMENT_RESULT'] = 'FAILURES!!! synthetic-secret-body'
+        self.env['INSTRUMENT_RESULT'] = ("INSTRUMENTATION_STATUS: stack=java.lang.AssertionError: synthetic-secret-body\n"
+            "\tat org.fossify.messages.inkpilot.smoke.ShellBaselineTest.shellOwnsThread(ShellBaselineTest.kt:84)\n"
+            "FAILURES!!! synthetic-secret-body")
         result = self.run_runner('emulator-5554', 'a.b.Test')
         self.assertNotEqual(0, result.returncode)
         self.assertNotIn('synthetic-secret-body', result.stdout + result.stderr)
         verdict = self.root / 'app/build/test-class-evidence/a.b.Test/result.txt'
         self.assertNotIn('synthetic-secret-body', verdict.read_text())
+        self.assertIn('ShellBaselineTest.kt:84', verdict.read_text())
 
     def test_failures_are_nonzero(self):
         for output, code in [('FAILURES!!!', '0'), ('OK (0 tests)', '0'),
