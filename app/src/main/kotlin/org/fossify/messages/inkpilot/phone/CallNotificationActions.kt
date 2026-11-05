@@ -1,7 +1,6 @@
 package org.fossify.messages.inkpilot.phone
 
 import android.app.PendingIntent
-import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -85,12 +84,4 @@ internal object IncomingCallActionIntent {
 
     private fun requestCode(decision: IncomingCallDecision) =
         if (decision == IncomingCallDecision.ANSWER) REQUEST_ANSWER else REQUEST_DECLINE
-}
-
-/** Only the active Telecom service can resolve the token to a tracked ringing Call. */
-class CallNotificationActionReceiver : BroadcastReceiver() {
-    override fun onReceive(context: Context, intent: Intent?) {
-        val request = IncomingCallActionIntent.parse(intent) ?: return
-        StudioInCallService.current?.performNotificationAction(request)
-    }
 }
