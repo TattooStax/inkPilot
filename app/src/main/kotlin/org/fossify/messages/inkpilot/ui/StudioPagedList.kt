@@ -25,6 +25,9 @@ internal class StudioPagedList(context: Context) : RecyclerView(context) {
 
     override fun onRestoreInstanceState(state: Parcelable?) {
         if (state is Bundle && state.containsKey("studio.list.parent")) {
+            // View.dispatchRestoreInstanceState requires a synchronous super call.
+            // Restore the real RecyclerView state only after the page anchor is loaded.
+            super.onRestoreInstanceState(android.view.AbsSavedState.EMPTY_STATE)
             pending = state.getParcelable("studio.list.parent")
             pendingKey = state.getString("origin")?.let { origin ->
                 MessageOrigin.entries.find { it.name == origin }?.let { MessageKey(it, state.getLong("message")) }
