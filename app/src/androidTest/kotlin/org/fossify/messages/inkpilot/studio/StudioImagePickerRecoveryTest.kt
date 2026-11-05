@@ -49,6 +49,11 @@ class StudioImagePickerRecoveryTest {
                     views(linked).filterIsInstance<TextView>()
                         .single { it.text == "Import reference image" }.performClick()
                     val saved = requireNotNull(first.saveImportState())
+                    val locked = StudioPanels(activity, Executor { it.run() }, { error(it) }, repository, saved)
+                    assertTrue(locked.onActivityResult(StudioPanels.IMPORT_IMAGE, Activity.RESULT_OK,
+                        Intent().setData(uri), locked = true))
+                    assertNull(locked.saveImportState())
+                    assertTrue(StudioAlbumStore(repository).images(null).isEmpty())
                     val restored = StudioPanels(activity, Executor { it.run() }, { error(it) }, repository, saved)
                     assertTrue(restored.onActivityResult(StudioPanels.IMPORT_IMAGE, Activity.RESULT_OK,
                         Intent().setData(uri)))

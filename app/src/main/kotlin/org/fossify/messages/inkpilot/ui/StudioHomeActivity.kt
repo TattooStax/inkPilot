@@ -334,7 +334,8 @@ class StudioHomeActivity : AppCompatActivity() {
                 refreshPanels()
             }
         } else if (requestCode == SMS_ROLE_REQUEST) SmsRolePermissions.request(this, SMS_ROLE_REQUEST, ::refreshPanels)
-        else if (!agent.onActivityResult(requestCode, resultCode, data)) studio.onActivityResult(requestCode, resultCode, data)
+        else if (!agent.onActivityResult(requestCode, resultCode, data))
+            studio.onActivityResult(requestCode, resultCode, data, appLockManager.isLocked())
     }
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)

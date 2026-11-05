@@ -39,8 +39,12 @@ class StudioPanels(
 
     fun saveImportState(): Bundle? = importScope?.save()
 
-    fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?): Boolean {
+    fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?, locked: Boolean = false): Boolean {
         if (requestCode != IMPORT_IMAGE) return false
+        if (locked) {
+            importTarget = null; importScope = null
+            return true
+        }
         val scope = importScope
         val target = importTarget ?: scope?.let { saved -> albumPanel().apply {
             if (saved.contactId != null || saved.threadId != null)
