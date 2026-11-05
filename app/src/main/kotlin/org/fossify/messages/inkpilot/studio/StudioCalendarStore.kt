@@ -11,10 +11,10 @@ internal data class TimeOff(val id: Long, val staffId: Long, val startsAt: Long,
 /** The canonical studio calendar, used by staff screens and future checked agent proposals. */
 internal class StudioCalendarStore(
     private val repository: StudioRepository,
+    private val armRecovery: () -> Unit = { CalendarReminderRecovery(repository.applicationContext).arm() },
     private val reminders: (Long, Long, Long?) -> Unit = { id, revision, due ->
         CalendarReminderScheduler(repository.applicationContext).schedule(id, revision, due)
     },
-    private val armRecovery: () -> Unit = { CalendarReminderRecovery(repository.applicationContext).arm() },
 ) {
     private val db get() = repository.database
 

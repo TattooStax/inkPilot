@@ -36,8 +36,9 @@ collect() {
 trap collect EXIT
 
 run_tests() {
-  local name="$1" selector="$2" value="$3"
-  timeout 600 adb shell "am instrument -w -r -e $selector '$value' -e fixtureMessage '$fixture_message' -e workerMessage '$worker_message' $runner" \
+  local name="$1" selector="$2" value="$3" excluded="${4:-}" exclusion=""
+  if [[ -n "$excluded" ]]; then exclusion="-e notClass '$excluded'"; fi
+  timeout 600 adb shell "am instrument -w -r -e $selector '$value' $exclusion -e fixtureMessage '$fixture_message' -e workerMessage '$worker_message' $runner" \
     | tee "$evidence/$name.txt"
   python3 scripts/inkpilot-device-result.py "$evidence/$name.txt"
 }
@@ -82,7 +83,10 @@ scripts/inkpilot-sms-role-preflight.sh emulator-5554 "$package"
 timeout 600 adb shell "am instrument -w -r -e package org.fossify.messages.inkpilot.data -e notClass org.fossify.messages.inkpilot.data.LegacyFirstLaunchTest $runner" \
   | tee "$evidence/sqlite.txt"
 python3 scripts/inkpilot-device-result.py "$evidence/sqlite.txt"
-run_tests studio package org.fossify.messages.inkpilot.studio
+# These process-phase fixtures run only in the dedicated force-stop/JobScheduler
+# shell sequences. A broad package run cannot establish their restart boundary.
+run_tests studio package org.fossify.messages.inkpilot.studio \
+  'org.fossify.messages.inkpilot.studio.StudioImageOrphanPreparationTest,org.fossify.messages.inkpilot.studio.StudioImageOrphanRecoveryTest,org.fossify.messages.inkpilot.studio.StudioReminderClosedAppPrepareTest,org.fossify.messages.inkpilot.studio.StudioReminderClosedAppVerifyTest'
 run_tests recovery package org.fossify.messages.inkpilot.runtime
 run_tests app-lock package org.fossify.messages.inkpilot.ui
 run_tests prepare class "$smoke#prepareForSyntheticSms"

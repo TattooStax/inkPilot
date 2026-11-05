@@ -797,7 +797,7 @@
     "scripts/inkpilot-calendar-closed-app.sh": 95,
     "scripts/inkpilot-device-model.sh": 15,
     "scripts/inkpilot-device-result.py": 13,
-    "scripts/inkpilot-device-run.sh": 130,
+    "scripts/inkpilot-device-run.sh": 134,
     "scripts/inkpilot-exact-selector-benchmark.sh": 55,
     "scripts/inkpilot-model-benchmark.sh": 63,
     "scripts/inkpilot-shell-baseline.sh": 110,
