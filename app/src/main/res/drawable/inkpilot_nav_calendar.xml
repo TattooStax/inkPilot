@@ -1,5 +1,9 @@
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="24dp" android:height="24dp" android:viewportWidth="24" android:viewportHeight="24">
-    <path android:pathData="M4,5 L20,5 L20,21 L4,21 Z M4,10 L20,10 M8,2 L8,7 M16,2 L16,7 M12,12 L13,15 L16,15 L14,17 L15,20 L12,18 L9,20 L10,17 L8,15 L11,15 Z" android:fillColor="@android:color/transparent"
-        android:strokeColor="#25211E" android:strokeWidth="1.5" android:strokeLineJoin="round" android:strokeLineCap="round" />
+    <!-- The marked day uses the same traditional flash star as Studio. -->
+    <path android:pathData="M4,5 L20,5 L20,21 L4,21 Z M4,10 L20,10 M8,2.5 L8,7.2 M16,2.5 L16,7.2"
+        android:fillColor="@android:color/transparent" android:strokeColor="#25211E"
+        android:strokeWidth="1.7" android:strokeLineJoin="round" android:strokeLineCap="round" />
+    <path android:pathData="M12,11.8 L13.3,14.7 L16.4,15 L14,17 L14.7,20 L12,18.4 L9.3,20 L10,17 L7.6,15 L10.7,14.7 Z"
+        android:fillColor="#25211E" />
 </vector>
