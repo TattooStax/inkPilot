@@ -7,6 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.LinearLayout
+import org.fossify.messages.R
 
 internal fun navigation(activity: Activity, selected: StudioTab?,
     choose: (StudioTab) -> Unit) = LinearLayout(activity).apply {
