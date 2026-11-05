@@ -41,6 +41,21 @@ class BookingClaimGateTest {
         assertTrue(!BookingClaimGate.allows("Saturday at 11:00 — yes, your appointment is confirmed."))
     }
 
+    @Test fun `hosted consultation setup claim fails closed before held persistence`() {
+        val fixture = DraftFixture()
+        val hosted = "Sure! We can set up a 30-minute consultation. What date and time work best for you?"
+        val variants = listOf(hosted, "We can arrange an appointment next week.",
+            "I'll get you in for a consultation on Monday.", "Let me put you on the calendar for Friday.")
+        variants.forEach { reply ->
+            fixture.generate = { _, _ -> reply }
+            assertEquals(DraftOutcome.Stopped(DraftStopReason.UNSAFE_CONTENT),
+                fixture.coordinator(safetyGate = BookingClaimGate).draft(fixture.request))
+            assertEquals(0, fixture.store.holdAttempts)
+        }
+        assertTrue(BookingClaimGate.allows("A staff member can discuss consultation options with you."))
+        assertTrue(BookingClaimGate.allows("What date would work best for a consultation?"))
+    }
+
     @Test fun `gate is explicitly opt in for the core library`() {
         val fixture = DraftFixture()
         fixture.generate = { _, _ -> "Your appointment is confirmed." }

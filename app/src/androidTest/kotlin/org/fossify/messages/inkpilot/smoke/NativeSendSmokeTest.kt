@@ -1,6 +1,9 @@
 package org.fossify.messages.inkpilot.smoke
 
 import android.content.ContentUris
+import inkpilot.agent.DraftKey
+import inkpilot.agent.DraftStoreResult
+import inkpilot.agent.HeldDraftWrite
 import android.content.Context
 import android.os.Build
 import android.os.SystemClock
@@ -10,6 +13,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import org.fossify.messages.inkpilot.data.SendStatus
 import org.fossify.messages.inkpilot.data.StudioRepository
+import org.fossify.messages.inkpilot.data.staffAttention
 import org.fossify.messages.inkpilot.runtime.AgentRuntime
 import org.json.JSONArray
 import org.json.JSONObject
@@ -30,12 +34,25 @@ class NativeSendSmokeTest {
         val context = InstrumentationRegistry.getInstrumentation().targetContext
         val directory = File(context.filesDir, "device-test-evidence")
         val prior = JSONObject(File(directory, "local-loop.json").readText())
-        val draftId = prior.getString("draftId")
-        val body = prior.getString("body")
         require(prior.getString("recipient") == "+12025550123")
         val proof = JSONObject().put("carrierDeliveryTested", false)
             .put("callbackReceiptVerified", false).put("nativeProviderReconciled", false)
         StudioRepository(context).use { repository ->
+            val (draftId, body) = if (prior.getString("outcome") == "BLOCKED_UNSAFE_CONTENT") {
+                val eventId = prior.getString("eventId")
+                val source = requireNotNull(repository.readSource(eventId))
+                assertEquals("UNSAFE_CONTENT", repository.staffAttention().single { it.eventId == eventId }.reason)
+                val manual = "Thanks for reaching out. A staff member will review your request."
+                val write = HeldDraftWrite(DraftKey(eventId), source.threadId, source.contactId,
+                    source.recipient, source.revision, manual)
+                val result = repository.holdIfCurrent(write) as DraftStoreResult.Held
+                proof.put("draftOrigin", "MANUAL_SYNTHETIC_AFTER_MODEL_BLOCK")
+                result.receipt.draftId to manual
+            } else {
+                assertEquals("HELD", prior.getString("outcome"))
+                proof.put("draftOrigin", "LOCAL_MODEL_HELD_FOR_STAFF")
+                prior.getString("draftId") to prior.getString("body")
+            }
             assertThrows(IllegalArgumentException::class.java) {
                 AgentRuntime.approveAndSend(context, draftId, body, Int.MAX_VALUE)
             }

@@ -20,5 +20,13 @@ object BookingClaimGate : DraftSafetyGate {
         RegexOption.IGNORE_CASE,
     )
 
-    override fun allows(reply: String): Boolean = !confirmed.containsMatchIn(reply) && !promise.containsMatchIn(reply)
+    // A hosted QAD draft promised "we can set up a 30-minute consultation" without a
+    // calendar action. Conservative stops leave this question for staff review.
+    private val arrangement = Regex(
+        """\b(?:let me|i(?:'ll| will| can)|we(?:'ll| will| can)) (?:set up|arrange|line up|lock in|get you in|put you (?:on|in))\b.{0,72}\b(?:appointment|consultation|booking|slot|time|date|calendar)\b""",
+        RegexOption.IGNORE_CASE,
+    )
+
+    override fun allows(reply: String): Boolean =
+        !confirmed.containsMatchIn(reply) && !promise.containsMatchIn(reply) && !arrangement.containsMatchIn(reply)
 }
