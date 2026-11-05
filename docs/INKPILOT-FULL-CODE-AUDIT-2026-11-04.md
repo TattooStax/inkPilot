@@ -1,5 +1,9 @@
 # inkPilot full code audit and beta repair plan
 
+This is a historical audit of its named commit. Later shell, provider, data and
+phone changes are tracked in the [2026-11-05 beta checkpoint](BETA-EVIDENCE-2026-11-05.md);
+its 40% estimate is not a current release percentage.
+
 Audit date: 2026-11-04. Repository: `TattooStax/inkPilot`, commit `0b2d8fc08803a2aac029283266a71dfea27cac40`. This is a source audit and a limited physical-device validation, not a claim that every behavior was executed on a carrier network. The five-tab text-first beta and the existing `docs/INKPILOT-PLAN.md` are the product contract. AI voice answering remains a later milestone.
 
 ## Decision

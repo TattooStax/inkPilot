@@ -128,6 +128,20 @@ previous InkPilot debug app was restored as SMS role holder, OnePlus Dialer
 remained the Phone role holder, and the disposable preview was uninstalled.
 This exploratory test is not an exact signed-candidate or carrier-matrix pass.
 
+A newer side-by-side preview on the OnePlus passed 21 targeted UI/data
+instrumentation methods without taking the SMS or Phone role. It exercised
+reminder, recovery, MMS outcome, side-card, calendar route, route-state and
+fake-dial behavior. The five bottom-tab titles, Assistant side-card route
+and Settings alias also stayed within the shell. One of four first Phone
+taps about 1 second after a legacy Main-alias launch missed, even with Home
+focus and correct coordinates; three of three taps after the SMS UI was
+visible worked. No input-listener cause was established, and normal launcher
+entry was not tested. These checks did not transmit a carrier message or
+place/answer a call. The separate
+[2026-11-05 checkpoint](BETA-EVIDENCE-2026-11-05.md) tracks current source
+and hosted gates; this checklist remains mandatory for the exact installed
+candidate.
+
 - Install the APK, choose inkPilot as default SMS, grant permissions,
   import the tested model, add current guidance, and enable drafting.
 - Receive a plain SMS; confirm one native message, one matching contact,

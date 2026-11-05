@@ -64,6 +64,7 @@ real SIM delivery, MMS and complete backup/restore remain beta gates.
 
 - [Architecture](docs/ARCHITECTURE.md)
 - [Plan and milestone gates](docs/INKPILOT-PLAN.md)
+- [Current beta evidence](docs/BETA-EVIDENCE-2026-11-05.md)
 - [Device acceptance](docs/DEVICE-ACCEPTANCE.md)
 - [File-size ratchet](docs/FILE-SIZE-RATCHET.md)
 

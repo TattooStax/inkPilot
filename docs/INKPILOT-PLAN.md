@@ -8,6 +8,8 @@ LFM3 JNI inference, a five-tab native UI and checked staff-approved
 SMS sending. The emulator pipeline verifies the integrated local loop;
 physical-carrier and hardware acceptance remain separate evidence gates.
 
+**Current beta verdict (2026-11-05): not qualified.** Selected OnePlus preview checks pass, but the same candidate has not passed hosted shell/carrier proof, semantic model qualification, real recipient SMS/MMS, complete recovery, or manual Phone-role acceptance. The [dated beta evidence and ordered gates](BETA-EVIDENCE-2026-11-05.md) records what passed and what remains open. The 2026-11-04 audit percentage is historical and does not measure today's completion.
+
 inkPilot is the working name for a separate, entirely local Android
 tattoo-studio assistant.
 
