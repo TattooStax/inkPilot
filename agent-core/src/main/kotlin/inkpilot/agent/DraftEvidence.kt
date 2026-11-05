@@ -11,7 +11,21 @@ data class DraftEvidence(
     val reviewedMemory: List<ContactMemory>,
     val studioGuide: String = "",
     val verifiedFacts: List<VerifiedDraftFact> = emptyList(),
+    val reviewedLeadIntake: ReviewedLeadIntake? = null,
 )
+
+/** Host-issued permission to ask only these missing lead questions for this source revision. */
+data class ReviewedLeadIntake(
+    val sourceId: String,
+    val sourceRevision: Long,
+    val contactId: String,
+    val threadId: String,
+    val language: ReplyLanguage,
+    val missingQuestions: Set<LeadQuestion>,
+)
+
+enum class ReplyLanguage { EN, ES, FR }
+enum class LeadQuestion { PLACEMENT, SIZE, STYLE, REFERENCE, ARTIST, DATE }
 
 sealed interface VerifiedDraftFact {
     val sourceId: String
@@ -44,6 +58,12 @@ fun interface DraftEvidenceReader {
 /** Null means stop before persistence and create a staff-attention item. */
 fun interface DraftReplyRenderer {
     fun render(modelOutput: String, evidence: DraftEvidence?): String?
+
+    /** A closed renderer can reject missing host authority before model execution. */
+    fun eligible(evidence: DraftEvidence?): Boolean = true
+
+    /** Constrain the model to the host-approved choices, without free-text facts. */
+    fun instructions(evidence: DraftEvidence?): String? = null
 
     companion object {
         val RAW = DraftReplyRenderer { text, _ -> text }

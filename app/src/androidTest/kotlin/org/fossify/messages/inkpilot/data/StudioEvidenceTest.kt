@@ -1,6 +1,8 @@
 package org.fossify.messages.inkpilot.data
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import inkpilot.agent.BoundedIntentReplyRenderer
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -18,6 +20,7 @@ class StudioEvidenceTest : StudioDatabaseTestBase() {
         assertEquals(current.expectedRevision, packet.source.revision)
         assertEquals("Traditional rose, upper arm.", packet.reviewedMemory.single().text)
         assertTrue(packet.verifiedFacts.isEmpty())
+        assertFalse(BoundedIntentReplyRenderer.eligible(packet))
 
         repository.setSoul("Staff style note only.")
         val changed = requireNotNull(repository.readEvidence(current))

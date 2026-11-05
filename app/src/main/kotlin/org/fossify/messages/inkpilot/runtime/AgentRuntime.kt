@@ -94,7 +94,7 @@ object AgentRuntime {
         for (request in repository.pendingRequests(limit = 3)) {
             if (cancellation() || !repository.isDraftingEnabled()) break
             val model = LocalDraftModel { prompt, stop ->
-                val instructions = if (BOUNDED_INTENT_QUALIFIED) BoundedIntentReplyRenderer.INSTRUCTIONS
+                val instructions = if (BOUNDED_INTENT_QUALIFIED) prompt.instructions
                     else prompt.instructions + "\nStudio guide:\n" + repository.soul()
                 native.generate(prompt.copy(instructions = instructions), stop)
             }

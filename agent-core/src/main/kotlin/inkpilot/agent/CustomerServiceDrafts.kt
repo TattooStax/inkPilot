@@ -41,9 +41,11 @@ class CustomerServiceDrafts(
             if (notes.sumOf { it.text.length.toLong() } > limits.memoryCharacters) return stopped(DraftStopReason.CONTEXT_LIMIT)
             if (cancellation.isCancelled()) return stopped(DraftStopReason.CANCELLED)
 
+            if (!replyRenderer.eligible(evidence)) return stopped(DraftStopReason.UNSAFE_CONTENT)
             stage = DraftFailureStage.MODEL
             val output = model.generate(
-                DraftPrompt(DRAFT_INSTRUCTIONS, source.inboundText, notes.map { it.text }, limits.replyCharacters),
+                DraftPrompt(replyRenderer.instructions(evidence) ?: DRAFT_INSTRUCTIONS,
+                    source.inboundText, notes.map { it.text }, limits.replyCharacters),
                 cancellation,
             )
             if (cancellation.isCancelled()) return stopped(DraftStopReason.CANCELLED)
@@ -78,7 +80,10 @@ class CustomerServiceDrafts(
 
     private fun validEvidence(request: DraftRequest, evidence: DraftEvidence): Boolean =
         evidence.request == request && evidence.reviewedMemory.all { it.contactId == request.contactId } &&
-            evidence.verifiedFacts.all { fact ->
+            (evidence.reviewedLeadIntake?.let { scope ->
+                scope.sourceId == request.eventId && scope.sourceRevision == request.expectedRevision &&
+                    scope.contactId == request.contactId && scope.threadId == request.threadId
+            } ?: true) && evidence.verifiedFacts.all { fact ->
                 fact.sourceId.isNotBlank() && fact.sourceRevision == request.expectedRevision &&
                     fact.contactId == request.contactId && fact.threadId == request.threadId
             }
