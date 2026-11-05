@@ -2,24 +2,15 @@ package org.fossify.messages.inkpilot.ui
 
 import android.app.Activity
 import android.app.Dialog
-import android.content.Intent
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.LinearLayout
 import org.fossify.messages.R
-import org.fossify.messages.activities.SettingsActivity
 
-internal enum class StudioTab(val label: String, val viewId: Int, val icon: Int) {
-    SMS("SMS", R.id.inkpilot_tab_sms, R.drawable.inkpilot_nav_sms),
-    PHONE("Phone", R.id.inkpilot_tab_phone, R.drawable.inkpilot_nav_phone),
-    CONTACTS("Contacts", R.id.inkpilot_tab_contacts, R.drawable.inkpilot_nav_contacts),
-    STUDIO("Studio", R.id.inkpilot_tab_studio, R.drawable.inkpilot_nav_studio),
-    CALENDAR("Calendar", R.id.inkpilot_tab_calendar, R.drawable.inkpilot_nav_calendar),
-}
-
-internal fun navigation(activity: Activity, selected: StudioTab, choose: (StudioTab) -> Unit) = LinearLayout(activity).apply {
+internal fun navigation(activity: Activity, selected: StudioTab?,
+    choose: (StudioTab) -> Unit) = LinearLayout(activity).apply {
     id = R.id.inkpilot_navigation
     orientation = LinearLayout.HORIZONTAL
     StudioTab.entries.forEach { tab ->
@@ -31,18 +22,21 @@ internal fun navigation(activity: Activity, selected: StudioTab, choose: (Studio
             isClickable = true
             isFocusable = true
             isSelected = tab == selected
-            setPadding(0, StudioUi.dp(this, 9), 0, StudioUi.dp(this, 5))
+            minimumHeight = StudioUi.dp(this, 72)
+            setPadding(StudioUi.dp(this, 2), StudioUi.dp(this, 8), StudioUi.dp(this, 2), StudioUi.dp(this, 5))
             addView(ImageView(activity).apply {
                 setImageResource(tab.icon)
                 setColorFilter(if (tab == selected) StudioUi.accent else StudioUi.ink)
                 importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
             }, LinearLayout.LayoutParams(StudioUi.dp(this, 23), StudioUi.dp(this, 23)))
-            addView(StudioUi.text(activity, tab.label, 11f, tab == selected).apply {
+            addView(StudioUi.text(activity, tab.label, 12f, tab == selected).apply {
+                gravity = Gravity.CENTER
+                maxLines = 2
                 setTextColor(if (tab == selected) StudioUi.accent else StudioUi.ink)
                 importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
             })
             setOnClickListener { choose(tab) }
-        }, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
+        }, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, tab.widthWeight))
     }
 }
 
@@ -53,13 +47,13 @@ internal fun showStudioDrawer(activity: Activity, open: (String) -> Unit) {
     body.addView(StudioUi.text(activity, "inkPilot", 26f, true))
     body.addView(StudioUi.text(activity, "Your studio assistant", 14f))
     body.addView(StudioUi.rule(activity))
-    listOf("Drafts to review" to "drafts", "Soul & studio memory" to "soul", "Local model" to "model").forEach { (label, key) ->
+    listOf("Drafts & staff replies" to "drafts", "Action proposals" to "proposals",
+        "Soul & studio memory" to "soul", "Local model" to "model").forEach { (label, key) ->
         body.addView(StudioUi.button(activity, label) { dialog.dismiss(); open(key) })
     }
-    body.addView(StudioUi.button(activity, "Messaging settings") {
-        dialog.dismiss()
-        activity.startActivity(Intent(activity, SettingsActivity::class.java))
-    })
+    listOf("Messaging settings" to "settings", "Search" to "search", "Archived" to "archive", "Recycle bin" to "recycle").forEach { (label, key) ->
+        body.addView(StudioUi.button(activity, label) { dialog.dismiss(); open(key) })
+    }
     body.addView(StudioUi.button(activity, "Close") { dialog.dismiss() })
     dialog.setContentView(body)
     dialog.window?.apply {

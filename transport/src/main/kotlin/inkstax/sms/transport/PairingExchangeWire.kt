@@ -67,7 +67,9 @@ const val PAIRING_EXCHANGE_SECRET_FIELD: String = "secret"
 data class PairingExchangeRequest(
     val url: String,
     val body: String
-)
+) {
+    override fun toString() = "PairingExchangeRequest(url=$url, body=<redacted>)"
+}
 
 /**
  * The exchange request for a scanned [offer]. The token is

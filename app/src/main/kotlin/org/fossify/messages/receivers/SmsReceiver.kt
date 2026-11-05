@@ -27,12 +27,18 @@ import org.fossify.messages.helpers.ReceiverUtils.isMessageFilteredOut
 import org.fossify.messages.helpers.refreshConversations
 import org.fossify.messages.helpers.refreshMessages
 import org.fossify.messages.models.Message
+import org.fossify.messages.inkpilot.runtime.CarrierIngressPolicy
+import org.fossify.messages.inkpilot.runtime.FilteredSmsJournal
+import org.fossify.messages.inkpilot.runtime.SmsIntakeRecovery
+import org.fossify.messages.inkpilot.runtime.SmsAdmissionLedger
+import org.fossify.messages.helpers.SmsRole
 import org.fossify.messages.transport.LocalInboundSink
 import org.fossify.messages.transport.holdAndDrainInboundArrival
 
 class SmsReceiver : BroadcastReceiver() {
 
     override fun onReceive(context: Context, intent: Intent) {
+        if (intent.action != Telephony.Sms.Intents.SMS_DELIVER_ACTION || !SmsRole.isHeld(context)) return
         val pending = goAsync()
         val appContext = context.applicationContext
 
@@ -48,36 +54,87 @@ class SmsReceiver : BroadcastReceiver() {
                 val status = parts.last().status
                 val body = buildString { parts.forEach { append(it.messageBody.orEmpty()) } }
 
-                if (isMessageFilteredOut(appContext, body)) return@ensureBackgroundThread
-                if (appContext.isNumberBlocked(address)) return@ensureBackgroundThread
-                if (appContext.baseConfig.blockUnknownNumbers) {
-                    val privateCursor =
-                        appContext.getMyContactsCursor(favoritesOnly = false, withPhoneNumbersOnly = true)
-                    val result = SimpleContactsHelper(appContext).existsSync(address, privateCursor)
-                    if (result == ContactLookupResult.NotFound) return@ensureBackgroundThread
-                }
-
-                val date = System.currentTimeMillis()
-                val threadId = appContext.getThreadId(address)
+                val date = parts.last().timestampMillis.takeIf { it > 0 } ?: System.currentTimeMillis()
                 val subscriptionId = intent.getIntExtra("subscription", -1)
-
-                handleMessageSync(
-                    context = appContext,
-                    address = address,
-                    subject = subject,
-                    body = body,
-                    date = date,
-                    threadId = threadId,
-                    subscriptionId = subscriptionId,
-                    status = status
-                )
+                admitDecodedMessage(appContext, address, subject, body, date, subscriptionId, status)
             } finally {
                 pending.finish()
             }
         }
     }
 
-    private fun handleMessageSync(
+    /** Admission after PDU decoding; the broadcast and emulator tests share this path. */
+    internal fun admitDecodedMessage(
+        context: Context,
+        address: String,
+        subject: String,
+        body: String,
+        date: Long,
+        subscriptionId: Int,
+        status: Int,
+        classify: () -> String? = {
+            when {
+                isMessageFilteredOut(context, body) -> "keyword"
+                context.isNumberBlocked(address) -> "blocked"
+                context.baseConfig.blockUnknownNumbers -> {
+                    val result = context.getMyContactsCursor(
+                        favoritesOnly = false, withPhoneNumbersOnly = true
+                    ).use { SimpleContactsHelper(context).existsSync(address, it) }
+                    if (result == ContactLookupResult.NotFound) "unknown_sender" else null
+                }
+                else -> null
+            }
+        },
+        journal: (String) -> Unit = { reason ->
+            FilteredSmsJournal(context).use { it.record(address, body, date, subscriptionId, reason) }
+        },
+    ): SmsAdmission.Result = SmsAdmission.process(
+        classify = classify,
+        journal = journal,
+        normalNative = { handleMessageSync(context, address, subject, body, date,
+            threadId = context.getThreadId(address), subscriptionId = subscriptionId, status = status) },
+        quarantinedNative = { handleMessageSync(context, address, subject, body, date,
+            read = 1, threadId = context.getThreadId(address), subscriptionId = subscriptionId,
+            status = status, nativeOnly = true) },
+        onUncertain = { runCatching { org.fossify.messages.inkpilot.runtime.AgentSettings(context)
+            .recordStatus("SMS filter or private review storage failed. Check the native inbox or Agent review for this arrival.") } },
+    )
+
+    private fun reportNativeInsertFailure(
+        context: Context, address: String, body: String, date: Long, subscriptionId: Int,
+    ) {
+        runCatching { FilteredSmsJournal(context).use {
+            it.record(address, body, date, subscriptionId, "provider_failed")
+        } }
+        org.fossify.messages.inkpilot.runtime.AgentSettings(context)
+            .recordStatus("An SMS could not enter the native inbox. Open Agent to review it.")
+    }
+
+    private data class NativeAdmission(val id: Long, val admitted: Boolean)
+
+    private fun insertAndAdmit(
+        context: Context, address: String, body: String, date: Long, threadId: Long,
+        subscriptionId: Int, nativeOnly: Boolean, nativeInsert: (Context) -> Long,
+    ): NativeAdmission {
+        val result = runCatching {
+            SmsIntakeRecovery.withAdmissionLock {
+                val id = nativeInsert(context)
+                val admitted = if (nativeOnly || CarrierIngressPolicy.nativeSource(id, threadId) == null) false
+                    else runCatching { FilteredSmsJournal(context).use {
+                        it.admissions.admitFromProvider(context, id,
+                            SmsAdmissionLedger.NativeIdentity(threadId, address, body, date, subscriptionId))
+                    } }.getOrDefault(false)
+                NativeAdmission(id, admitted)
+            }
+        }.getOrDefault(NativeAdmission(0, false))
+        if (!nativeOnly && result.id > 0 && !result.admitted) {
+            org.fossify.messages.inkpilot.runtime.AgentSettings(context)
+                .recordStatus("SMS is in the native inbox, but local admission needs staff review.")
+        }
+        return result
+    }
+
+    internal fun handleMessageSync(
         context: Context,
         address: String,
         subject: String,
@@ -87,22 +144,40 @@ class SmsReceiver : BroadcastReceiver() {
         threadId: Long,
         type: Int = Telephony.Sms.MESSAGE_TYPE_INBOX,
         subscriptionId: Int,
-        status: Int
+        status: Int,
+        nativeOnly: Boolean = false,
+        nativeInsert: (Context) -> Long = {
+            it.insertNewSMS(address, subject, body, date, read, threadId, type, subscriptionId)
+        },
     ) {
+        if (threadId <= 0) {
+            // The provider may still accept the inbox row and allocate its own thread.
+            // Keep it native-only because this receiver cannot bind an agent source safely.
+            if (runCatching { nativeInsert(context) }.getOrDefault(0L) > 0L) {
+                refreshMessages()
+                refreshConversations()
+                return
+            }
+            FilteredSmsJournal(context).use { it.record(address, body, date, subscriptionId, "provider_failed") }
+            return
+        }
+        val admission = insertAndAdmit(context, address, body, date, threadId, subscriptionId, nativeOnly, nativeInsert)
+        val newMessageId = admission.id
+        if (CarrierIngressPolicy.nativeSource(newMessageId, threadId) == null) {
+            reportNativeInsertFailure(context, address, body, date, subscriptionId)
+            return
+        }
+
+        if (!admission.admitted) {
+            runCatching { FilteredSmsJournal(context).use {
+                it.recordNativeReview(address, body, date, subscriptionId)
+            } }.onFailure { runCatching { SmsIntakeRecovery.enqueueContinuation(context) } }
+            refreshMessages()
+            refreshConversations()
+            return
+        }
         val photoUri = SimpleContactsHelper(context).getPhotoUriFromPhoneNumber(address)
         val bitmap = context.getNotificationBitmap(photoUri)
-
-        val newMessageId = context.insertNewSMS(
-            address = address,
-            subject = subject,
-            body = body,
-            date = date,
-            read = read,
-            threadId = threadId,
-            type = type,
-            subscriptionId = subscriptionId
-        )
-
         context.getConversations(threadId).firstOrNull()?.let { conv ->
             runCatching { context.insertOrUpdateConversation(conv) }
         }
@@ -153,18 +228,19 @@ class SmsReceiver : BroadcastReceiver() {
             senderName = senderName,
             body = body,
             threadId = threadId,
-            bitmap = bitmap
+            bitmap = bitmap,
+            subscriptionId = subscriptionId,
         )
         val inbound = InboundSms(
             sender = address, body = body, receivedAtMillis = date,
             subscriptionId = subscriptionId,
-            // insertNewSMS returns 0L when the provider insert failed; that sentinel
-            // is not a provider row, so the seam must see an unknown id, not "sms:0".
-            providerId = newMessageId.takeIf { it != 0L }, threadId = threadId
+            providerId = newMessageId, threadId = threadId
         )
         // SMS-2-TOUCHPOINT 1/2: inbound SMS passes through the :transport seam's local
         // binding after local persistence, so later bindings share this entry point.
-        LocalInboundSink().onInbound(inbound)
+        runCatching { LocalInboundSink().onInbound(inbound) }
+            .onFailure { org.fossify.messages.inkpilot.runtime.AgentSettings(context)
+                .recordStatus("Optional bridge intake failed; native SMS and local draft are preserved.") }
         // A failure in local drafting must never interrupt native SMS delivery.
         runCatching { org.fossify.messages.inkpilot.runtime.AgentSmsIntake.record(context, inbound, senderName) }
             .onFailure {

@@ -10,6 +10,7 @@ enum class DraftStopReason {
     CONTEXT_LIMIT,
     EMPTY_REPLY,
     REPLY_LIMIT,
+    UNSAFE_CONTENT,
     INVALID_RECEIPT,
 }
 

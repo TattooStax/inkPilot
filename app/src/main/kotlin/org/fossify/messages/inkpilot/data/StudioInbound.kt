@@ -5,7 +5,6 @@ import android.database.sqlite.SQLiteDatabase
 import inkpilot.agent.DraftKind
 import inkpilot.agent.DraftRequest
 import inkpilot.agent.DraftSource
-import java.util.UUID
 
 internal fun SQLiteDatabase.recordStudioInbound(
     eventId: String, threadId: Long, number: String, body: String, displayName: String,
@@ -26,14 +25,8 @@ internal fun SQLiteDatabase.recordStudioInbound(
                 return@transaction DraftRequest(eventId, old.getString(0), old.getString(1), old.getLong(4))
             }
         }
-        val contact = contactByNumber(normalized) ?: run {
-            val id = UUID.randomUUID().toString()
-            insertOrThrow("studio_contacts", null, ContentValues().apply {
-                put("id", id); put("number", normalized)
-                put("display_name", displayName.trim().ifEmpty { normalized })
-            })
-            checkNotNull(studioContact(id))
-        }
+        val contact = reviewedAddressContact(normalized) ?: contactByNumber(normalized)
+            ?: upsertStudioContact(normalized, displayName)
         val isLatest = contact.latestEventId == null || receivedAt >= contact.lastMessageAt
         val revision = contact.revision + if (isLatest) 1 else 0
         insertOrThrow("inbound_events", null, ContentValues().apply {
@@ -41,6 +34,7 @@ internal fun SQLiteDatabase.recordStudioInbound(
             put("recipient", normalized); put("body", body); put("received_at", receivedAt)
             put("subscription_id", subscriptionId); put("created_revision", revision)
         })
+        recordCrossThreadAttention(contact.latestEventId, contact.revision, eventId, threadId, revision, isLatest)
         if (isLatest) {
             execSQL(
                 "UPDATE studio_contacts SET revision = ?, latest_event_id = ?, last_message_at = ? WHERE id = ?",
@@ -53,10 +47,15 @@ internal fun SQLiteDatabase.recordStudioInbound(
 
 internal fun SQLiteDatabase.studioSource(eventId: String): DraftSource? = rawQuery(
     """
-        SELECT e.event_id, e.thread_id, e.contact_id, c.number, c.revision, e.body,
+        SELECT e.event_id, e.thread_id, e.contact_id, e.recipient, c.revision, e.body,
                (c.paused = 1 OR COALESCE((SELECT drafting_enabled FROM agent_settings WHERE id = 1), 0) = 0)
         FROM inbound_events e JOIN studio_contacts c ON c.id = e.contact_id
-        WHERE e.event_id = ? AND c.latest_event_id = e.event_id AND c.number = e.recipient
+        WHERE e.event_id = ? AND c.latest_event_id = e.event_id AND (
+            EXISTS (SELECT 1 FROM contact_aliases a WHERE a.address = e.recipient AND a.region = '' AND a.review_state = 'REVIEWED' AND a.contact_id = c.id)
+            OR (c.number = e.recipient AND NOT EXISTS (
+                SELECT 1 FROM contact_aliases a WHERE a.address = e.recipient AND a.region = '' AND a.review_state = 'REVIEWED'
+            ))
+        )
     """.trimIndent(), arrayOf(eventId),
 ).use {
     if (!it.moveToFirst()) null else DraftSource(
@@ -71,9 +70,17 @@ internal fun SQLiteDatabase.pendingStudioRequests(limit: Int): List<DraftRequest
             SELECT e.event_id, e.thread_id, e.contact_id, c.revision
             FROM studio_contacts c JOIN inbound_events e ON e.event_id = c.latest_event_id
             WHERE c.paused = 0 AND (SELECT drafting_enabled FROM agent_settings WHERE id = 1) = 1 AND NOT EXISTS (
-                SELECT 1 FROM held_drafts d WHERE d.event_id = e.event_id AND d.kind = ?
+                SELECT 1 FROM held_drafts p WHERE p.event_id=e.event_id AND p.kind='PROPOSAL_REPLY' AND p.state='HELD'
+            ) AND NOT EXISTS (
+                SELECT 1 FROM held_drafts d WHERE d.event_id = e.event_id AND d.kind = ? AND (d.source_revision = c.revision OR NOT EXISTS (
+                    SELECT 1 FROM draft_regenerations r WHERE r.event_id = e.event_id AND r.source_revision = c.revision
+                ))
+            ) AND NOT EXISTS (
+                SELECT 1 FROM send_claims s JOIN held_drafts h ON h.draft_id = s.draft_id WHERE h.event_id = e.event_id
             ) AND NOT EXISTS (
                 SELECT 1 FROM draft_attempts a WHERE a.event_id = e.event_id AND a.source_revision = c.revision
+            ) AND NOT EXISTS (
+                SELECT 1 FROM staff_attention a WHERE a.event_id = e.event_id AND a.resolution = 'STAFF_HANDLED'
             ) ORDER BY e.received_at ASC, e.event_id LIMIT ?
         """.trimIndent(), arrayOf(DraftKind.CUSTOMER_SERVICE_REPLY.name, limit.toString()),
     ).use { cursor ->

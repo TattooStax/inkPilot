@@ -108,7 +108,6 @@
     <string name="invalid_short_code_desc">Možeš odgovoriti samo na kratke kodove s brojevima poput „503501”, ali ne i na kodove koji sadrže slova i brojke poput „AB-CD0”.</string>
     <string name="attachment_sized_exceeds_max_limit">Veličina privitka premašuje maksimalno ograničenje MMS-a</string>
     <string name="faq_1_title">Zašto aplikacija zahtijeva pristup internetu\?</string>
-    <string name="faq_1_text">Nažalost je pristup potreban za slanje MMS privitaka. Nemogućnost slanja MMS-a bila bi zaista veliki nedostatak u usporedbi s drugim aplikacijama, pa smo odlučili krenuti ovim putem. No, kao i obično, nema reklama, praćenja ili analiziranja podataka, internet se koristi samo za slanje MMS-a.</string>
     <string name="faq_2_title">Druga strana ne prima moj MMS. Mogu li išta učiniti po tom pitanju\?</string>
     <string name="faq_2_text">Veličinu MMS-a ograničavaju operateri. Možeš pokušati smanjiti ograničenje u postavkama aplikacije.</string>
     <string name="faq_3_title">Podržava li aplikacija zakazane poruke\?</string>

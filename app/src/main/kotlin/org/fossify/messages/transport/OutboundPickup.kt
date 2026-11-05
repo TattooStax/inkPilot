@@ -76,6 +76,7 @@ import inkstax.sms.transport.OutboundWork
  * not.
  */
 internal fun Context.pickUpAndSendOutboundWork(isStopped: () -> Boolean = { false }): Int {
+    if (!org.fossify.messages.BuildConfig.OPTIONAL_BRIDGE_ENABLED) return 0
     val credential = storedDeviceCredential() ?: return 0
     var sentCount = 0
     val seenSourceIds = HashSet<String>()
@@ -96,6 +97,7 @@ internal fun Context.pickUpAndSendOutboundWork(isStopped: () -> Boolean = { fals
             when (sendPickedUpWork(credential, work, isStopped)) {
                 OutboundWorkSendResult.Submitted -> sentCount++
                 is OutboundWorkSendResult.Failed -> sentCount++
+                OutboundWorkSendResult.AlreadyHandled,
                 OutboundWorkSendResult.NotPaired,
                 OutboundWorkSendResult.NotDefaultSmsApp,
                 null -> running = false

@@ -9,7 +9,6 @@ import java.io.FileOutputStream
 
 internal object ModelFiles {
     private const val MAXIMUM_BYTES = 2_000_000_000L
-
     fun active(context: Context) = File(context.filesDir, "models/active.gguf")
 
     /** A private, atomic replacement: an interrupted import never replaces working weights. */
@@ -43,8 +42,9 @@ internal object ModelFiles {
                     output.fd.sync()
                 }
             }
-            StudioRepository(context).use { it.invalidateAllPending() }
-            check(temporary.renameTo(target)) { "Cannot replace the local model." }
+            inkpilot.inference.GgufQualification.replaceApproved(temporary, target) {
+                StudioRepository(context).use { it.invalidateAllPending() }
+            }
             val name = displayName(context, uri)
             AgentSettings(context).apply {
                 recordModel(name)

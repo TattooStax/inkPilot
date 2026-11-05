@@ -1,0 +1,21 @@
+{
+  "format": 1,
+  "candidate_kind": "pending",
+  "candidate_source_sha": "",
+  "candidate_run_id": "",
+  "apk_sha256": "",
+  "signing_cert_sha256": "",
+  "public_release": {"status": "pending", "reference": ""},
+  "gates": {
+    "shell_ui": {"status": "pending", "reference": ""},
+    "sms_carrier": {"status": "pending", "reference": ""},
+    "mms_carrier": {"status": "pending", "reference": ""},
+    "local_model": {"status": "pending", "reference": ""},
+    "memory": {"status": "pending", "reference": ""},
+    "calendar": {"status": "pending", "reference": ""},
+    "phone_manual": {"status": "pending", "reference": ""},
+    "backup_restore": {"status": "pending", "reference": ""},
+    "accessibility": {"status": "pending", "reference": ""},
+    "privacy": {"status": "pending", "reference": ""}
+  }
+}

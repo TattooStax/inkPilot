@@ -1,5 +1,6 @@
 package org.fossify.messages.activities
 
+import org.fossify.messages.messaging.key
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.AlarmManager
@@ -19,7 +20,6 @@ import android.provider.Telephony.Sms.MESSAGE_TYPE_QUEUED
 import android.provider.Telephony.Sms.STATUS_NONE
 import android.telephony.SmsManager
 import android.telephony.SmsMessage
-import android.telephony.SubscriptionInfo
 import android.text.TextUtils
 import android.text.format.DateUtils
 import android.text.format.DateUtils.FORMAT_NO_YEAR
@@ -132,7 +132,6 @@ import org.fossify.messages.extensions.getSmsDraft
 import org.fossify.messages.extensions.getThreadId
 import org.fossify.messages.extensions.getThreadParticipants
 import org.fossify.messages.extensions.getThreadTitle
-import org.fossify.messages.extensions.indexOfFirstOrNull
 import org.fossify.messages.extensions.isGifMimeType
 import org.fossify.messages.extensions.isImageMimeType
 import org.fossify.messages.extensions.launchConversationDetails
@@ -182,7 +181,16 @@ import org.fossify.messages.helpers.refreshMessages
 import org.fossify.messages.messaging.cancelScheduleSendPendingIntent
 import org.fossify.messages.messaging.isLongMmsMessage
 import org.fossify.messages.messaging.isShortCodeWithLetters
-import org.fossify.messages.messaging.scheduleMessage
+import org.fossify.messages.messaging.queueScheduled
+import org.fossify.messages.messaging.ScheduledQueueResult
+import org.fossify.messages.messaging.ScheduledVerdicts
+import org.fossify.messages.messaging.scheduledStatus
+import org.fossify.messages.messaging.showScheduledActions
+import org.fossify.messages.messaging.submit
+import org.fossify.messages.messaging.ComposerStore
+import org.fossify.messages.messaging.OutgoingMessage
+import org.fossify.messages.messaging.DispatchOutcome
+import org.fossify.messages.messaging.MessageDispatcher
 import org.fossify.messages.messaging.sendMessageCompat
 import org.fossify.messages.models.Attachment
 import org.fossify.messages.models.AttachmentSelection
@@ -190,7 +198,6 @@ import org.fossify.messages.models.Conversation
 import org.fossify.messages.models.Events
 import org.fossify.messages.models.Message
 import org.fossify.messages.models.MessageAttachment
-import org.fossify.messages.models.SIMCard
 import org.fossify.messages.models.ThreadItem
 import org.fossify.messages.models.ThreadItem.ThreadDateTime
 import org.fossify.messages.models.ThreadItem.ThreadError
@@ -204,7 +211,8 @@ import java.io.File
 
 class ThreadActivity : SimpleActivity() {
     private var threadId = 0L
-    private var currentSIMCardIndex = 0
+    private val simSelection = org.fossify.messages.messaging.ComposerSimSelection()
+    private var restoredRecipient: String? = null
     private var isActivityVisible = false
     private var refreshedSinceSent = false
     private var threadItems: List<ThreadItem> = emptyList()
@@ -213,7 +221,6 @@ class ThreadActivity : SimpleActivity() {
     private var participants = ArrayList<SimpleContact>()
     private var privateContacts = ArrayList<SimpleContact>()
     private var messages: List<Message> = emptyList()
-    private val availableSIMCards = ArrayList<SIMCard>()
     private var pendingAttachmentsToSave: List<Attachment>? = null
     private var capturedImageUri: Uri? = null
     private var loadingOlderMessages = false
@@ -296,7 +303,17 @@ class ThreadActivity : SimpleActivity() {
                 }
             }
 
-            val smsDraft = getSmsDraft(threadId)
+            val composer = ComposerStore(this).load(threadId)
+            if (composer != null) {
+                runOnUiThread {
+                    binding.messageHolder.threadTypeMessage.setText(composer.body)
+                    simSelection.restore(composer.subscriptionId)
+                    restoredRecipient = composer.recipient
+                    simSelection.render(binding.messageHolder.threadSelectSimNumber)
+                    composer.attachmentUris.forEach { addAttachment(it, restoring = true) }
+                }
+            }
+            val smsDraft = if (composer == null) getSmsDraft(threadId) else ""
             if (smsDraft.isNotEmpty()) {
                 runOnUiThread {
                     binding.messageHolder.threadTypeMessage.setText(smsDraft)
@@ -341,13 +358,13 @@ class ThreadActivity : SimpleActivity() {
     }
 
     private fun saveDraftMessage() {
-        val draftMessage = binding.messageHolder.threadTypeMessage.value
-        ensureBackgroundThread {
-            if (draftMessage.isNotEmpty() && getAttachmentSelections().isEmpty()) {
-                saveSmsDraft(draftMessage, threadId)
-            } else {
-                deleteSmsDraft(threadId)
-            }
+        val request = OutgoingMessage(threadId, restoredRecipient ?: participants.getAddresses().joinToString("|"),
+            binding.messageHolder.threadTypeMessage.value, getAttachmentSelections().map { it.uri },
+            simSelection.subscriptionId)
+        if (request.body.isNotEmpty() || request.attachmentUris.isNotEmpty()) {
+            ComposerStore(this).save(request)
+        } else {
+            ComposerStore(this).clear(threadId)
         }
     }
 
@@ -447,7 +464,6 @@ class ThreadActivity : SimpleActivity() {
             }
             clearExpiredScheduledMessages(threadId, messages)
             messages = messages
-                .filterNot { it.isScheduled && it.millis() < System.currentTimeMillis() }
                 .toSortedMessages()
             if (messages.size > MESSAGES_LIMIT) {
                 messages = messages.takeLast(MESSAGES_LIMIT)
@@ -727,13 +743,13 @@ class ThreadActivity : SimpleActivity() {
         messagesToRemove.forEach { message ->
             val messageId = message.id
             if (message.isScheduled) {
-                deleteScheduledMessage(messageId)
-                cancelScheduleSendPendingIntent(messageId)
+                deleteScheduledMessage(message.key())
+                cancelScheduleSendPendingIntent(message.key())
             } else {
                 if (toRecycleBin) {
-                    moveMessageToRecycleBin(messageId)
+                    moveMessageToRecycleBin(message.key())
                 } else if (fromRecycleBin) {
-                    restoreMessageFromRecycleBin(messageId)
+                    restoreMessageFromRecycleBin(message.key())
                 } else {
                     deleteMessage(messageId, message.isMMS)
                 }
@@ -1072,86 +1088,11 @@ class ThreadActivity : SimpleActivity() {
         }
     }
 
-    @SuppressLint("MissingPermission")
     private fun setupSIMSelector() {
-        val availableSIMs = subscriptionManagerCompat().activeSubscriptionInfoList ?: return
-        if (availableSIMs.size > 1) {
-            availableSIMs.forEachIndexed { index, subscriptionInfo ->
-                var label = subscriptionInfo.displayName?.toString() ?: ""
-                if (subscriptionInfo.number?.isNotEmpty() == true) {
-                    label += " (${subscriptionInfo.number})"
-                }
-                val simCard = SIMCard(index + 1, subscriptionInfo.subscriptionId, label)
-                availableSIMCards.add(simCard)
-            }
-
-            val numbers = ArrayList<String>()
-            participants.forEach { contact ->
-                contact.phoneNumbers.forEach {
-                    numbers.add(it.normalizedNumber)
-                }
-            }
-
-            if (numbers.isEmpty()) {
-                return
-            }
-
-            currentSIMCardIndex = getProperSimIndex(availableSIMs, numbers)
-            binding.messageHolder.threadSelectSimIcon.applyColorFilter(getProperTextColor())
-            binding.messageHolder.threadSelectSimIcon.beVisible()
-            binding.messageHolder.threadSelectSimNumber.beVisible()
-
-            if (availableSIMCards.isNotEmpty()) {
-                binding.messageHolder.threadSelectSimIcon.setOnClickListener {
-                    currentSIMCardIndex = (currentSIMCardIndex + 1) % availableSIMCards.size
-                    val currentSIMCard = availableSIMCards[currentSIMCardIndex]
-                    @SuppressLint("SetTextI18n")
-                    binding.messageHolder.threadSelectSimNumber.text = currentSIMCard.id.toString()
-                    val currentSubscriptionId = currentSIMCard.subscriptionId
-                    numbers.forEach {
-                        config.saveUseSIMIdAtNumber(it, currentSubscriptionId)
-                    }
-                    toast(currentSIMCard.label)
-                }
-            }
-
-            binding.messageHolder.threadSelectSimNumber.setTextColor(
-                getProperTextColor().getContrastColor()
-            )
-            try {
-                @SuppressLint("SetTextI18n")
-                binding.messageHolder.threadSelectSimNumber.text =
-                    (availableSIMCards[currentSIMCardIndex].id).toString()
-            } catch (e: Exception) {
-                showErrorToast(e)
-            }
-        }
-    }
-
-    @SuppressLint("MissingPermission")
-    private fun getProperSimIndex(
-        availableSIMs: MutableList<SubscriptionInfo>,
-        numbers: List<String>,
-    ): Int {
-        val userPreferredSimId = config.getUseSIMIdAtNumber(numbers.first())
-        val userPreferredSimIdx =
-            availableSIMs.indexOfFirstOrNull { it.subscriptionId == userPreferredSimId }
-
-        val lastMessage = messages.lastOrNull()
-        val senderPreferredSimIdx = if (lastMessage?.isReceivedMessage() == true) {
-            availableSIMs.indexOfFirstOrNull { it.subscriptionId == lastMessage.subscriptionId }
-        } else {
-            null
-        }
-
-        val defaultSmsSubscriptionId = SmsManager.getDefaultSmsSubscriptionId()
-        val systemPreferredSimIdx = if (defaultSmsSubscriptionId >= 0) {
-            availableSIMs.indexOfFirstOrNull { it.subscriptionId == defaultSmsSubscriptionId }
-        } else {
-            null
-        }
-
-        return userPreferredSimIdx ?: senderPreferredSimIdx ?: systemPreferredSimIdx ?: 0
+        val numbers = participants.flatMap { it.phoneNumbers }.map { it.normalizedNumber }
+        val receivedSubscription = messages.lastOrNull()?.takeIf { it.isReceivedMessage() }?.subscriptionId
+        setupThreadSimSelector(simSelection, binding.messageHolder.threadSelectSimIcon,
+            binding.messageHolder.threadSelectSimNumber, numbers, receivedSubscription)
     }
 
     private fun blockNumber() {
@@ -1485,21 +1426,26 @@ class ThreadActivity : SimpleActivity() {
 
     private fun getAttachmentSelections() = getAttachmentsAdapter()?.attachments ?: emptyList()
 
-    private fun addAttachment(uri: Uri) {
+    private fun addAttachment(uri: Uri, restoring: Boolean = false) {
+        if (!restoring) {
+            // SAF providers may offer a durable read grant. Non-persistable URIs remain
+            // in the draft and fail closed if their temporary grant expires.
+            runCatching { contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION) }
+        }
         val id = uri.toString()
         if (getAttachmentSelections().any { it.id == id }) {
             toast(R.string.duplicate_item_warning)
             return
         }
 
-        val mimeType = contentResolver.getType(uri)
+        val mimeType = if (restoring) runCatching { contentResolver.getType(uri) }.getOrNull() ?: "application/octet-stream" else contentResolver.getType(uri)
         if (mimeType == null) {
             toast(org.fossify.commons.R.string.unknown_error_occurred)
             return
         }
         val isImage = mimeType.isImageMimeType()
         val isGif = mimeType.isGifMimeType()
-        if (isGif || !isImage) {
+        if (!restoring && (isGif || !isImage)) {
             // is it assumed that images will always be compressed below the max MMS size limit
             val fileSize = getFileSizeFromUri(uri)
             val mmsFileSizeLimit = config.mmsFileSizeLimit
@@ -1528,8 +1474,8 @@ class ThreadActivity : SimpleActivity() {
             id = id,
             uri = uri,
             mimetype = mimeType,
-            filename = getFilenameFromUri(uri),
-            isPending = isImage && !isGif
+            filename = if (restoring) uri.lastPathSegment ?: "attachment" else getFilenameFromUri(uri),
+            isPending = !restoring && isImage && !isGif
         )
         adapter.addAttachment(attachment)
         checkSendMessageAvailability()
@@ -1592,8 +1538,7 @@ class ThreadActivity : SimpleActivity() {
 
         text = removeDiacriticsIfNeeded(text)
 
-        val subscriptionId = availableSIMCards.getOrNull(currentSIMCardIndex)?.subscriptionId
-            ?: SmsManager.getDefaultSmsSubscriptionId()
+        val subscriptionId = simSelection.subscriptionId
 
         if (isScheduledMessage) {
             sendScheduledMessage(text, subscriptionId)
@@ -1640,6 +1585,11 @@ class ThreadActivity : SimpleActivity() {
             ensureBackgroundThread {
                 val messageId = scheduledMessage?.id ?: generateRandomId()
                 val message = buildScheduledMessage(text, subscriptionId, messageId)
+                val queued = queueScheduled(message, scheduledMessage?.key())
+                if (queued == ScheduledQueueResult.CLAIMED) {
+                    runOnUiThread { showErrorToast("This scheduled message was already claimed. Your edit is retained; check the conversation.") }
+                    return@ensureBackgroundThread
+                }
                 if (messages.isEmpty()) {
                     // create a temporary thread until a real message is sent
                     threadId = message.threadId
@@ -1655,8 +1605,11 @@ class ThreadActivity : SimpleActivity() {
                         )
                     )
                 }
-                scheduleMessage(message)
-                insertOrUpdateMessage(message)
+                refreshMessages()
+                if (queued == ScheduledQueueResult.POST_FAILED) {
+                    runOnUiThread { scheduledMessage = message; showErrorToast("Alarm could not be posted. Scheduled message retained; open it to send now or change its time.") }
+                    return@ensureBackgroundThread
+                }
 
                 runOnUiThread {
                     clearCurrentMessage()
@@ -1674,10 +1627,30 @@ class ThreadActivity : SimpleActivity() {
     private fun sendNormalMessage(text: String, subscriptionId: Int) {
         val addresses = participants.getAddresses()
         val attachments = buildMessageAttachments()
+        if (restoredRecipient != null && restoredRecipient != addresses.joinToString("|")) {
+            showErrorToast("Draft recipient changed. Reopen the original conversation.")
+            return
+        }
+        if (simSelection.selectedCard == null) {
+            showErrorToast("Select an active SIM")
+            return
+        }
 
         try {
             refreshedSinceSent = false
-            sendMessageCompat(text, addresses, subscriptionId, attachments, messageToResend)
+            // Preserve original human text before diacritic conversion or any transport side effect.
+            val request = OutgoingMessage(threadId, addresses.joinToString("|"),
+                binding.messageHolder.threadTypeMessage.value, attachments.map { it.getUri() }, subscriptionId)
+            val dispatcher = MessageDispatcher.local(this) {
+                sendMessageCompat(text, addresses, it.subscriptionId, attachments, messageToResend)
+            }
+            val outcome = ComposerStore(this).submit(request, dispatcher,
+                getAttachmentSelections().filter { it.isUnavailable }.map { it.uri }.toSet())
+            if (outcome !is DispatchOutcome.Accepted) {
+                showErrorToast(if (outcome is DispatchOutcome.Rejected) outcome.reason
+                    else "Send status unknown. Draft retained; check conversation before sending again.")
+                return
+            }
             ensureBackgroundThread {
                 val existingMessages = messages.toSortedMessages()
                 val messages = getMessages(threadId, limit = maxOf(1, attachments.size))
@@ -1686,6 +1659,8 @@ class ThreadActivity : SimpleActivity() {
                     insertOrUpdateMessage(message)
                 }
             }
+            ensureBackgroundThread { deleteSmsDraft(threadId) }
+            restoredRecipient = null
             clearCurrentMessage()
 
         } catch (e: Exception) {
@@ -1705,7 +1680,7 @@ class ThreadActivity : SimpleActivity() {
 
     private fun insertOrUpdateMessage(message: Message) {
         val updatedMessages = messages.toSortedMessages().toMutableList()
-        val messageIndex = updatedMessages.indexOfFirst { it.id == message.id }
+        val messageIndex = updatedMessages.indexOfFirst { it.key() == message.key() }
         if (messageIndex != -1) {
             updatedMessages[messageIndex] = message
         } else {
@@ -1882,7 +1857,6 @@ class ThreadActivity : SimpleActivity() {
 
         messages = newMessages.apply {
             val scheduledMessages = messagesDB.getScheduledThreadMessages(threadId)
-                .filterNot { it.isScheduled && it.millis() < System.currentTimeMillis() }
             addAll(scheduledMessages)
             if (config.useRecycleBin) {
                 val recycledMessages = messagesDB.getThreadMessagesFromRecycleBin(threadId).toSet()
@@ -1920,30 +1894,8 @@ class ThreadActivity : SimpleActivity() {
         binding.messageHolder.threadSendMessage.setText(stringId)
     }
 
-    private fun showScheduledMessageInfo(message: Message) {
-        val items = arrayListOf(
-            RadioItem(TYPE_EDIT, getString(R.string.update_message)),
-            RadioItem(TYPE_SEND, getString(R.string.send_now)),
-            RadioItem(TYPE_DELETE, getString(org.fossify.commons.R.string.delete))
-        )
-        RadioGroupDialog(
-            activity = this,
-            items = items,
-            titleId = R.string.scheduled_message
-        ) { any ->
-            when (any as Int) {
-                TYPE_DELETE -> cancelScheduledMessageAndRefresh(message.id)
-                TYPE_EDIT -> editScheduledMessage(message)
-                TYPE_SEND -> {
-                    messages = messages.toSortedMessages()
-                        .filterNot { message.id == it.id }
-                    extractAttachments(message)
-                    sendNormalMessage(message.body, message.subscriptionId)
-                    cancelScheduledMessageAndRefresh(message.id)
-                }
-            }
-        }
-    }
+    private fun showScheduledMessageInfo(message: Message) = showScheduledActions(message,
+        onEdit = { editScheduledMessage(message) }, onDelete = { cancelScheduledMessageAndRefresh(message.key()) })
 
     private fun extractAttachments(message: Message) {
         val messageAttachment = message.attachment
@@ -1955,6 +1907,10 @@ class ThreadActivity : SimpleActivity() {
     }
 
     private fun editScheduledMessage(message: Message) {
+        if (ScheduledVerdicts(this).use { it.state(message.key()) != "QUEUED" }) {
+            toast(scheduledStatus(message.key()))
+            return
+        }
         scheduledMessage = message
         clearCurrentMessage()
         binding.messageHolder.threadTypeMessage.setText(message.body)
@@ -1962,14 +1918,13 @@ class ThreadActivity : SimpleActivity() {
         scheduledDateTime = DateTime(message.millis())
         showScheduleMessageDialog()
     }
-
-    private fun cancelScheduledMessageAndRefresh(messageId: Long) {
-        messages.firstOrNull { it.id == messageId && it.isScheduled }?.attachment?.attachments?.forEach {
+    private fun cancelScheduledMessageAndRefresh(key: org.fossify.messages.messaging.MessageKey) {
+        messages.firstOrNull { it.key() == key }?.attachment?.attachments?.forEach {
             AudioPlayerManager.release(it.getUri())
         }
         ensureBackgroundThread {
-            deleteScheduledMessage(messageId)
-            cancelScheduleSendPendingIntent(messageId)
+            deleteScheduledMessage(key)
+            cancelScheduleSendPendingIntent(key)
             refreshMessages()
         }
     }
@@ -2001,7 +1956,7 @@ class ThreadActivity : SimpleActivity() {
             setOnClickListener {
                 hideScheduleSendUi()
                 if (scheduledMessage != null) {
-                    cancelScheduledMessageAndRefresh(scheduledMessage!!.id)
+                    cancelScheduledMessageAndRefresh(scheduledMessage!!.key())
                     scheduledMessage = null
                 }
             }

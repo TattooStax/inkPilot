@@ -72,7 +72,6 @@
     <string name="invalid_short_code_desc">Só podes responder a códigos curtos con números como \"503501\", pero non a códigos que conteñan letras e números como \"AB-CD0\".</string>
     <string name="attachment_sized_exceeds_max_limit">O tamaño dos anexos supera o límite máximo dos MMS</string>
     <string name="faq_1_title">Por que o aplicativo necesita acceder a Internet\?</string>
-    <string name="faq_1_text">Infelizmente é a única forma para poder enviar anexos MMS. A incapacidade de non conseguir enviar MMS sería unha enorme desvantaxe comparativamente a outros aplicativos e, por iso, tomamos esta decisión. Pero, como habitualmente, o aplicativo non ten anuncios, non rastrea os utilizadores nin recolle datos persoais. Este permiso só é necesario para enviar as MMS.</string>
     <string name="faq_2_title">O outro extremo non está recibindo o meu MMS, ¿podo facer algo ao respecto\?</string>
     <string name="faq_2_text">O tamaño dos MMS está limitado polos operadores; podes tentar establecer un límite máis pequeno na configuración da aplicación.</string>
     <string name="faq_3_title">A aplicación admite mensaxes programadas\?</string>

@@ -68,7 +68,6 @@
     <string name="invalid_short_code">Tidak dapat membalas ke kode pendek seperti ini</string>
     <string name="invalid_short_code_desc">Anda hanya dapat membalas ke kode pendek dengan nomor seperti \"503501\" tetapi tidak ke kode berisi huruf dan angka seperti \"AB-CD0\".</string>
     <string name="faq_1_title">Mengapa aplikasi ini membutuhkan akses ke internet\?</string>
-    <string name="faq_1_text">Sayangnya itu diperlukan untuk mengirim lampiran MMS. Tidak dapat mengirim MMS akan menjadi kerugian yang sangat besar dibandingkan dengan aplikasi lain, jadi kami memutuskan untuk menggunakan cara ini. Namun, seperti biasanya, tidak ada iklan, pelacakan atau analitik apa pun, internet hanya digunakan untuk mengirim MMS.</string>
     <string name="faq_2_title">Pihak lain tidak menerima MMS saya, adakah sesuatu yang saya bisa lakukan\?</string>
     <string name="faq_2_text">Ukuran MMS dibatasi oleh penyedia, Anda dapat menetapkan batas yang lebih kecil dalam pengaturan aplikasi.</string>
     <string name="faq_3_title">Apakah aplikasi mendukung penjadwalan pesan\?</string>

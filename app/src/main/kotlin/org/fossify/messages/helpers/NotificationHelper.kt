@@ -8,6 +8,7 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
+import android.net.Uri
 import android.media.AudioAttributes
 import android.media.AudioManager
 import android.media.RingtoneManager
@@ -19,7 +20,7 @@ import org.fossify.commons.extensions.notificationManager
 import org.fossify.commons.helpers.SimpleContactsHelper
 import org.fossify.commons.helpers.ensureBackgroundThread
 import org.fossify.messages.R
-import org.fossify.messages.activities.ThreadActivity
+import org.fossify.messages.inkpilot.ui.CompatibilityIngressActivity
 import org.fossify.messages.extensions.config
 import org.fossify.messages.extensions.shortcutHelper
 import org.fossify.messages.messaging.isShortCodeWithLetters
@@ -44,7 +45,8 @@ class NotificationHelper(private val context: Context) {
         threadId: Long,
         bitmap: Bitmap?,
         sender: String?,
-        alertOnlyOnce: Boolean = false
+        alertOnlyOnce: Boolean = false,
+        subscriptionId: Int? = null,
     ) {
         val hasCustomNotifications =
             context.config.customNotifications.contains(threadId.toString())
@@ -55,7 +57,9 @@ class NotificationHelper(private val context: Context) {
         }
 
         val notificationId = threadId.hashCode()
-        val contentIntent = Intent(context, ThreadActivity::class.java).apply {
+        val contentIntent = Intent(context, CompatibilityIngressActivity::class.java).apply {
+            action = Intent.ACTION_VIEW
+            data = Uri.parse("inkpilot://thread/$threadId")
             putExtra(THREAD_ID, threadId)
         }
         val contentPendingIntent =
@@ -63,7 +67,7 @@ class NotificationHelper(private val context: Context) {
                 context,
                 notificationId,
                 contentIntent,
-                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
             )
 
         val markAsReadIntent = Intent(context, MarkAsReadReceiver::class.java).apply {
@@ -102,6 +106,8 @@ class NotificationHelper(private val context: Context) {
             val replyIntent = Intent(context, DirectReplyReceiver::class.java).apply {
                 putExtra(THREAD_ID, threadId)
                 putExtra(THREAD_NUMBER, address)
+                putExtra(DirectReplyReceiver.SUBSCRIPTION_ID, subscriptionId ?: -1)
+                data = android.net.Uri.parse("inkpilot-reply://thread/$threadId/${if (isMms) "mms" else "sms"}/$messageId")
             }
 
             val replyPendingIntent =
@@ -199,14 +205,16 @@ class NotificationHelper(private val context: Context) {
         }
 
         val notificationId = generateRandomId().hashCode()
-        val intent = Intent(context, ThreadActivity::class.java).apply {
+        val intent = Intent(context, CompatibilityIngressActivity::class.java).apply {
+            action = Intent.ACTION_VIEW
+            data = Uri.parse("inkpilot://thread/$threadId")
             putExtra(THREAD_ID, threadId)
         }
         val contentPendingIntent = PendingIntent.getActivity(
             context,
             notificationId,
             intent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
         val summaryText =

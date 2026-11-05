@@ -211,7 +211,7 @@ class PairingTest {
         val offer = pairingOfferFromQrPayload("http://127.0.0.1:38117/companion/start?t=tok")
         assertEquals(PairingOffer("http://127.0.0.1:38117", "tok"), offer)
         assertEquals("http://localhost:38117", pairingOfferFromQrPayload("http://localhost:38117/companion/start?t=tok")?.endpointBase)
-        assertEquals("http://[::1]:38117", pairingOfferFromQrPayload("http://[::1]:38117/companion/start?t=tok")?.endpointBase)
+        assertNull(pairingOfferFromQrPayload("http://[::1]:38117/companion/start?t=tok"))
     }
 
     @Test

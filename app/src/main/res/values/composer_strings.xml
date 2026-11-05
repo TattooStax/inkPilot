@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="attachment_unavailable">Attachment unavailable. Remove or reattach it to send.</string>
+</resources>

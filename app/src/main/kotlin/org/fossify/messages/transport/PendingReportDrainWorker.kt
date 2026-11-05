@@ -26,8 +26,9 @@ import androidx.work.WorkerParameters
  * drain — a rejected credential needs re-pairing, and an
  * unreachable endpoint is retried by the next verdict's
  * enqueue, by the scheduled drain retry, and by the network
- * constraint on any work still pending. The work therefore reports success once its one
- * drain attempt has run, whatever the drain's own result was.
+ * constraint on any work still pending. Retained completed verdicts request
+ * backoff retry, including native reconciliation after disconnect. Otherwise
+ * one drain attempt reports success, whatever its network outcome.
  */
 class PendingReportDrainWorker(
     context: Context,
@@ -43,6 +44,6 @@ class PendingReportDrainWorker(
             applicationContext.fileRetainedOutboundVerdicts()
             applicationContext.drainPendingOutboundReportQueue()
         }
-        return Result.success()
+        return if (applicationContext.storedCompletedOutboundVerdicts().isNotEmpty()) Result.retry() else Result.success()
     }
 }

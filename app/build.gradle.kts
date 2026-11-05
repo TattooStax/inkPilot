@@ -39,6 +39,9 @@ android {
         versionName = project.property("VERSION_NAME").toString()
         versionCode = project.property("VERSION_CODE").toString().toInt()
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        // Optional integration is deliberately absent from the standalone beta.
+        buildConfigField("boolean", "OPTIONAL_BRIDGE_ENABLED",
+            (providers.gradleProperty("inkpilotOptionalBridge").orNull == "true").toString())
         ndk { abiFilters += (providers.gradleProperty("inkpilotAbi").orNull?.split(",") ?: listOf("arm64-v8a", "x86_64")) }
         ksp {
             arg("room.schemaLocation", "$projectDir/schemas")
@@ -136,6 +139,8 @@ android {
 }
 
 detekt {
+    // The checked SARIF debt ratchet fails new findings while existing issues stay visible.
+    ignoreFailures = true
     baseline = file("detekt-baseline.xml")
     config.setFrom("$rootDir/detekt.yml")
     buildUponDefaultConfig = true
@@ -165,6 +170,8 @@ dependencies {
     implementation(libs.bundles.room)
     ksp(libs.androidx.room.compiler)
     detektPlugins(libs.compose.detekt)
+    testImplementation(libs.junit)
+    androidTestImplementation("androidx.work:work-testing:2.10.5")
     androidTestImplementation("androidx.test:runner:1.7.0")
     androidTestImplementation("androidx.test.ext:junit:1.3.0")
     androidTestImplementation("androidx.test:core:1.7.0")

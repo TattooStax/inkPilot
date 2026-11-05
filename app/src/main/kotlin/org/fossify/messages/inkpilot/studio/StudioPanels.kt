@@ -12,18 +12,27 @@ class StudioPanels(
     activity: AppCompatActivity,
     executor: Executor,
     onError: (String) -> Unit,
-    repository: StudioRepository,
+    private val repository: StudioRepository,
 ) {
     private val host = StudioPanelHost(activity, executor, onError)
-    private val albums = StudioAlbumsPanel(host, StudioAlbumStore(repository))
+    private var importTarget: StudioAlbumsPanel? = null
+    private fun albumPanel() = StudioAlbumsPanel(host, StudioAlbumStore(repository)) { importTarget = it }
+    private val albums = albumPanel()
     private val calendar = StudioCalendarPanel(host, StudioCalendarStore(repository))
 
     fun albums(): View = albums.view()
+    fun linkedImages(contactId: String? = null, threadId: Long? = null): View = albumPanel().linkedView(contactId, threadId)
+
+    internal fun importMmsOriginal(uri: android.net.Uri, link: StudioImageLink, onSaved: () -> Unit) {
+        host.load({ StudioImageFiles(host.activity.applicationContext, StudioAlbumStore(repository)).importMmsOriginal(uri, link) }) { onSaved() }
+    }
+
     fun calendar(): View = calendar.view()
 
     fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?): Boolean {
         if (requestCode != IMPORT_IMAGE) return false
-        if (resultCode == Activity.RESULT_OK) data?.data?.let { albums.acceptImage(it) }
+        val target = importTarget; importTarget = null
+        if (resultCode == Activity.RESULT_OK) data?.data?.let { target?.acceptImage(it) }
         return true
     }
 

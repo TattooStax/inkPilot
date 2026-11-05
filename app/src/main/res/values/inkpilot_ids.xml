@@ -12,6 +12,7 @@
     <item name="inkpilot_new_message" type="id" />
     <item name="inkpilot_sms_setup" type="id" />
     <item name="inkpilot_message_list" type="id" />
+    <item name="inkpilot_thread_message_list" type="id" />
     <item name="inkpilot_contact_list" type="id" />
     <item name="inkpilot_add_contact" type="id" />
     <item name="inkpilot_contact_memory" type="id" />

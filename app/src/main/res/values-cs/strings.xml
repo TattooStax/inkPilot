@@ -105,7 +105,6 @@
     <string name="invalid_short_code_desc">Lze odpovídat pouze na krátké kódy s čísly, jako „503501“, ale ne na kódy obsahující čísla a písmena, jako „AB-CD0“.</string>
     <string name="attachment_sized_exceeds_max_limit">Velikost přílohy přesahuje maximální limit MMS</string>
     <string name="faq_1_title">Proč aplikace vyžaduje přístup k internetu\?</string>
-    <string name="faq_1_text">Je smutné, že je to nutné pro odesílání příloh MMS. Nemít schopnost posílat MMS by byla opravdu obrovská nevýhoda ve srovnání s jinými aplikacemi, proto jsme se rozhodli jít touto cestou. Jako obvykle však neexistují žádné reklamy, sledování ani analytika. Internet se používá pouze k odesílání MMS.</string>
     <string name="faq_2_title">Druhá strana nepřijímá mé MMS. Je něco, co s tím mohu udělat\?</string>
     <string name="faq_2_text">Velikost MMS je omezena operátory. Můžete zkusit nastavit menší limit v nastavení aplikace.</string>
     <string name="faq_3_title">Podporuje aplikace naplánované zprávy\?</string>

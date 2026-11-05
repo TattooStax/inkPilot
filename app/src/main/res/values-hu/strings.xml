@@ -79,7 +79,6 @@
     <string name="invalid_short_code">Nem válaszolhat így a rövid kódokra</string>
     <string name="invalid_short_code_desc">Csak a számokat tartalmazó rövid kódokra válaszolhat, például a „503501”-re, de a számokat és betűket tartalmazókra, például a „AB-CD0”-ra, nem.</string>
     <string name="faq_1_title">Miért kér az alkalmazás hozzáférést az internethez\?</string>
-    <string name="faq_1_text">Sajnos szükséges az MMS-mellékletek küldéséhez. Az MMS-küldés hiánya olyan nagy hátrány más alkalmazásokhoz képest, hogy inkább mellette döntöttünk. Viszont, mint általában, nincsenek reklámok, követés, vagy analitika és az internetet csak az MMS küldéséhez használjuk.</string>
     <string name="faq_2_title">A másik fél nem kapja meg az MMS-emet, tehetek valamit ez ellen\?</string>
     <string name="faq_2_text">Az MMS méretét korlátozzák a szolgáltatók, próbáljon kisebb korlátot beállítani az alkalmazásbeállításokban.</string>
     <string name="faq_3_title">Az alkalmazás támogatja az ütemezett üzeneteket\?</string>

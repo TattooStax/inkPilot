@@ -1,5 +1,8 @@
 package org.fossify.messages.extensions
 
+import org.fossify.messages.messaging.MessageKey
+import org.fossify.messages.messaging.MessageOrigin
+import org.fossify.messages.messaging.key
 import android.annotation.SuppressLint
 import android.app.Application
 import android.content.ContentResolver
@@ -195,6 +198,7 @@ fun Context.getMessages(
     }
 
     messages.addAll(getMMS(threadId, sortOrder, dateFrom))
+    reconcileTypedMessageCache(messages)
 
     if (includeScheduledMessages) {
         try {
@@ -207,7 +211,6 @@ fun Context.getMessages(
 
     messages = messages
         .filter { it.participants.isNotEmpty() }
-        .filterNot { it.isScheduled && it.millis() < System.currentTimeMillis() }
         .sortedWith(compareBy<Message> { it.date }.thenBy { it.id })
         .takeLast(limit)
         .toMutableList() as ArrayList<Message>
@@ -922,7 +925,7 @@ fun Context.checkAndDeleteOldRecycleBinMessages(callback: (() -> Unit)? = null) 
                 messagesDB.getOldRecycleBinMessages(
                     timestamp = System.currentTimeMillis() - MONTH_SECONDS * 1000L
                 ).forEach { message ->
-                    deleteMessage(message.id, message.isMMS)
+                    if (message.isScheduled) deleteScheduledMessage(message.key()) else deleteMessage(message.id, message.isMMS)
                 }
                 callback?.invoke()
             } catch (_: Exception) {
@@ -934,14 +937,14 @@ fun Context.checkAndDeleteOldRecycleBinMessages(callback: (() -> Unit)? = null) 
 fun Context.emptyMessagesRecycleBin() {
     val messages = messagesDB.getAllRecycleBinMessages()
     for (message in messages) {
-        deleteMessage(message.id, message.isMMS)
+        if (message.isScheduled) deleteScheduledMessage(message.key()) else deleteMessage(message.id, message.isMMS)
     }
 }
 
 fun Context.emptyMessagesRecycleBinForConversation(threadId: Long) {
     val messages = messagesDB.getThreadMessagesFromRecycleBin(threadId)
     for (message in messages) {
-        deleteMessage(message.id, message.isMMS)
+        if (message.isScheduled) deleteScheduledMessage(message.key()) else deleteMessage(message.id, message.isMMS)
     }
 }
 
@@ -949,17 +952,17 @@ fun Context.restoreAllMessagesFromRecycleBinForConversation(threadId: Long) {
     messagesDB.deleteThreadMessagesFromRecycleBin(threadId)
 }
 
-fun Context.moveMessageToRecycleBin(id: Long) {
+fun Context.moveMessageToRecycleBin(key: MessageKey) {
     try {
-        messagesDB.insertRecycleBinEntry(RecycleBinMessage(id, System.currentTimeMillis()))
+        messagesDB.insertRecycleBinEntry(RecycleBinMessage(key, System.currentTimeMillis()))
     } catch (e: Exception) {
         showErrorToast(e)
     }
 }
 
-fun Context.restoreMessageFromRecycleBin(id: Long) {
+fun Context.restoreMessageFromRecycleBin(key: MessageKey) {
     try {
-        messagesDB.deleteFromRecycleBin(id)
+        messagesDB.deleteFromRecycleBin(key)
     } catch (e: Exception) {
         showErrorToast(e)
     }
@@ -998,15 +1001,7 @@ fun Context.deleteMessage(id: Long, isMMS: Boolean) {
     val selectionArgs = arrayOf(id.toString())
     try {
         contentResolver.delete(uri, selection, selectionArgs)
-        messagesDB.delete(id)
-    } catch (e: Exception) {
-        showErrorToast(e)
-    }
-}
-
-fun Context.deleteScheduledMessage(messageId: Long) {
-    try {
-        messagesDB.delete(messageId)
+        messagesDB.delete(MessageKey(if (isMMS) MessageOrigin.MMS else MessageOrigin.SMS, id))
     } catch (e: Exception) {
         showErrorToast(e)
     }
@@ -1021,7 +1016,7 @@ fun Context.markMessageRead(id: Long, isMMS: Boolean) {
     val selection = "${Sms._ID} = ?"
     val selectionArgs = arrayOf(id.toString())
     contentResolver.update(uri, contentValues, selection, selectionArgs)
-    messagesDB.markRead(id)
+    messagesDB.markRead(id, isMMS)
 }
 
 fun Context.markThreadMessagesRead(threadId: Long) {
@@ -1075,28 +1070,6 @@ fun Context.getThreadId(addresses: Set<String>): Long {
         Threads.getOrCreateThreadId(this, addresses)
     } catch (_: Exception) {
         0L
-    }
-}
-
-fun Context.showReceivedMessageNotification(
-    messageId: Long,
-    isMms: Boolean,
-    address: String,
-    senderName: String,
-    body: String,
-    threadId: Long,
-    bitmap: Bitmap?,
-) {
-    Handler(Looper.getMainLooper()).post {
-        notificationHelper.showMessageNotification(
-            messageId = messageId,
-            isMms = isMms,
-            address = address,
-            body = body,
-            threadId = threadId,
-            bitmap = bitmap,
-            sender = senderName
-        )
     }
 }
 
@@ -1253,21 +1226,6 @@ fun Context.getFileSizeFromUri(uri: Uri): Long {
     }
 }
 
-// fix a glitch at enabling Release version minifying from 5.12.3
-// reset messages in 5.14.3 again, as PhoneNumber is no longer minified
-// reset messages in 5.19.1 again, as SimpleContact is no longer minified
-fun Context.clearAllMessagesIfNeeded(callback: () -> Unit) {
-    if (!config.wasDbCleared) {
-        ensureBackgroundThread {
-            messagesDB.deleteAll()
-            config.wasDbCleared = true
-            Handler(Looper.getMainLooper()).post(callback)
-        }
-    } else {
-        callback()
-    }
-}
-
 fun Context.subscriptionManagerCompat(): SubscriptionManager {
     return getSystemService(SubscriptionManager::class.java)
 }
@@ -1345,24 +1303,13 @@ fun Context.updateScheduledMessagesThreadId(messages: List<Message>, newThreadId
 }
 
 fun Context.clearExpiredScheduledMessages(threadId: Long, messagesToDelete: List<Message>? = null) {
+    // Only a durable all-parts carrier confirmation permits automatic cleanup.
     val messages = messagesToDelete ?: messagesDB.getScheduledThreadMessages(threadId)
-    val cutoff = System.currentTimeMillis() - 1.minutes.inWholeMilliseconds
-
-    try {
-        messages.filter { it.isScheduled && it.millis() < cutoff }.forEach { msg ->
-            messagesDB.delete(msg.id)
-        }
-        if (messages.filterNot { it.isScheduled && it.millis() < cutoff }.isEmpty()) {
-            // delete empty temporary thread
-            val conversation = conversationsDB.getConversationWithThreadId(threadId)
-            if (conversation != null && conversation.isScheduled) {
-                conversationsDB.deleteThreadId(threadId)
-            }
-        }
-    } catch (e: Exception) {
-        e.printStackTrace()
-        return
+    org.fossify.messages.messaging.ScheduledVerdicts(this).use { journal ->
+        messages.filter { it.isScheduled && journal.state(it.key()) == "CONFIRMED" }
+            .forEach { messagesDB.delete(it.key()) }
     }
+
 }
 
 fun Context.rescheduleAllScheduledMessages() {

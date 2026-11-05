@@ -218,10 +218,8 @@ class MessagesReader(private val context: Context) {
             val sequenceOrder = cursor.getIntValue(Mms.Part.SEQ)
             val text = cursor.getStringValueOrNull(Mms.Part.TEXT)
             val data = when {
-                contentType.startsWith("text/") -> {
-                    usePart(partId) { stream ->
-                        stream.readBytes().toString(Charsets.UTF_8)
-                    }
+                contentType.startsWith("text/") -> text ?: usePart(partId) { stream ->
+                    stream.readBytes().toString(Charsets.UTF_8)
                 }
 
                 else -> {
@@ -258,14 +256,9 @@ class MessagesReader(private val context: Context) {
             Uri.parse("content://mms/part/$partId")
         }
 
-        try {
-            val stream = context.contentResolver.openInputStream(partUri) ?: return ""
-            stream.use {
-                return block(stream)
-            }
-        } catch (e: IOException) {
-            return ""
-        }
+        val stream = context.contentResolver.openInputStream(partUri)
+            ?: throw IOException("MMS part could not be opened for export.")
+        return stream.use(block)
     }
 
     @SuppressLint("NewApi")

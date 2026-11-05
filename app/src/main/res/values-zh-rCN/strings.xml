@@ -103,7 +103,6 @@
     <string name="attachment_sized_exceeds_max_limit">附件大小超出了彩信上限</string>
     <string name="couldnt_download_mms">无法下载彩信</string>
     <string name="faq_1_title">为什么该应用需要访问互联网？</string>
-    <string name="faq_1_text">遗憾的是，发送彩信附件需要它。如果无法发送彩信，与其他应用相比将是一个巨大的劣势，所以我们决定采用这种方式。 不过，与往常一样，本应用没有广告、追踪或者分析， 互联网仅用于发送彩信。</string>
     <string name="faq_2_title">对方收不到我的彩信，我能做些什么吗？</string>
     <string name="faq_2_text">彩信大小受运营商限制，您可以在应用设置中尝试设置较小的限制。</string>
     <string name="faq_3_title">本应用支持定时信息吗？</string>

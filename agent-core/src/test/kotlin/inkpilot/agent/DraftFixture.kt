@@ -13,7 +13,7 @@ internal class DraftFixture {
     var lastPrompt: DraftPrompt? = null
     var generate: (DraftPrompt, DraftCancellation) -> String = { _, _ -> "What day would suit you?" }
 
-    fun coordinator(limits: DraftLimits = DraftLimits()) = CustomerServiceDrafts(
+    fun coordinator(limits: DraftLimits = DraftLimits(), safetyGate: DraftSafetyGate = DraftSafetyGate.NONE) = CustomerServiceDrafts(
         store,
         ContactMemoryReader { notes },
         LocalDraftModel { prompt, cancellation ->
@@ -22,6 +22,7 @@ internal class DraftFixture {
             generate(prompt, cancellation)
         },
         limits,
+        safetyGate,
     )
 }
 

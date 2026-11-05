@@ -106,7 +106,6 @@
     <string name="attachment_sized_exceeds_max_limit">Liitteen koko ylittää MMS-viestin enimmäiskoon</string>
     <string name="couldnt_download_mms">MMS lataus epäonnistui</string>
     <string name="faq_1_title">Miksi sovellus vaatii Internet-yhteyden\?</string>
-    <string name="faq_1_text">Valitettavasti sitä tarvitaan multimediaviestin liitteiden lähettämiseen. Multimediaviestien lähettämättä jättäminen olisi todella valtava haitta muihin sovelluksiin verrattuna, joten päätimme mennä tällä tavalla. Kuten yleensä, mainoksia, seurantaa tai analytiikkaa ei kuitenkaan ole, internetiä käytetään vain multimediaviestien lähettämiseen.</string>
     <string name="faq_2_title">Vastaanottaja ei vastaanota MMS-viestejäni, voinko tehdä asialle mitään\?</string>
     <string name="faq_2_text">Operaattorit rajoittavat MMS-kokoa, voit yrittää asettaa pienemmän rajan sovelluksen asetuksissa.</string>
     <string name="faq_3_title">Tukeeko sovellus ajoitettua viestien lähetystä\?</string>

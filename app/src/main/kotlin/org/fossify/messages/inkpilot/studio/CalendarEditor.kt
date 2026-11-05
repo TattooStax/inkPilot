@@ -9,28 +9,44 @@ import android.widget.ArrayAdapter
 import android.widget.Spinner
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
+import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import org.fossify.messages.inkpilot.data.StudioContact
 
 internal class CalendarEditor(
     private val host: StudioPanelHost,
     private val store: StudioCalendarStore,
     initialDay: LocalDate,
     private val staff: List<StudioStaff>,
+    private val contacts: List<StudioContact>,
     private val onSaved: () -> Unit,
+    private val zone: ZoneId,
+    private val existing: CalendarEntry? = null,
 ) {
-    private var day = initialDay
-    private var time = LocalTime.of(12, 0)
+    private var day = existing?.let { Instant.ofEpochMilli(it.startsAt).atZone(zone).toLocalDate() } ?: initialDay
+    private var time = existing?.let { Instant.ofEpochMilli(it.startsAt).atZone(zone).toLocalTime() } ?: LocalTime.NOON
 
     fun show() {
         val fields = host.column().apply { setPadding(host.dp(20), 0, host.dp(20), 0) }
-        val title = host.field("Title")
-        val artist = spinner(staff.map { it.name })
-        val kind = spinner(listOf("Appointment", "Task"))
-        val room = host.field("Room (leave empty if none)", "Studio")
-        val duration = host.field("Minutes", "60").apply { inputType = InputType.TYPE_CLASS_NUMBER }
+        val title = host.field("Title", existing?.title.orEmpty())
+        val artist = spinner(staff.map { it.name }).apply {
+            setSelection(staff.indexOfFirst { it.id == existing?.staffId }.coerceAtLeast(0))
+        }
+        val kind = spinner(listOf("Appointment", "Task")).apply {
+            setSelection(if (existing?.kind == "task") 1 else 0)
+        }
+        val clients = spinner(listOf("No client") + contacts.map { it.displayName }).apply {
+            setSelection((contacts.indexOfFirst { it.id == existing?.contactId } + 1).coerceAtLeast(0))
+        }
+        val room = host.field("Room (optional)", existing?.room.orEmpty())
+        val project = host.field("Project ID (optional)", existing?.projectId.orEmpty())
+        val durationValue = existing?.let { ((it.endsAt - it.startsAt) / 60_000).toString() } ?: "60"
+        val duration = host.field("Minutes", durationValue).apply { inputType = InputType.TYPE_CLASS_NUMBER }
+        val reminderValue = existing?.reminderAt?.let { ((existing.startsAt - it) / 60_000).toString() } ?: "0"
+        val reminder = host.field("Remind minutes before (0 = off)", reminderValue).apply { inputType = InputType.TYPE_CLASS_NUMBER }
         val dateButton = host.button(day.toString()) {}
         dateButton.setOnClickListener {
             DatePickerDialog(host.activity, { _, year, month, date ->
@@ -46,32 +62,40 @@ internal class CalendarEditor(
         }
         fields.addView(title); fields.addView(host.text("Type")); fields.addView(kind)
         fields.addView(host.text("Staff member")); fields.addView(artist)
-        fields.addView(dateButton); fields.addView(timeButton); fields.addView(duration); fields.addView(room)
-        fields.addView(host.text("Times use ${ZoneId.systemDefault().id}. External bookings are not included.", 13f))
-        val dialog = AlertDialog.Builder(host.activity).setTitle("New calendar entry").setView(host.body(fields))
-            .setPositiveButton("Save", null).setNegativeButton("Cancel", null).create()
+        fields.addView(host.text("Client record")); fields.addView(clients)
+        fields.addView(dateButton); fields.addView(timeButton); fields.addView(duration)
+        fields.addView(room); fields.addView(project); fields.addView(reminder)
+        fields.addView(host.text("Times use ${zone.id}. Hours, time off and other entries are checked here.", 13f))
+        val dialog = AlertDialog.Builder(host.activity).setTitle(if (existing == null) "New calendar entry" else "Edit calendar entry")
+            .setView(host.body(fields)).setPositiveButton("Save", null).setNegativeButton("Cancel", null).create()
         dialog.setOnShowListener {
             dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
                 val minutes = duration.text.toString().toLongOrNull()
-                if (minutes == null || minutes !in 1..1440) {
-                    host.onError("Choose a duration between one minute and 24 hours."); return@setOnClickListener
+                val before = reminder.text.toString().toLongOrNull()
+                if (minutes == null || minutes !in 1..1440 || before == null || before !in 0..10080) {
+                    host.onError("Use one to 1440 minutes and a reminder up to seven days."); return@setOnClickListener
                 }
                 val local = day.atTime(time)
-                val zone = ZoneId.systemDefault()
-                val zoned = local.atZone(zone)
-                if (zoned.toLocalDateTime() != local) {
-                    host.onError("That time falls within a daylight-saving change. Choose another time."); return@setOnClickListener
+                val offsets = zone.rules.getValidOffsets(local)
+                if (offsets.size != 1) {
+                    host.onError("This time is skipped or repeated by daylight saving. Choose another time."); return@setOnClickListener
                 }
-                val startsAt = zoned.toInstant().toEpochMilli()
-                val proposal = CalendarProposal(title.text.toString(), if (kind.selectedItemPosition == 0) "appointment" else "task",
-                    staff[artist.selectedItemPosition].id, startsAt, startsAt + minutes * 60_000, zone.id, room.text.toString())
-                host.load({ store.schedule(proposal) }) { result ->
+                val startsAt = local.atOffset(offsets.single()).toInstant().toEpochMilli()
+                val candidate = CalendarProposal(title.text.toString(),
+                    if (kind.selectedItemPosition == 0) "appointment" else "task",
+                    staff[artist.selectedItemPosition].id, startsAt, startsAt + minutes * 60_000, zone.id,
+                    room.text.toString(), contacts.getOrNull(clients.selectedItemPosition - 1)?.id,
+                    project.text.toString().trim().ifEmpty { null },
+                    if (before == 0L) null else startsAt - before * 60_000)
+                host.load({ if (existing == null) store.schedule(candidate)
+                    else store.edit(existing.id, candidate, existing.revision) }) { result ->
                     when (result) {
                         is ScheduleResult.Saved -> { dialog.dismiss(); onSaved() }
                         is ScheduleResult.Conflict -> host.onError(
-                            (if (result.sharedRoom) "That room is occupied" else "That staff member is booked") +
+                            (if (result.sharedRoom) "Room occupied" else "Staff booked") +
                                 " by ${result.title}. Choose another time.",
                         )
+                        is ScheduleResult.Unavailable -> host.onError(result.reason)
                     }
                 }
             }

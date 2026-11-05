@@ -26,10 +26,11 @@ memory, events, policy, held drafts, send claims, albums and calendar.
 It uses checked SQLite transactions and explicit schema versions, with
 no destructive fallback. The inherited `conversations.db` also holds
 human drafts, scheduled messages, archive and recycle state alongside
-provider projections. It is user data, not safely rebuildable. Its
-current destructive migration fallback must be removed through a
-lossless migration before changing the released schema. The contact
-identity and UI projection must converge on one linked customer record.
+provider projections. It is user data, not safely rebuildable. Its v11-to-v12 migration preserves drafts, archive and recycle
+records without a destructive fallback. Further schema changes require
+lossless migrations. Contact identity and UI projections are linked to
+the canonical studio customer record; device acceptance must still
+verify imported and carrier-originated contacts.
 
 The install ID is `app.inkpilot.android` (`.debug` for debug builds).
 The source namespace stays `org.fossify.messages` to preserve
@@ -80,11 +81,11 @@ host actions and return explicit results/receipts. It must preserve
 contact scope, pause state, revision checks and staff approval.
 Installing or removing it must not change standalone behavior.
 
-An optional companion bridge already pairs over the network and polls
-a remote outbound endpoint. It is distinct from the local LFM3 workflow
-and is not a required OpenFang dependency. Its current sends bypass the
-phone's message history; keep it outside the text-first beta until its
-visibility, latency and replay behavior meet the same message contract.
+An optional network companion bridge is distinct from the local LFM3
+workflow and is off by default. It requires explicit paired setup, and
+is excluded from the local text beta. Any future enablement must use the
+same held-review, carrier send and visible thread history contract. Its
+network operation must be described separately from offline inference.
 Before distribution, verify license compatibility for the chosen
 packaging; existing GPL-3.0 notices remain intact.
 

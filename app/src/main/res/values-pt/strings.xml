@@ -108,7 +108,6 @@
     <string name="attachment_sized_exceeds_max_limit">O anexo excede o tamanho máximo permitido para MMS</string>
     <string name="couldnt_download_mms">Não foi possível descarregar a MMS</string>
     <string name="faq_1_title">Porque é que a aplicação requer acesso à Internet\?</string>
-    <string name="faq_1_text">Infelizmente, é a única forma de poder enviar anexos MMS. Não ter a capacidade de enviar MMS representaria uma enorme desvantagem comparativamente a outras aplicações e foi por isso que tomámos esta decisão. Mas, como habitualmente, a aplicação não tem anúncios, não rastreia os utilizadores nem recolhe dados pessoais. Esta permissão apenas é necessária para enviar MMS.</string>
     <string name="faq_2_title">O destinatário não recebe as minhas MMS, o que posso fazer\?</string>
     <string name="faq_2_text">O tamanho das MMS é limitado pelas operadoras. Tente definir um limite inferior nas definições da aplicação.</string>
     <string name="faq_3_title">Posso agendar mensagens com esta aplicação\?</string>

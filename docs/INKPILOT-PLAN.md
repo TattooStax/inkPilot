@@ -8,6 +8,8 @@ LFM3 JNI inference, a five-tab native UI and checked staff-approved
 SMS sending. The emulator pipeline verifies the integrated local loop;
 physical-carrier and hardware acceptance remain separate evidence gates.
 
+**Current beta verdict (2026-11-05): not qualified.** Selected OnePlus preview checks pass, but the same candidate has not passed hosted shell/carrier proof, semantic model qualification, real recipient SMS/MMS, complete recovery, or manual Phone-role acceptance. The [dated beta evidence and ordered gates](BETA-EVIDENCE-2026-11-05.md) records what passed and what remains open. The 2026-11-04 audit percentage is historical and does not measure today's completion.
+
 inkPilot is the working name for a separate, entirely local Android
 tattoo-studio assistant.
 
@@ -117,6 +119,14 @@ inkPilot going forward.
 That chain, working end to end and verified at the receiving end,
 is the first proof. Features outside the chain come after it.
 
+## Evidence-driven repairs before beta
+
+1. **Finish the one-shell ingress matrix.** The focused selected draft, notification route, Settings alias and all five tabs at 1.5× text plus landscape pass on hosted source `0311decd`. The cross-package cold-share case still cannot find a resumed shell with its exact URI; trace sender, alias, app lock and lifecycle, then verify its private body/grant. Repeat the full route matrix on the OnePlus when Victus reconnects.
+2. **Ground the local reply.** Production currently makes one RAW generation from the latest inbound text and a reviewed contact note; it does not call the local tool registry or include prior thread turns. The unsupported consultation claim is now blocked with staff attention, but the pinned QAD run produced no useful accepted reply in that test. Keep the bounded selector disabled until its fixed corpus, blind staff scoring, consecutive offline phone turns and a verified source-backed reply path pass.
+3. **Persist staff edits with the record.** Held reply edits on the implementation branch still live in preferences outside the Studio archive. An isolated v9 schema and exact-body claim candidate passed six Android data tests, but its new Detekt complexity finding and inherited staged-review failure block integration; a local refactor needs hosted confirmation. Complete the v8 reviewed-intake gate, then rerun the combined v9 edit, migration, reopen, send, dismissal and archive checks. Export remains incomplete until a tested restore path exists.
+4. **Finish native transport and device proof.** Verify scheduled edit/alarm ordering, multipart callback reconciliation, optional bridge posture and direct reply lifecycle with zero new static-analysis debt. Then install one identified candidate on the OnePlus and record real SMS/MMS recipient delivery, default-role rollback and process-death behavior.
+5. **Qualify manual calls independently.** Run the real incoming/outgoing, locked screen, denied/revoked alert, SIM and audio-route matrix. The source has no call capture, transcription, speech synthesis or AI answer loop; that remains a later milestone after a device-proven audio path.
+
 ## Known gaps to verify
 
 These are open questions, not solved problems. Each must be verified
@@ -163,8 +173,9 @@ file before adding to one that is near its baseline or the cap.
    a manual hardware gate and is never inferred from carrier acceptance.
 4. **Studio workflow:** five-tab shell, contact editing, albums,
    artist calendar and simple memory administration, built in small
-   independently verified changes. Basic CRUD is implemented; hours,
-   time off, reminders, appointment editing and image record links remain.
+   independently verified changes. Hours, time off, reminders,
+   appointment editing and image record links are implemented in source;
+   the complete lead-to-appointment device path remains unqualified.
 5. **Optional integrations:** OpenFang adapter after the standalone
    loop passes; voice only after proving an audio-access path.
 

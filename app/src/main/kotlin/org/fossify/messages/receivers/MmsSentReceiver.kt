@@ -1,7 +1,12 @@
 package org.fossify.messages.receivers
 
+import org.fossify.messages.messaging.recordScheduledCallback
+import org.fossify.messages.messaging.ComposerStore
+import org.fossify.messages.messaging.confirmMmsSent
+import org.fossify.messages.messaging.recordMmsFailure
 import android.app.Activity
 import android.content.ContentValues
+import android.content.ContentUris
 import android.content.Context
 import android.content.Intent
 import android.database.sqlite.SQLiteException
@@ -20,8 +25,8 @@ import java.io.File
 /** Handles updating databases and states when a MMS message is sent. */
 class MmsSentReceiver : SendStatusReceiver() {
 
-    override fun updateAndroidDatabase(context: Context, intent: Intent, receiverResultCode: Int) {
-        val uri = Uri.parse(intent.getStringExtra(EXTRA_CONTENT_URI))
+    override fun updateAndroidDatabase(context: Context, intent: Intent, receiverResultCode: Int): Boolean {
+        val uri = intent.getStringExtra(EXTRA_CONTENT_URI)?.let(Uri::parse)
         val originalResentMessageId = intent.getLongExtra(EXTRA_ORIGINAL_RESENT_MESSAGE_ID, -1L)
         val messageBox = if (receiverResultCode == Activity.RESULT_OK) {
             Telephony.Mms.MESSAGE_BOX_SENT
@@ -39,14 +44,13 @@ class MmsSentReceiver : SendStatusReceiver() {
             put(Telephony.Mms.MESSAGE_BOX, messageBox)
         }
 
-        try {
-            context.contentResolver.update(uri, values, null, null)
-        } catch (e: SQLiteException) {
-            context.showErrorToast(e)
-        }
+        val providerUpdated = if (mmsCallbackRowBound(intent.data, uri))
+            updateAndVerifyMmsRow(context, uri, values, messageBox) else false
+        reconcileComposerMmsCallback(context, intent, receiverResultCode, providerUpdated)
+        context.recordScheduledCallback(intent, receiverResultCode == Activity.RESULT_OK, providerUpdated)
 
         // In case of resent message, delete original to prevent duplication
-        if (originalResentMessageId != -1L) {
+        if (originalResentMessageId != -1L && receiverResultCode == Activity.RESULT_OK && providerUpdated) {
             context.deleteMessage(originalResentMessageId, true)
         }
 
@@ -54,9 +58,12 @@ class MmsSentReceiver : SendStatusReceiver() {
         if (filePath != null) {
             File(filePath).delete()
         }
+        return providerUpdated
     }
 
-    override fun updateAppDatabase(context: Context, intent: Intent, receiverResultCode: Int) {
+    override fun updateAppDatabase(
+        context: Context, intent: Intent, receiverResultCode: Int, nativeRowVerified: Boolean,
+    ) {
         refreshMessages()
         refreshConversations()
     }
@@ -65,5 +72,54 @@ class MmsSentReceiver : SendStatusReceiver() {
         private const val EXTRA_CONTENT_URI = "content_uri"
         private const val EXTRA_FILE_PATH = "file_path"
         const val EXTRA_ORIGINAL_RESENT_MESSAGE_ID = "original_message_id"
+        const val EXTRA_COMPOSER_THREAD_ID = "inkpilot.composer.thread_id"
+        const val EXTRA_COMPOSER_ATTEMPT_ID = "inkpilot.composer.attempt_id"
     }
+}
+
+/** mmslib supplies either a row URI or its newly persisted outbox row URI. */
+internal fun isMmsCallbackRow(uri: Uri?): Boolean {
+    if (uri?.scheme != "content" || uri.authority != Telephony.Mms.CONTENT_URI.authority) return false
+    val parts = uri.pathSegments
+    if (parts.lastOrNull()?.toLongOrNull()?.let { it > 0L } != true) return false
+    return parts.size == 1 || (parts.size == 2 && parts[0] == "outbox")
+}
+
+/** mmslib overwrites Intent.data with the persisted row and repeats it in content_uri. */
+internal fun mmsCallbackRowBound(intentData: Uri?, claimedUri: Uri?): Boolean =
+    isMmsCallbackRow(intentData) && intentData == claimedUri
+
+/** Update the canonical row, then read back its terminal box before resolving a claim. */
+private fun updateAndVerifyMmsRow(context: Context, callbackUri: Uri?, values: ContentValues, box: Int): Boolean {
+    if (!isMmsCallbackRow(callbackUri)) return false
+    val id = callbackUri!!.lastPathSegment!!.toLong()
+    val row = ContentUris.withAppendedId(Telephony.Mms.CONTENT_URI, id)
+    return try {
+        if (context.contentResolver.update(row, values, null, null) <= 0) return false
+        context.contentResolver.query(row, arrayOf(Telephony.Mms.MESSAGE_BOX), null, null, null)?.use {
+            it.moveToFirst() && it.getInt(0) == box
+        } ?: false
+    } catch (e: SQLiteException) {
+        context.showErrorToast(e)
+        false
+    } catch (e: SecurityException) {
+        context.showErrorToast(e)
+        false
+    } catch (e: IllegalArgumentException) {
+        context.showErrorToast(e)
+        false
+    }
+}
+
+/** A matching provider result is a local send verdict, never a delivery receipt. */
+private fun reconcileComposerMmsCallback(context: Context, intent: Intent, resultCode: Int, providerUpdated: Boolean) {
+    if (!providerUpdated) return
+    val attemptId = intent.getStringExtra(MmsSentReceiver.EXTRA_COMPOSER_ATTEMPT_ID)
+    val threadId = intent.getLongExtra(MmsSentReceiver.EXTRA_COMPOSER_THREAD_ID, Long.MIN_VALUE)
+    if (attemptId.isNullOrBlank() || threadId == Long.MIN_VALUE) return
+    val composer = ComposerStore(context)
+    val reconciled = if (resultCode == Activity.RESULT_OK)
+        composer.confirmMmsSent(threadId, attemptId)
+    else composer.recordMmsFailure(threadId, attemptId)
+    if (reconciled) runCatching { context.contentResolver.notifyChange(Telephony.Mms.CONTENT_URI, null) }
 }

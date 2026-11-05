@@ -13,7 +13,7 @@ import org.fossify.commons.helpers.MyContactsContentProvider
 import org.fossify.commons.helpers.SimpleContactsHelper
 import org.fossify.commons.helpers.isOnMainThread
 import org.fossify.commons.models.SimpleContact
-import org.fossify.messages.activities.ThreadActivity
+import org.fossify.messages.inkpilot.ui.CompatibilityIngressActivity
 import org.fossify.messages.extensions.conversationsDB
 import org.fossify.messages.extensions.getThreadParticipants
 import org.fossify.messages.extensions.toPerson
@@ -46,7 +46,8 @@ class ShortcutHelper(private val context: Context) {
 
         val participants = context.getThreadParticipants(conv.threadId, contactsMap)
         val persons: Array<Person> = participants.map { it.toPerson(context) }.toTypedArray()
-        val intent = Intent(context, ThreadActivity::class.java).apply {
+        val intent = Intent(context, CompatibilityIngressActivity::class.java).apply {
+            data = android.net.Uri.parse("inkpilot://thread/${conv.threadId}")
             action = Intent.ACTION_VIEW
             putExtra(THREAD_ID, conv.threadId)
             putExtra(THREAD_TITLE, conv.title)

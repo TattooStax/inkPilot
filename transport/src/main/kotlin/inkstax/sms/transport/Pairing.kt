@@ -59,7 +59,9 @@ const val PAIRING_CODE_LENGTH: Int = 6
 data class PairingOffer(
     val endpointBase: String,
     val token: String
-)
+) {
+    override fun toString() = "PairingOffer(endpointBase=$endpointBase, token=<redacted>)"
+}
 
 /**
  * Reads a scanned QR payload as a [PairingOffer], or returns null

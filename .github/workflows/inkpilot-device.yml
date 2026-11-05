@@ -10,6 +10,11 @@ on:
       - 'gradle/**'
       - '*gradle*'
       - 'scripts/inkpilot-device-*'
+      - 'scripts/run-inkpilot-test-class.sh'
+      - 'scripts/inkpilot-sms-role-preflight.sh'
+      - 'scripts/test-inkpilot-sms-role-preflight.py'
+      - 'scripts/inkpilot-shell-baseline.sh'
+      - 'scripts/test-run-inkpilot-test-class.py'
       - '.github/workflows/inkpilot-device.yml'
   pull_request:
     branches: [main]
@@ -23,6 +28,84 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  shell-baseline:
+    # Independent of the model download and long inference proof below.
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    env:
+      CMAKE_BUILD_PARALLEL_LEVEL: '2'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Reclaim unused hosted runner toolchains
+        if: runner.environment == 'github-hosted'
+        run: |
+          if [[ "${RUNNER_ENVIRONMENT:-}" != github-hosted ]]; then exit 0; fi
+          df -h "$GITHUB_WORKSPACE"
+          sudo rm -rf -- /usr/share/dotnet /opt/ghc /usr/local/.ghcup /usr/local/share/boost /opt/hostedtoolcache/CodeQL
+          df -h "$GITHUB_WORKSPACE"
+      - name: Verify hosted runner contracts without a device
+        run: |
+          python3 scripts/test-run-inkpilot-test-class.py
+          python3 scripts/test-inkpilot-sms-role-preflight.py
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
+          log-accepted-android-sdk-licenses: false
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Install pinned NDK with isolated download retries
+        run: |
+          staging="$RUNNER_TEMP/baseline-ndk"
+          for attempt in 1 2; do
+            mkdir -p "$staging/user"
+            cp -a "$ANDROID_HOME/licenses" "$staging/licenses"
+            if ANDROID_USER_HOME="$staging/user" sdkmanager --sdk_root="$staging" --install 'ndk;28.2.13676358' &&
+              grep -Eq '^Pkg.Revision[[:space:]]*=[[:space:]]*28\.2\.13676358[[:space:]]*$' "$staging/ndk/28.2.13676358/source.properties"; then
+              mkdir -p "$ANDROID_HOME/ndk"
+              rm -rf -- "$ANDROID_HOME/ndk/28.2.13676358"
+              mv "$staging/ndk/28.2.13676358" "$ANDROID_HOME/ndk/"
+              exit 0
+            fi
+            df -h "$GITHUB_WORKSPACE"
+            # Discard only this install's partial package and download cache.
+            rm -rf -- "$staging"
+            if (( attempt == 2 )); then exit 1; fi
+            sleep 10
+          done
+      - name: Build model-free baseline APKs
+        run: >-
+          ./gradlew :app:assembleFossDebug :app:assembleFossDebugAndroidTest
+          --console=plain --no-daemon --max-workers=2
+          -Dorg.gradle.jvmargs=-Xmx3g -PinkpilotAbi=x86_64
+      - name: Enable emulator acceleration
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: First-launch preservation then inherited UI baseline
+        uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2
+        with:
+          api-level: 35
+          arch: x86_64
+          target: google_apis
+          ram-size: 2048M
+          disk-size: 2048M
+          emulator-boot-timeout: 300
+          disable-animations: true
+          emulator-options: -no-window -no-snapshot -noaudio -no-boot-anim -gpu swiftshader_indirect -camera-back none
+          script: |
+            bash scripts/inkpilot-shell-baseline.sh
+            scripts/run-inkpilot-test-class.sh emulator-5554 org.fossify.messages.inkpilot.smoke.OneShellAcceptanceTest
+      - name: Upload redacted baseline verdicts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: inkPilot-shell-baseline
+          path: app/build/test-class-evidence/
+          if-no-files-found: warn
   local-loop:
     runs-on: ubuntu-latest
     timeout-minutes: 45

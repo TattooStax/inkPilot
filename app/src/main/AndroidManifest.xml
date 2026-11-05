@@ -18,9 +18,11 @@
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <uses-permission android:name="android.permission.READ_CALL_LOG" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.READ_SYNC_SETTINGS" />
     <uses-permission android:name="android.permission.CALL_PHONE" />
+    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
 
     <uses-permission android:name="android.permission.READ_CONTACTS" />
     <uses-permission
@@ -52,11 +54,56 @@
         android:roundIcon="@mipmap/ic_launcher"
         android:theme="@style/AppTheme">
 
+        <activity android:name=".inkpilot.phone.DialActivity"
+            android:exported="true" android:launchMode="singleTop"
+            android:theme="@style/Theme.InkPilot.Studio">
+            <intent-filter>
+                <action android:name="android.intent.action.DIAL" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.DIAL" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="tel" />
+            </intent-filter>
+        </activity>
+        <activity android:name=".inkpilot.phone.ManualCallActivity"
+            android:exported="false" android:launchMode="singleTop"
+            android:excludeFromRecents="true"
+            android:theme="@style/Theme.InkPilot.Studio" />
+        <service android:name=".inkpilot.phone.StudioInCallService"
+            android:exported="true" android:permission="android.permission.BIND_INCALL_SERVICE">
+            <meta-data android:name="android.telecom.IN_CALL_SERVICE_UI" android:value="true" />
+            <!-- Telecom retains ringing responsibility. -->
+            <intent-filter><action android:name="android.telecom.InCallService" /></intent-filter>
+        </service>
+        <receiver android:name=".inkpilot.phone.CallNotificationActionReceiver"
+            android:exported="false" />
+
         <activity
             android:name=".inkpilot.ui.StudioHomeActivity"
             android:exported="false"
             android:theme="@style/Theme.InkPilot.Studio"
             android:windowSoftInputMode="adjustResize" />
+        <activity android:name=".inkpilot.ui.CompatibilityIngressActivity"
+            android:exported="false" android:excludeFromRecents="true"
+            android:theme="@style/Theme.InkPilot.Studio" />
+        <activity android:name=".inkpilot.ui.SettingsIngressActivity"
+            android:exported="false" android:excludeFromRecents="true"
+            android:theme="@style/Theme.InkPilot.Studio" />
+        <activity android:name=".inkpilot.ui.ArchiveIngressActivity"
+            android:exported="false" android:excludeFromRecents="true"
+            android:theme="@style/Theme.InkPilot.Studio" />
+        <activity android:name=".inkpilot.ui.RecycleIngressActivity"
+            android:exported="false" android:excludeFromRecents="true"
+            android:theme="@style/Theme.InkPilot.Studio" />
+        <activity android:name=".inkpilot.ui.DetailsIngressActivity"
+            android:exported="false" android:excludeFromRecents="true"
+            android:theme="@style/Theme.InkPilot.Studio" />
+        <activity android:name=".inkpilot.ui.VCardIngressActivity"
+            android:exported="false" android:excludeFromRecents="true"
+            android:theme="@style/Theme.InkPilot.Studio" />
         <receiver
             android:name=".inkpilot.runtime.StudioSmsResultReceiver"
             android:exported="false" />
@@ -66,38 +113,32 @@
             android:exported="false"
             android:theme="@style/SplashTheme" />
 
-        <activity
+        <activity-alias
             android:name=".activities.MainActivity"
-            android:configChanges="orientation"
+            android:targetActivity=".inkpilot.ui.CompatibilityIngressActivity"
             android:exported="true" />
 
-        <activity
+        <activity-alias
             android:name=".activities.RecycleBinConversationsActivity"
-            android:configChanges="orientation"
-            android:exported="true"
-            android:label="@string/recycle_bin"
-            android:parentActivityName=".activities.MainActivity" />
-
-        <activity
-            android:name=".activities.ArchivedConversationsActivity"
-            android:configChanges="orientation"
-            android:exported="true"
-            android:label="@string/archived_conversations"
-            android:parentActivityName=".activities.MainActivity" />
-
-        <activity
-            android:name=".activities.ThreadActivity"
-            android:configChanges="orientation"
+            android:targetActivity=".inkpilot.ui.RecycleIngressActivity"
             android:exported="false"
-            android:launchMode="singleTop"
-            android:parentActivityName=".activities.MainActivity"
-            android:windowSoftInputMode="adjustResize" />
+            android:label="@string/recycle_bin" />
 
-        <activity
+        <activity-alias
+            android:name=".activities.ArchivedConversationsActivity"
+            android:targetActivity=".inkpilot.ui.ArchiveIngressActivity"
+            android:exported="false"
+            android:label="@string/archived_conversations" />
+
+        <activity-alias
+            android:name=".activities.ThreadActivity"
+            android:targetActivity=".inkpilot.ui.CompatibilityIngressActivity"
+            android:exported="false" />
+
+        <activity-alias
             android:name=".activities.NewConversationActivity"
-            android:configChanges="orientation"
-            android:exported="true"
-            android:parentActivityName=".activities.MainActivity">
+            android:targetActivity=".inkpilot.ui.CompatibilityIngressActivity"
+            android:exported="true">
 
             <intent-filter>
                 <action android:name="android.intent.action.SENDTO" />
@@ -125,20 +166,19 @@
 
                 <data android:mimeType="*/*" />
             </intent-filter>
-        </activity>
+        </activity-alias>
 
-        <activity
+        <activity-alias
             android:name=".activities.SettingsActivity"
-            android:configChanges="orientation"
+            android:targetActivity=".inkpilot.ui.SettingsIngressActivity"
             android:exported="true"
-            android:label="@string/settings"
-            android:parentActivityName=".activities.MainActivity">
+            android:label="@string/settings">
 
             <intent-filter>
                 <action android:name="android.intent.action.APPLICATION_PREFERENCES" />
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
-        </activity>
+        </activity-alias>
 
         <activity
             android:name="org.fossify.commons.activities.AboutActivity"
@@ -169,19 +209,17 @@
             android:label="@string/blocked_keywords"
             android:parentActivityName=".activities.SettingsActivity" />
 
-        <activity
+        <activity-alias
             android:name=".activities.VCardViewerActivity"
-            android:configChanges="orientation"
+            android:targetActivity=".inkpilot.ui.VCardIngressActivity"
             android:exported="false"
-            android:label="@string/contact_details"
-            android:parentActivityName=".activities.ThreadActivity" />
+            android:label="@string/contact_details" />
 
-        <activity
+        <activity-alias
             android:name=".activities.ConversationDetailsActivity"
-            android:configChanges="orientation"
+            android:targetActivity=".inkpilot.ui.DetailsIngressActivity"
             android:exported="false"
-            android:label="@string/conversation_details"
-            android:parentActivityName=".activities.ThreadActivity" />
+            android:label="@string/conversation_details" />
 
         <service
             android:name=".services.HeadlessSmsSendService"
@@ -250,7 +288,7 @@
 
         <receiver
             android:name=".receivers.MmsReceiver"
-            android:exported="true"
+            android:exported="false"
             android:taskAffinity="com.klinker.android.messaging.MMS_RECEIVED" />
 
         <receiver

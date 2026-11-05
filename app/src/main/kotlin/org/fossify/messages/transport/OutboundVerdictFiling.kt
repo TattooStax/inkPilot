@@ -45,6 +45,7 @@ internal fun Context.fileOutboundVerdict(
     reportedAtMillis: Long
 ): Boolean {
     return synchronized(CredentialGuard.lock) {
+        if (!reconcileBridgeReceipt(endpointBase, deviceId, sourceId, event)) return@synchronized false
         val current = storedDeviceCredential()
         if (current == null || current.endpointBase != endpointBase || current.deviceId != deviceId) {
             true

@@ -92,7 +92,6 @@
     <string name="sender_and_message">Remetente e mensagem</string>
     <string name="sender_only">Apenas remetente</string>
     <string name="enable_delivery_reports">Ativar relatórios de entrega</string>
-    <string name="faq_1_text">Infelizmente, é a única forma de poder enviar anexos MMS. Não ter a capacidade de enviar MMS representaria uma enorme desvantagem comparativamente a outras aplicações e foi por isso que tomámos esta decisão. Mas, como habitualmente, a aplicação não tem anúncios, não rastreia os utilizadores nem recolhe dados pessoais. Esta permissão apenas é necessária para enviar MMS.</string>
     <string name="faq_2_title">O destinatário não recebe as minhas MMS, o que posso fazer?</string>
     <string name="keyword">Palavra-chave</string>
     <string name="blocked_keywords">Palavras-chave bloqueadas</string>

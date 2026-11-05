@@ -34,18 +34,19 @@ sealed interface DraftStoreResult {
 /** The existing host repository remains the sole owner of customer and draft records. */
 interface HeldDraftStore {
     fun readSource(eventId: String): DraftSource?
-    /** Historical receipt lookup only; this does not attest to current thread suitability. */
+    /** Receipt lookup for the current host generation; prior history must remain durable. */
     fun findHeldDraft(key: DraftKey): HeldDraftReceipt?
 
     /**
      * In ONE durable transaction:
      * - recheck event/thread/contact/recipient binding, current revision, and staff pause;
      * - reject deleted/reassigned/changed sources or paused threads;
-     * - enforce a UNIQUE key on (eventId, kind), returning the original receipt on replay;
+     * - enforce a UNIQUE generation key, returning the original receipt on replay;
      * - otherwise insert a held-only draft and return its committed receipt.
      *
-     * Editing the source, changing memory, cancelling a pending run, or changing recipient
-     * routing must advance the host revision. Pause changes must also advance it, so a
+     * Editing the source, changing memory, or changing recipient routing must advance the
+     * host revision. Cancellation must durably invalidate that run, independently of
+     * semantic source revisions and regeneration authorization. Pause changes advance revision so a
      * pause/resume cycle cannot resurrect an old run. The key must survive process restarts
      * and consumed/deleted drafts (a receipt/tombstone prevents replay from recreating them).
      * No implementation may send SMS here. An exception can mean commit status is unknown.

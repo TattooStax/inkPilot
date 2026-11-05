@@ -8,6 +8,26 @@ import org.junit.Test
 
 class OutboundPickupWireTest {
 
+    @Test
+    fun `pairing diagnostic strings redact credential material`() {
+        val offer = PairingOffer("https://synthetic.example", "unique-token-value")
+        val key = DeviceCredential(offer.endpointBase, "device", "unique-secret-value")
+        val rendered = listOf(offer.toString(), key.toString(), pairingExchangeRequestFor(offer).toString(),
+            PairingExchangeOutcome.Succeeded(key).toString()).joinToString()
+        assertFalse(rendered.contains(offer.token))
+        assertFalse(rendered.contains(key.secret))
+        assertTrue(rendered.contains("<redacted>"))
+        assertTrue(pairingExchangeRequestFor(offer).body.contains(offer.token))
+    }
+
+    @Test
+    fun `HTTP loopback matches Android cleartext allowlist`() {
+        assertNull(pairingOfferFromQrPayload("http://[::1]:38117/companion/start?t=synthetic"))
+        assertNull(deviceCredentialFromStored("http://[::1]:38117", "device", "secret", "device"))
+        assertTrue(pairingOfferFromQrPayload("http://localhost:38117/companion/start?t=synthetic") != null)
+        assertTrue(pairingOfferFromQrPayload("http://127.0.0.1:38117/companion/start?t=synthetic") != null)
+    }
+
     private val credential = DeviceCredential("https://brain.example", "device-1", "secret-abc")
     private val requestedAt = 1_700_000_120_000L
     private val workBody =

@@ -28,6 +28,9 @@ data class Conversation(
 
         fun areContentsTheSame(old: Conversation, new: Conversation): Boolean {
             return old.snippet == new.snippet &&
+                old.isArchived == new.isArchived &&
+                old.isScheduled == new.isScheduled &&
+                old.usesCustomTitle == new.usesCustomTitle &&
                 old.date == new.date &&
                 old.read == new.read &&
                 old.title == new.title &&

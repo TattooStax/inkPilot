@@ -15,11 +15,8 @@ import org.fossify.commons.extensions.showErrorToast
 import org.fossify.commons.extensions.toast
 import org.fossify.commons.helpers.ContactLookupResult
 import org.fossify.commons.helpers.SimpleContactsHelper
-import org.fossify.commons.helpers.ensureBackgroundThread
 import org.fossify.messages.R
 import org.fossify.messages.extensions.getConversations
-import org.fossify.messages.extensions.getMMS
-import org.fossify.messages.extensions.getLatestMMS
 import org.fossify.messages.extensions.getNameFromAddress
 import org.fossify.messages.extensions.insertOrUpdateConversation
 import org.fossify.messages.extensions.shouldUnarchive
@@ -29,6 +26,7 @@ import org.fossify.messages.helpers.ReceiverUtils.isMessageFilteredOut
 import org.fossify.messages.helpers.refreshConversations
 import org.fossify.messages.helpers.refreshMessages
 import org.fossify.messages.models.Message
+import org.fossify.messages.inkpilot.runtime.CarrierIngressPolicy
 import org.fossify.messages.transport.LocalInboundSink
 import org.fossify.messages.transport.holdAndDrainInboundArrival
 
@@ -50,24 +48,18 @@ class MmsReceiver : MmsReceivedReceiver() {
     }
 
     override fun onMessageReceived(context: Context, messageUri: Uri?) {
-        val mms = if (messageUri != null) {
-            context.getMMS(messageUri)
-        } else {
-            context.getLatestMMS()
-        } ?: return
-
-        val address = mms.getSender()?.phoneNumbers?.firstOrNull()?.normalizedNumber ?: mms.senderPhoneNumber
-        val size = context.resources.getDimension(R.dimen.notification_large_icon_size).toInt()
-        ensureBackgroundThread {
-            handleMmsMessage(context, mms, size, address)
-        }
+        val uri = messageUri ?: return
+        val id = CarrierIngressPolicy.mmsProviderId(uri.scheme, uri.authority, uri.pathSegments) ?: return
+        runCatching { MmsInboundWorker.enqueue(context, id) }
+            .onFailure { org.fossify.messages.inkpilot.runtime.AgentSettings(context)
+                .recordStatus("MMS arrived, but intake scheduling failed. Open SMS to refresh the native inbox.") }
     }
 
     override fun onError(context: Context, error: String) {
         context.showErrorToast(context.getString(R.string.couldnt_download_mms))
     }
 
-    private fun handleMmsMessage(
+    internal fun handleMmsMessage(
         context: Context,
         mms: Message,
         size: Int,
@@ -96,7 +88,8 @@ class MmsReceiver : MmsReceivedReceiver() {
             senderName = senderName,
             body = mms.body,
             threadId = mms.threadId,
-            bitmap = glideBitmap
+            bitmap = glideBitmap,
+            subscriptionId = mms.subscriptionId,
         )
 
         val inbound = InboundSms(

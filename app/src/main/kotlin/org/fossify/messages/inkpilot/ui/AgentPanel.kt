@@ -37,6 +37,8 @@ internal class AgentPanel(
             }, MODEL_FILE_REQUEST)
         }.apply { id = R.id.inkpilot_model_import })
         body.addView(StudioUi.text(activity, "Import a compatible GGUF model. Replies are generated on this phone and held for staff review.", 14f))
+        body.addView(StudioUi.text(activity, "Model qualification is pending. A generated draft cannot send, book, or change memory on its own.", 14f))
+        body.addView(StudioUi.text(activity, "Status above shows queued, stopped, or failed drafting. Check Drafts before retrying; an uncertain send is never retried automatically.", 14f))
         val enabled = SwitchCompat(activity).apply {
             id = R.id.inkpilot_agent_enabled
             text = "Draft replies automatically"
@@ -60,6 +62,9 @@ internal class AgentPanel(
                 work.load({ settings.enabled = checked; AgentRuntime.runPending(activity.applicationContext) }) { refresh() }
             }
         }
+        body.addView(StudioUi.button(activity, "Review undelivered SMS and held replies") {
+            AgentInboundReview(activity, work).open()
+        })
         body.addView(StudioUi.button(activity, "Refresh status", refresh))
         return StudioUi.scroll(activity, body)
     }

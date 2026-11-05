@@ -1,5 +1,8 @@
 package org.fossify.messages.adapters
 
+import org.fossify.messages.messaging.scheduledStatus
+import org.fossify.messages.messaging.key
+
 import android.annotation.SuppressLint
 import android.content.Intent
 import android.graphics.Color
@@ -372,7 +375,7 @@ class ThreadAdapter(
             threadMessageBody.apply {
                 text = message.body
                 setTextSize(TypedValue.COMPLEX_UNIT_PX, fontSize)
-                beVisibleIf(message.body.isNotEmpty())
+                beVisibleIf(message.body.isNotEmpty() || message.isScheduled)
                 setOnLongClickListener {
                     holder.viewLongClicked()
                     true
@@ -479,6 +482,7 @@ class ThreadAdapter(
                 setLinkTextColor(contrastColor)
 
                 if (message.isScheduled) {
+                    append("\n" + activity.scheduledStatus(message.key()))
                     typeface = Typeface.create(FontHelper.getTypeface(activity), Typeface.ITALIC)
                     val scheduledDrawable = AppCompatResources.getDrawable(activity, org.fossify.commons.R.drawable.ic_clock_vector)?.apply {
                         applyColorFilter(contrastColor)

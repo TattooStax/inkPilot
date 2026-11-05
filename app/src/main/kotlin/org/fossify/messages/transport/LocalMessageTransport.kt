@@ -4,6 +4,7 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import java.util.UUID
 import android.telephony.PhoneNumberUtils
 import android.widget.Toast.LENGTH_LONG
 import inkstax.sms.transport.MessageTransport
@@ -36,6 +37,10 @@ class LocalMessageTransport(private val context: Context) : MessageTransport {
     // that total mapping is the seam's contract, so the generic catch is intentional.
     @Suppress("TooGenericExceptionCaught")
     override fun sendSms(message: OutboundSms): TransportOutcome {
+        if (message.addresses.toSet().size != 1) {
+            return TransportOutcome.Failed(TransportOutcome.UNKNOWN_ERROR,
+                org.fossify.messages.messaging.SMS_GROUP_REFUSAL)
+        }
         // The direct path is for a phone where this app is NOT the
         // default SMS app. Posture alone does not decide it: an install
         // that already holds the default role and then answers
@@ -58,7 +63,7 @@ class LocalMessageTransport(private val context: Context) : MessageTransport {
         } catch (e: SmsException) {
             TransportOutcome.Failed(e.errorCode)
         } catch (e: Exception) {
-            TransportOutcome.Failed(TransportOutcome.UNKNOWN_ERROR, e.message ?: e.toString())
+            TransportOutcome.Failed(TransportOutcome.UNKNOWN_ERROR, context.getString(R.string.message_not_sent_short))
         }
     }
 
@@ -80,14 +85,8 @@ class LocalMessageTransport(private val context: Context) : MessageTransport {
      * mirror the default path's, so callers keep their existing
      * failure handling either way.
      *
-     * One known gap, recorded rather than papered over: a
-     * multi-recipient SMS shows in each recipient's own thread, but
-     * not in the combined group conversation — the persisting path
-     * manufactures that combined copy with a provider insert this
-     * posture cannot make, and the only alternative is a second
-     * message store, which this fork does not grow. How the personal
-     * posture should present group sends is an open design question
-     * on the track queue.
+     * Multi-recipient SMS is refused by [sendSms] before this path is reached.
+     * Group MMS remains on its separate channel.
      */
     @Suppress("TooGenericExceptionCaught")
     private fun sendSmsWithoutProviderRow(message: OutboundSms): TransportOutcome {
@@ -108,20 +107,22 @@ class LocalMessageTransport(private val context: Context) : MessageTransport {
                 if (parts == null || parts.size < 1) {
                     return TransportOutcome.Failed(TransportOutcome.ERROR_SENDING_MESSAGE)
                 }
-                val sentIntent = sentResultIntent(destination)
+                val attempt = UUID.randomUUID().toString()
                 if (parts.size == 1) {
                     @Suppress("DEPRECATION")
-                    smsManager.sendTextMessage(destination, null, message.text, sentIntent, null)
+                    smsManager.sendTextMessage(destination, null, message.text,
+                        sentResultIntent(destination, attempt, 0), null)
                 } else {
+                    val sentIntents = ArrayList(parts.indices.map { part ->
+                        sentResultIntent(destination, attempt, part)
+                    })
                     @Suppress("DEPRECATION")
-                    smsManager.sendMultipartTextMessage(
-                        destination, null, parts, ArrayList(List(parts.size) { sentIntent }), null
-                    )
+                    smsManager.sendMultipartTextMessage(destination, null, parts, sentIntents, null)
                 }
             }
             TransportOutcome.Sent
         } catch (e: Exception) {
-            TransportOutcome.Failed(TransportOutcome.UNKNOWN_ERROR, e.message ?: e.toString())
+            TransportOutcome.Failed(TransportOutcome.UNKNOWN_ERROR, context.getString(R.string.message_not_sent_short))
         }
     }
 
@@ -130,9 +131,10 @@ class LocalMessageTransport(private val context: Context) : MessageTransport {
      * makes each intent's identity unique, so concurrent sends never
      * overwrite each other's result routing.
      */
-    private fun sentResultIntent(destination: String): PendingIntent {
+    internal fun sentResultIntent(destination: String, attempt: String, part: Int): PendingIntent {
         val intent = Intent(context, PermissionsOnlySendResultReceiver::class.java).apply {
-            data = Uri.parse("inkstax-sms://sent-result/$destination/${System.currentTimeMillis()}")
+            data = Uri.Builder().scheme("inkpilot-sms").authority("sent-result")
+                .appendPath(destination).appendPath(attempt).appendPath(part.toString()).build()
         }
         val flags = PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         return PendingIntent.getBroadcast(context, 0, intent, flags)

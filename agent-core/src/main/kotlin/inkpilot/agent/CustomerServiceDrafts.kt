@@ -8,6 +8,9 @@ class CustomerServiceDrafts(
     private val memory: ContactMemoryReader,
     private val model: LocalDraftModel,
     private val limits: DraftLimits = DraftLimits(),
+    private val safetyGate: DraftSafetyGate = DraftSafetyGate.NONE,
+    private val evidenceReader: DraftEvidenceReader? = null,
+    private val replyRenderer: DraftReplyRenderer = DraftReplyRenderer.RAW,
 ) {
     fun draft(request: DraftRequest, cancellation: DraftCancellation = DraftCancellation.NONE): DraftOutcome {
         var stage = DraftFailureStage.SOURCE_READ
@@ -15,7 +18,11 @@ class CustomerServiceDrafts(
         val key = DraftKey(request.eventId)
         try {
             if (cancellation.isCancelled()) return stopped(DraftStopReason.CANCELLED)
-            val source = store.readSource(request.eventId) ?: return stopped(DraftStopReason.SOURCE_MISSING)
+            val evidence = evidenceReader?.readEvidence(request)
+            if (evidenceReader != null && evidence == null) return stopped(DraftStopReason.SOURCE_MISSING)
+            if (evidence != null && !validEvidence(request, evidence)) return stopped(DraftStopReason.SCOPE_MISMATCH)
+            val source = evidence?.source ?: store.readSource(request.eventId)
+                ?: return stopped(DraftStopReason.SOURCE_MISSING)
             validateSource(request, source)?.let { return stopped(it) }
 
             stage = DraftFailureStage.RECEIPT_READ
@@ -27,22 +34,27 @@ class CustomerServiceDrafts(
             }
 
             stage = DraftFailureStage.MEMORY_READ
-            val memoryRead = memory.read(source.contactId)
+            val memoryRead = evidence?.reviewedMemory ?: memory.read(source.contactId)
             if (memoryRead.size > limits.memoryEntries) return stopped(DraftStopReason.CONTEXT_LIMIT)
             val notes = memoryRead.toList()
             if (notes.any { it.contactId != source.contactId }) return stopped(DraftStopReason.SCOPE_MISMATCH)
             if (notes.sumOf { it.text.length.toLong() } > limits.memoryCharacters) return stopped(DraftStopReason.CONTEXT_LIMIT)
             if (cancellation.isCancelled()) return stopped(DraftStopReason.CANCELLED)
 
+            if (!replyRenderer.eligible(evidence)) return stopped(DraftStopReason.UNSAFE_CONTENT)
             stage = DraftFailureStage.MODEL
             val output = model.generate(
-                DraftPrompt(DRAFT_INSTRUCTIONS, source.inboundText, notes.map { it.text }, limits.replyCharacters),
+                DraftPrompt(replyRenderer.instructions(evidence) ?: DRAFT_INSTRUCTIONS,
+                    source.inboundText, notes.map { it.text }, limits.replyCharacters),
                 cancellation,
             )
             if (cancellation.isCancelled()) return stopped(DraftStopReason.CANCELLED)
             if (output.length > limits.replyCharacters) return stopped(DraftStopReason.REPLY_LIMIT)
-            val body = output.trim()
+            val body = replyRenderer.render(output, evidence)?.trim()
+                ?: return stopped(DraftStopReason.UNSAFE_CONTENT)
             if (body.isEmpty()) return stopped(DraftStopReason.EMPTY_REPLY)
+            if (body.length > limits.replyCharacters) return stopped(DraftStopReason.REPLY_LIMIT)
+            if (!safetyGate.allows(body)) return stopped(DraftStopReason.UNSAFE_CONTENT)
 
             val write = HeldDraftWrite(key, source.threadId, source.contactId, source.recipient, source.revision, body)
             writeAttempted = true
@@ -65,6 +77,16 @@ class CustomerServiceDrafts(
             return if (writeAttempted) DraftOutcome.PersistenceUnconfirmed(key) else DraftOutcome.Failed(stage)
         }
     }
+
+    private fun validEvidence(request: DraftRequest, evidence: DraftEvidence): Boolean =
+        evidence.request == request && evidence.reviewedMemory.all { it.contactId == request.contactId } &&
+            (evidence.reviewedLeadIntake?.let { scope ->
+                scope.sourceId == request.eventId && scope.sourceRevision == request.expectedRevision &&
+                    scope.contactId == request.contactId && scope.threadId == request.threadId
+            } ?: true) && evidence.verifiedFacts.all { fact ->
+                fact.sourceId.isNotBlank() && fact.sourceRevision == request.expectedRevision &&
+                    fact.contactId == request.contactId && fact.threadId == request.threadId
+            }
 
     private fun validateSource(request: DraftRequest, source: DraftSource): DraftStopReason? = when {
         source.eventId != request.eventId || source.threadId != request.threadId ||

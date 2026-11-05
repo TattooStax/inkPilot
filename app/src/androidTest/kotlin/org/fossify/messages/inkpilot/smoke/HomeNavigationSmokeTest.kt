@@ -17,7 +17,7 @@ class HomeNavigationSmokeTest {
         ActivityScenario.launch(StudioHomeActivity::class.java).use {
             val tabs = linkedMapOf(
                 "SMS" to "New message",
-                "Phone" to "Open dialer",
+                "Phone" to "Manual Phone",
                 "Contacts" to "Add contact",
                 "Studio" to "Create album",
                 "Calendar" to "Add appointment or task",

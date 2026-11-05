@@ -37,12 +37,18 @@ internal fun SQLiteDatabase.contactByNumber(number: String): StudioContact? =
         if (it.moveToFirst()) it.contact() else null
     }
 
+internal fun SQLiteDatabase.reviewedAddressContact(number: String): StudioContact? =
+    rawQuery("SELECT contact_id FROM contact_aliases WHERE address = ? AND region = '' AND review_state = 'REVIEWED'", arrayOf(number)).use {
+        if (it.moveToFirst()) studioContact(it.getString(0)) else null
+    }
+
 internal fun SQLiteDatabase.upsertStudioContact(number: String, displayName: String): StudioContact {
     val normalized = canonicalStudioNumber(number)
     require(displayName.length <= 256) { "Contact name is too long" }
-    val name = displayName.trim().ifEmpty { normalized }
+    val label = displayName.trim()
     return transaction {
-        val existing = contactByNumber(normalized)
+        val existing = reviewedAddressContact(normalized) ?: contactByNumber(normalized)
+        val name = label.ifEmpty { existing?.displayName ?: normalized }
         val id = existing?.id ?: UUID.randomUUID().toString()
         if (existing == null) {
             insertOrThrow("studio_contacts", null, ContentValues().apply {
@@ -51,19 +57,39 @@ internal fun SQLiteDatabase.upsertStudioContact(number: String, displayName: Str
         } else if (existing.displayName != name) {
             execSQL("UPDATE studio_contacts SET display_name = ?, revision = revision + 1 WHERE id = ?", arrayOf(name, id))
         }
+        execSQL("INSERT OR IGNORE INTO contact_aliases VALUES(?, ?, ?, ?)", arrayOf(normalized, "", id, "PENDING"))
         checkNotNull(studioContact(id))
     }
 }
 
 internal fun SQLiteDatabase.saveStudioMemory(id: String, text: String) {
+    transaction { saveStudioContactEdit(id, text, requireNotNull(studioContact(id)).paused, "Staff note") }
+}
+
+internal fun SQLiteDatabase.saveStudioContactEdit(id: String, text: String, paused: Boolean, source: String) {
     require(text.length <= 8_000) { "Memory is limited to 8,000 characters" }
+    require(source.isNotBlank() && source.length <= 256) { "A source is required (up to 256 characters)" }
+    val reviewedSource = source.trim()
     transaction {
         val contact = requireNotNull(studioContact(id)) { "Contact not found" }
-        if (contact.memory != text) {
-            execSQL("UPDATE studio_contacts SET memory = ?, revision = revision + 1 WHERE id = ?", arrayOf(text, id))
+        val prior = studioMemoryEntry(id)
+        val changed = contact.memory != text || contact.paused != paused
+        val reviewChanged = prior?.source != reviewedSource || prior?.reviewState != IdentityReviewState.REVIEWED
+        if (changed || reviewChanged) {
+            if (text.isBlank()) delete("memory_entries", "contact_id = ?", arrayOf(id))
+            else execSQL(
+                "INSERT OR REPLACE INTO memory_entries VALUES(?, ?, 'REVIEWED', ?)",
+                arrayOf(id, reviewedSource, text),
+            )
+            execSQL("UPDATE studio_contacts SET memory = ?, paused = ?, revision = revision + 1 WHERE id = ?", arrayOf<Any>(text, if (paused) 1 else 0, id))
         }
     }
 }
+
+internal fun SQLiteDatabase.studioMemoryEntry(id: String): MemoryEntry? =
+    rawQuery("SELECT contact_id,source,review_state,body FROM memory_entries WHERE contact_id = ?", arrayOf(id)).use {
+        if (!it.moveToFirst()) null else MemoryEntry(it.getString(0), it.getString(1), IdentityReviewState.valueOf(it.getString(2)), it.getString(3))
+    }
 
 internal fun SQLiteDatabase.setStudioPaused(id: String, paused: Boolean) {
     transaction {
@@ -75,4 +101,5 @@ internal fun SQLiteDatabase.setStudioPaused(id: String, paused: Boolean) {
 }
 
 internal fun SQLiteDatabase.studioMemory(id: String): List<ContactMemory> =
-    studioContact(id)?.memory?.takeIf { it.isNotBlank() }?.let { listOf(ContactMemory(id, it)) }.orEmpty()
+    studioMemoryEntry(id)?.takeIf { it.reviewState == IdentityReviewState.REVIEWED && it.body.isNotBlank() }
+        ?.let { listOf(ContactMemory(id, it.body)) }.orEmpty()

@@ -12,6 +12,10 @@ import androidx.core.content.ContextCompat
 import org.fossify.messages.inkpilot.data.SendStatus
 import org.fossify.messages.inkpilot.data.StudioRepository
 
+/** Exact lookup: a thread draft remains sendable beyond the global review page. */
+internal fun StudioRepository.heldDraftForSend(draftId: String) =
+    draft(draftId)?.takeIf { it.status == "HELD" && it.canReview }
+
 /** Staff approval is the only caller. No worker or model can reach this send action. */
 internal class CheckedSmsSender(private val context: Context) {
     fun approveAndSend(draftId: String, editedBody: String, subscriptionId: Int): String {
@@ -27,7 +31,7 @@ internal class CheckedSmsSender(private val context: Context) {
         val parts = manager.divideMessage(editedBody.trim())
         require(parts.size in 1..32) { "This reply cannot be sent as SMS." }
         StudioRepository(context).use { repository ->
-            val draft = repository.heldDrafts().firstOrNull { it.draftId == draftId }
+            val draft = repository.heldDraftForSend(draftId)
                 ?: error("This draft is no longer waiting for approval.")
             val claim = repository.claimDraftForSend(draftId, draft.body, editedBody.trim(), subscriptionId)
                 ?: error("This conversation changed or was paused. Review it again before sending.")

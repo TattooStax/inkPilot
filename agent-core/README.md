@@ -7,12 +7,14 @@ booking, approval, network, Android, database, or OpenFang implementation.
 
 ## Current status
 
-The coordinator and its unit tests are implemented. Production repository wiring,
-on-device inference, Android screens, and an OpenFang adapter are still pending.
-The tests use explicit in-memory contract fakes; they do not establish durability,
-device performance, model quality, or a working end-to-end beta.
+The coordinator and its unit tests are implemented. The Android app now wires
+a SQLite host, local inference adapter, and held-draft review screen; their
+integration and carrier behavior require separate device qualification. The
+module tests use explicit in-memory contract fakes, so they alone do not
+establish durability, model quality, or a working end-to-end beta. OpenFang
+integration remains optional future work.
 
-The standalone Android host will supply the three constructor dependencies:
+The standalone Android host supplies the three constructor dependencies:
 
 | Port | Host responsibility |
 | --- | --- |
@@ -83,7 +85,7 @@ Tests cover receipt replay, competing insertion, uncertain commit recovery,
 stale revisions, staff pause, cancellation, changed recipient routing, contact
 scope isolation, bad receipts, model failure, and input/output limits.
 
-Before this can operate on real studio data, implement repository integration
-tests against the actual database (including concurrent/process-restart replay),
-qualify the target local model on the intended Android hardware, and connect the
-held-draft review UI. No model-family support is claimed by this module alone.
+The host has real SQLite integration tests and a held-draft review UI. Before
+use with studio customers, qualify the local model, recipient/SIM routing and
+carrier receipts on the intended Android phone and complete the physical
+acceptance checklist. No model-family support is claimed by this module alone.

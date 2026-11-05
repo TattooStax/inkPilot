@@ -7,12 +7,23 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import androidx.appcompat.app.AlertDialog
 
-internal class StudioAlbumsPanel(private val host: StudioPanelHost, private val store: StudioAlbumStore) {
+internal class StudioAlbumsPanel(private val host: StudioPanelHost, private val store: StudioAlbumStore,
+    private val requestImport: (StudioAlbumsPanel) -> Unit = {},
+) {
     private val files = StudioImageFiles(host.activity.applicationContext, store)
     private var content = host.column()
     private var selected: StudioAlbum? = null
     private var showingImages = false
     private var renderVersion = 0
+    private var linkedContact: String? = null
+    private var linkedThread: Long? = null
+
+    fun linkedView(contactId: String?, threadId: Long?): View {
+        require(contactId != null || threadId != null)
+        linkedContact = contactId; linkedThread = threadId
+        selected = null; showingImages = true
+        return view()
+    }
 
     fun view(): View {
         content = host.column()
@@ -41,10 +52,11 @@ internal class StudioAlbumsPanel(private val host: StudioPanelHost, private val 
 
     private fun renderImages() {
         val album = selected
-        content.addView(host.button("‹ Albums") { showingImages = false; render() })
-        content.addView(host.text(album?.name ?: "All images", 22f))
+        if (linkedContact == null && linkedThread == null) content.addView(host.button("‹ Albums") { showingImages = false; linkedContact = null; linkedThread = null; render() })
+        content.addView(host.text(album?.name ?: if (linkedContact != null || linkedThread != null) "Client References" else "All images", 22f))
         if (album != null) content.addView(host.button("Edit album") { editAlbum(album) })
-        content.addView(host.button("Import image") {
+        content.addView(host.button(if (linkedContact != null || linkedThread != null) "Import reference image" else "Import image") {
+            requestImport(this)
             host.activity.startActivityForResult(Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
                 type = "image/*"; addCategory(Intent.CATEGORY_OPENABLE)
                 addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
@@ -56,7 +68,10 @@ internal class StudioAlbumsPanel(private val host: StudioPanelHost, private val 
     }
 
     private fun loadImages(listing: LinearLayout, album: StudioAlbum?, offset: Int) {
-        host.load({ store.images(album?.id, offset) }) { images ->
+        host.load({
+            if (linkedContact != null || linkedThread != null) store.linkedImages(linkedContact, linkedThread, offset)
+            else store.images(album?.id, offset)
+        }) { images ->
             if (images.isEmpty() && offset == 0) listing.addView(host.text("No images yet."))
             images.forEach { image ->
                 val row = LinearLayout(host.activity).apply {
@@ -87,6 +102,20 @@ internal class StudioAlbumsPanel(private val host: StudioPanelHost, private val 
     }
 
     fun acceptImage(uri: Uri) {
+        if (linkedContact != null || linkedThread != null) {
+            fun save(contactId: String) {
+                val link = StudioImageLink(contactId, null, linkedThread)
+                host.load({ files.importReferenceOriginal(uri, link) }) { render() }
+            }
+            linkedContact?.let { save(it); return }
+            host.load({ store.contacts() }) { contacts ->
+                if (contacts.isEmpty()) { host.onError("Add a client before saving reference images."); return@load }
+                AlertDialog.Builder(host.activity).setTitle("Link reference to client")
+                    .setItems(contacts.map { it.displayName.ifBlank { it.number } }.toTypedArray()) { _, index -> save(contacts[index].id) }
+                    .setNegativeButton("Cancel", null).show()
+            }
+            return
+        }
         chooseAlbum("Add image to album") { album ->
             host.load({ files.import(uri, album.id) }) {
                 selected = album; showingImages = true; render()

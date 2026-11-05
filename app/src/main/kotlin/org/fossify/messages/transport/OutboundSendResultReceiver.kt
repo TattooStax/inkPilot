@@ -93,6 +93,7 @@ class OutboundSendResultReceiver : BroadcastReceiver() {
                 errorCode = update.errorCode,
                 reportedAtMillis = update.reportedAtMillis
             )
+            if (!settled) context.enqueueBridgeReceiptRecovery()
             if (settled) {
                 synchronized(OutboundSendProgressGuard.lock) {
                     context.clearOutboundSendProgress(endpointBase, deviceId, sourceId)

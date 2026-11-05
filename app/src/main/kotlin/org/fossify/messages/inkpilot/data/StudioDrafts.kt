@@ -5,12 +5,13 @@ import android.database.sqlite.SQLiteDatabase
 import inkpilot.agent.DraftDisposition
 import inkpilot.agent.DraftKey
 import inkpilot.agent.DraftStoreResult
+import inkpilot.agent.DraftSource
 import inkpilot.agent.HeldDraftReceipt
 import inkpilot.agent.HeldDraftWrite
 import java.util.UUID
 
 internal fun SQLiteDatabase.studioReceipt(key: DraftKey): HeldDraftReceipt? = rawQuery(
-    "SELECT draft_id, thread_id, contact_id, recipient, source_revision, body FROM held_drafts WHERE event_id = ? AND kind = ?",
+    "SELECT draft_id, thread_id, contact_id, recipient, source_revision, body FROM held_drafts WHERE event_id = ? AND kind = ? AND source_revision = (SELECT revision FROM studio_contacts WHERE id = held_drafts.contact_id)",
     arrayOf(key.eventId, key.kind.name),
 ).use {
     if (!it.moveToFirst()) null else HeldDraftReceipt(
@@ -18,10 +19,15 @@ internal fun SQLiteDatabase.studioReceipt(key: DraftKey): HeldDraftReceipt? = ra
     )
 }
 
+private fun SQLiteDatabase.unhandledSource(write: HeldDraftWrite): DraftSource? {
+    val source = studioSource(write.key.eventId) ?: return null
+    return source.takeUnless { staffHandledSource(write.key.eventId) }
+}
+
 internal fun SQLiteDatabase.holdStudioDraft(write: HeldDraftWrite): DraftStoreResult {
     require(write.body.isNotBlank() && write.body.length <= 800) { "Invalid draft text" }
     return transaction {
-        val source = studioSource(write.key.eventId) ?: return@transaction DraftStoreResult.SourceChanged
+        val source = unhandledSource(write) ?: return@transaction DraftStoreResult.SourceChanged
         if (source.staffPaused) return@transaction DraftStoreResult.StaffPaused
         if (source.threadId != write.threadId || source.contactId != write.contactId ||
             source.recipient != write.recipient || source.revision != write.expectedRevision
@@ -31,19 +37,30 @@ internal fun SQLiteDatabase.holdStudioDraft(write: HeldDraftWrite): DraftStoreRe
                 DraftStoreResult.Held(it, DraftDisposition.ALREADY_HELD)
             } else DraftStoreResult.SourceChanged
         }
+        if (rawQuery("SELECT 1 FROM send_claims s JOIN held_drafts d ON d.draft_id = s.draft_id WHERE d.event_id = ?", arrayOf(write.key.eventId)).use { it.moveToFirst() }) return@transaction DraftStoreResult.SourceChanged
+        if (rawQuery("SELECT 1 FROM held_drafts WHERE event_id=? AND kind='PROPOSAL_REPLY' AND state='HELD'",
+                arrayOf(write.key.eventId)).use { it.moveToFirst() }) return@transaction DraftStoreResult.SourceChanged
+        val historyNeedsAuthorization = rawQuery(
+            "SELECT 1 FROM held_drafts WHERE event_id = ? AND kind = ? AND NOT EXISTS (SELECT 1 FROM draft_regenerations WHERE event_id = ? AND source_revision = ?)",
+            arrayOf(write.key.eventId, write.key.kind.name, write.key.eventId, write.expectedRevision.toString()),
+        ).use { it.moveToFirst() }
+        if (historyNeedsAuthorization) return@transaction DraftStoreResult.SourceChanged
         val id = UUID.randomUUID().toString()
         insertOrThrow("held_drafts", null, ContentValues().apply {
             put("draft_id", id); put("event_id", write.key.eventId); put("kind", write.key.kind.name)
             put("thread_id", write.threadId); put("contact_id", write.contactId); put("recipient", write.recipient)
             put("source_revision", write.expectedRevision); put("body", write.body); put("created_at", System.currentTimeMillis())
         })
+        resolveStaffAttentionForEvent(write.key.eventId, write.expectedRevision)
         DraftStoreResult.Held(checkNotNull(studioReceipt(write.key)), DraftDisposition.CREATED)
     }
 }
 
-internal fun SQLiteDatabase.reviewStudioDrafts(heldOnly: Boolean = true, limit: Int = 100): List<ReviewDraft> {
+internal fun SQLiteDatabase.reviewStudioDrafts(heldOnly: Boolean = true, limit: Int = 100, threadId: Long? = null, draftId: String? = null): List<ReviewDraft> {
     require(limit in 1..500)
     val condition = if (heldOnly) "d.state = 'HELD'" else "d.state <> 'DISMISSED'"
+    val filter = when { draftId != null -> " AND d.draft_id = ?"; threadId != null -> " AND d.thread_id = ?"; else -> "" }
+    val args = buildList { draftId?.let { add(it) } ?: threadId?.let { add(it.toString()) }; add(limit.toString()) }
     return rawQuery(
         """
             SELECT d.draft_id, d.event_id, d.thread_id, d.contact_id, d.recipient, c.display_name,
@@ -53,8 +70,8 @@ internal fun SQLiteDatabase.reviewStudioDrafts(heldOnly: Boolean = true, limit: 
                    d.state, s.body
             FROM held_drafts d JOIN studio_contacts c ON c.id = d.contact_id
             JOIN inbound_events e ON e.event_id = d.event_id LEFT JOIN send_claims s ON s.draft_id = d.draft_id
-            WHERE $condition ORDER BY d.created_at DESC, d.draft_id LIMIT ?
-        """.trimIndent(), arrayOf(limit.toString()),
+            WHERE $condition$filter ORDER BY d.created_at DESC, d.draft_id LIMIT ?
+        """.trimIndent(), args.toTypedArray(),
     ).use { cursor ->
         buildList {
             while (cursor.moveToNext()) add(ReviewDraft(

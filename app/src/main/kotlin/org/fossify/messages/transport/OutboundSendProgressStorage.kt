@@ -95,10 +95,9 @@ internal fun Context.progressPrefs() = getSharedPreferences(OUTBOUND_SEND_PROGRE
 
 /**
  * Opens a send's progress: [partCount] parts, none reported.
- * Any earlier entry under the same source id is replaced —
- * a source id names one send, and a re-opened progress is the
- * new send's. Returns whether the opened progress read back
- * as stored.
+ * Existing progress is never replaced: replay cannot reset part verdicts.
+ * Source receipt tombstones separately prevent resubmission after cleanup.
+ * Returns whether the opened progress read back as stored.
  */
 internal fun Context.beginOutboundSendProgress(
     endpointBase: String,
@@ -107,6 +106,7 @@ internal fun Context.beginOutboundSendProgress(
     partCount: Int
 ): Boolean {
     val stem = progressKeyStem(endpointBase, deviceId, sourceId)
+    if (partCount < 1 || progressPrefs().contains("${stem}_parts")) return false
     val mask = PART_PENDING.toString().repeat(partCount)
     val committed = progressPrefs().edit()
         .putInt("${stem}_parts", partCount)

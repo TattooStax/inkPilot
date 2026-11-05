@@ -8,7 +8,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.LinearLayout
-import android.widget.ScrollView
 import android.widget.TextView
 import android.widget.Toast
 import java.util.concurrent.Executor
@@ -59,7 +58,7 @@ internal object StudioUi {
         layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(this, 1))
     }
 
-    fun scroll(activity: Activity, column: LinearLayout) = ScrollView(activity).apply {
+    fun scroll(activity: Activity, column: LinearLayout, loading: Boolean = false) = StudioScrollView(activity, loading).apply {
         isFillViewport = true
         addView(column)
     }
@@ -71,13 +70,13 @@ internal object StudioUi {
 
 /** All reads/imports use the host queue; callbacks stop when their activity is gone. */
 internal class StudioWork(private val activity: Activity, private val executor: Executor) {
-    fun <T> load(task: () -> T, done: (T) -> Unit) {
+    fun <T> load(task: () -> T, failed: (Throwable) -> Unit = {}, done: (T) -> Unit) {
         try {
             executor.execute {
                 val result = try { Result.success(task()) } catch (error: Exception) { Result.failure(error) }
                 activity.runOnUiThread {
                     if (!activity.isFinishing && !activity.isDestroyed && !activity.appLockManager.isLocked()) {
-                        result.fold(done) { StudioUi.error(activity, it.message ?: "Couldn't complete that. Please try again.") }
+                        result.fold(done) { failed(it); StudioUi.error(activity, it.message ?: "Couldn't complete that. Please try again.") }
                     }
                 }
             }

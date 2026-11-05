@@ -103,7 +103,6 @@
     <string name="attachment_sized_exceeds_max_limit">Kích cỡ tệp đính kèm vượt quá giới hạn MMS</string>
     <string name="couldnt_download_mms">Không thể tải xuống MMS</string>
     <string name="faq_1_title">Tại sao ứng dụng cần quyền truy cập Internet?</string>
-    <string name="faq_1_text">Nó cần thiết để gửi tệp đính kèm MMS. Không thể gửi MMS sẽ là một bất lợi thực sự rất lớn so với các ứng dụng khác, vì vậy chúng tôi quyết định đi theo hướng này. Tuy nhiên, như thường lệ, không có quảng cáo, theo dõi hay phân tích nào, internet chỉ được sử dụng để gửi MMS.</string>
     <string name="faq_2_title">Làm sao khi đầu bên kia không nhận được MMS của tôi?</string>
     <string name="faq_2_text">Kích cỡ MMS bị giới hạn bởi nhà mạng, bạn có thể thử giảm giới hạn trong cài đặt ứng dụng.</string>
     <string name="faq_3_title">Ứng dụng có hỗ trợ lên lịch gửi tin nhắn không?</string>

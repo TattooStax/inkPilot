@@ -6,8 +6,17 @@ import android.database.sqlite.SQLiteException
 import android.database.sqlite.SQLiteOpenHelper
 import org.fossify.messages.inkpilot.studio.StudioFeatureSchema
 
+private const val STUDIO_SCHEMA_VERSION = 7
+private const val STUDIO_V1 = 1
+private const val STUDIO_V2 = 2
+private const val STUDIO_V3 = 3
+private const val STUDIO_V4 = 4
+private const val STUDIO_V5 = 5
+private const val STUDIO_V6 = 6
+
 /** Business records are never placed in the inherited, destructively rebuildable SMS cache. */
-internal class StudioDatabase(context: Context, name: String) : SQLiteOpenHelper(context, name, null, 1) {
+internal class StudioDatabase(context: Context, name: String) :
+    SQLiteOpenHelper(context, name, null, STUDIO_SCHEMA_VERSION) {
     init {
         setWriteAheadLoggingEnabled(true)
     }
@@ -18,6 +27,14 @@ internal class StudioDatabase(context: Context, name: String) : SQLiteOpenHelper
 
     // Separate short-lived repositories can open the same new database concurrently.
     override fun getWritableDatabase(): SQLiteDatabase = synchronized(openLock) { super.getWritableDatabase() }
+
+    override fun onOpen(db: SQLiteDatabase) {
+        super.onOpen(db)
+        db.execSQL("CREATE INDEX IF NOT EXISTS held_thread_state_created ON held_drafts(thread_id, state, created_at)")
+        db.execSQL(
+            "CREATE INDEX IF NOT EXISTS inbound_thread_received ON inbound_events(thread_id, received_at, event_id)"
+        )
+    }
 
     override fun onCreate(db: SQLiteDatabase) {
         db.execSQL("CREATE TABLE agent_settings (id INTEGER PRIMARY KEY CHECK(id = 1), drafting_enabled INTEGER NOT NULL DEFAULT 0, soul TEXT NOT NULL DEFAULT '')")
@@ -67,7 +84,7 @@ internal class StudioDatabase(context: Context, name: String) : SQLiteOpenHelper
                 body TEXT NOT NULL,
                 state TEXT NOT NULL DEFAULT 'HELD',
                 created_at INTEGER NOT NULL,
-                UNIQUE(event_id, kind)
+                UNIQUE(event_id, kind, source_revision)
             )
         """.trimIndent())
         db.execSQL("CREATE INDEX held_state_created ON held_drafts(state, created_at)")
@@ -82,6 +99,7 @@ internal class StudioDatabase(context: Context, name: String) : SQLiteOpenHelper
                 error TEXT
             )
         """.trimIndent())
+        StudioStaffAttentionSchema.create(db)
         db.execSQL("""
             CREATE TABLE send_parts (
                 draft_id TEXT NOT NULL REFERENCES send_claims(draft_id),
@@ -92,10 +110,25 @@ internal class StudioDatabase(context: Context, name: String) : SQLiteOpenHelper
             )
         """.trimIndent())
         StudioFeatureSchema.create(db)
+        StudioRevisionSchema.create(db)
+        StudioIdentitySchema.create(db)
+        org.fossify.messages.inkpilot.studio.StudioImageLinkSchema.create(db)
+        org.fossify.messages.inkpilot.studio.StudioCalendarSchema.create(db)
+        StudioProposalSchema.create(db)
     }
 
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
-        throw SQLiteException("No studio migration from $oldVersion to $newVersion")
+        if (oldVersion !in STUDIO_V1..STUDIO_V6 || newVersion != STUDIO_SCHEMA_VERSION) {
+            throw SQLiteException("No studio migration from $oldVersion to $newVersion")
+        }
+        if (oldVersion <= STUDIO_V5) {
+            if (oldVersion == STUDIO_V1) StudioRevisionSchema.upgrade(db)
+            if (oldVersion <= STUDIO_V2) StudioIdentitySchema.create(db)
+            if (oldVersion <= STUDIO_V3) org.fossify.messages.inkpilot.studio.StudioImageLinkSchema.create(db)
+            if (oldVersion <= STUDIO_V4) org.fossify.messages.inkpilot.studio.StudioCalendarSchema.upgrade(db)
+            StudioProposalSchema.create(db)
+        }
+        StudioStaffAttentionSchema.create(db)
     }
 
     companion object { private val openLock = Any() }

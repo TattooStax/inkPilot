@@ -47,7 +47,9 @@ data class DeviceCredential(
     val endpointBase: String,
     val deviceId: String,
     val secret: String
-)
+) {
+    override fun toString() = "DeviceCredential(endpointBase=$endpointBase, deviceId=$deviceId, secret=<redacted>)"
+}
 
 /**
  * Whether a candidate endpoint base is one a credential may belong
@@ -92,7 +94,7 @@ private fun isEndpointBase(candidate: String?): Boolean {
 
 /**
  * Whether an authority names this device itself: a loopback host
- * (127.0.0.1, localhost, or [::1]) with an optional all-digit
+ * (127.0.0.1 or localhost; aligned with Android cleartext policy) with an optional all-digit
  * port. A name that merely starts like one
  * (localhost.evil.example) names somewhere else, and a port that
  * is not a port makes the whole authority another name than the
@@ -126,7 +128,7 @@ internal fun isLoopbackAuthority(authority: String): Boolean {
     if (port != null && (port.isEmpty() || !port.all { it in '0'..'9' })) {
         return false
     }
-    return host.equals("localhost", ignoreCase = true) || host == "127.0.0.1" || host == "::1"
+    return host.equals("localhost", ignoreCase = true) || host == "127.0.0.1"
 }
 
 /**

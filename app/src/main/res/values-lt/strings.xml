@@ -56,7 +56,6 @@
     <string name="import_mms">Importuoti MMS</string>
     <string name="no_option_selected">Turite pasirinkti bent vieną elementą</string>
     <string name="faq_1_title">Kodėl programėlei reikalinga prieiga prie interneto\?</string>
-    <string name="faq_1_text">Deja, jis reikalingas MMS priedams siųsti. Negalėjimas siųsti MMS būtų tikrai didelis trūkumas, palyginti su kitomis programomis, todėl nusprendėme eiti šiuo keliu. Tačiau, kaip įprasta, nėra jokių reklamų, stebėjimo ar analizės, internetas naudojamas tik MMS siuntimui.</string>
     <string name="faq_2_title">Kitas galas negauna mano MMS, ar galiu ką nors padaryti\?</string>
     <string name="faq_2_text">MMS dydį riboja operatoriai, todėl programėlės nustatymuose galite pabandyti nustatyti mažesnę ribą.</string>
     <string name="enable_custom_notifications">Įjungti pasirinktinius pranešimus</string>

@@ -9,7 +9,7 @@ import android.content.Intent
 import androidx.core.app.NotificationCompat
 import inkstax.sms.transport.HeartbeatNotificationState
 import org.fossify.messages.R
-import org.fossify.messages.activities.MainActivity
+import org.fossify.messages.inkpilot.ui.CompatibilityIngressActivity
 
 internal const val HEARTBEAT_CHANNEL_ID = "heartbeat_link"
 internal const val HEARTBEAT_NOTIFICATION_ID = 491001
@@ -40,7 +40,7 @@ internal fun buildHeartbeatNotification(context: Context, state: HeartbeatNotifi
     val contentIntent = PendingIntent.getActivity(
         context,
         0,
-        Intent(context, MainActivity::class.java),
+        Intent(context, CompatibilityIngressActivity::class.java),
         PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
     )
     return NotificationCompat.Builder(context, HEARTBEAT_CHANNEL_ID)
