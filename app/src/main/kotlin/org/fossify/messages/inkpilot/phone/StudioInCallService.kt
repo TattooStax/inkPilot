@@ -15,6 +15,12 @@ class StudioInCallService : InCallService() {
         var current: StudioInCallService? = null
             private set
         private const val NOTICE = 720
+        private val callObservers = linkedSetOf<() -> Unit>()
+        internal fun observeCalls(observer: () -> Unit) { callObservers.add(observer); observer() }
+        internal fun stopObservingCalls(observer: () -> Unit) { callObservers.remove(observer) }
+        internal fun notifyCallObservers() = callObservers.toList().forEach { observer ->
+            runCatching { observer() }.onFailure { android.util.Log.w("InkPilotPhone", "Call display refresh failed") }
+        }
     }
     private val tracked = linkedSetOf<Call>()
     private val actions = IncomingCallActionRegistry()
@@ -27,7 +33,7 @@ class StudioInCallService : InCallService() {
         override fun onDetailsChanged(call: Call, details: Call.Details) = update()
         override fun onConferenceableCallsChanged(call: Call, conferenceableCalls: MutableList<Call>) = update()
     }
-    override fun onCreate() { super.onCreate(); current = this }
+    override fun onCreate() { super.onCreate(); current = this; notifyCallObservers() }
     override fun onCallAdded(call: Call) {
         super.onCallAdded(call)
         tracked.add(call)
@@ -77,6 +83,7 @@ class StudioInCallService : InCallService() {
 
     private fun update() {
         changed?.invoke()
+        notifyCallObservers()
         val manager = getSystemService(NotificationManager::class.java)
         if (tracked.isEmpty()) { manager.cancel(NOTICE); return }
         // Identity is deliberately absent even from unlocked notifications; no stale lock-screen text.
@@ -106,6 +113,7 @@ class StudioInCallService : InCallService() {
             current = null
         }
         changed?.invoke(); changed = null
+        notifyCallObservers()
         super.onDestroy()
     }
 }

@@ -125,6 +125,5 @@ internal class MessagePanel(
     }
 
     fun phone(initial: String = ""): View = org.fossify.messages.inkpilot.phone.PhonePanel(activity,
-        openHistory = { open(StudioRoute.PhoneHistory) },
-        openContacts = { open(StudioRoute.Tab(StudioTab.CONTACTS)) }).view(initial)
+        openHistory = { open(StudioRoute.PhoneHistory) }).view(initial)
 }

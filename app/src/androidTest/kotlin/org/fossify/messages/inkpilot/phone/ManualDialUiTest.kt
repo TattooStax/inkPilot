@@ -34,18 +34,17 @@ class ManualDialUiTest {
         ActivityScenario.launch(ManualCallActivity::class.java).use { scenario -> scenario.onActivity { activity ->
             val fake = FakeDial()
             var history = 0
-            var contacts = 0
             val callControls = mutableListOf<Boolean>()
-            var panel = PhonePanel(activity, fake, { history++ }, { contacts++ }, { callControls += it }).view("5550100")
+            var panel = PhonePanel(activity, fake, { history++ }, { callControls += it }).view("5550100")
             activity.setContentView(panel)
+            assertEquals(View.GONE, button(panel, "Call controls")!!.visibility)
             button(panel, "Choose inkPilot as Phone app")!!.performClick()
             button(panel, "Call")!!.performClick()
             assertEquals(listOf("request", "unavailable"), fake.events)
             assertTrue(callControls.isEmpty())
             button(panel, "Call history")!!.performClick()
-            button(panel, "Contacts")!!.performClick()
             assertEquals(1, history)
-            assertEquals(1, contacts)
+            assertNull(button(panel, "Contacts")) // The bottom tab already owns Contacts.
             fake.role = true
             var active = false
             panel = PhonePanel(activity, fake, openCallControls = { callControls += it },
@@ -65,9 +64,12 @@ class ManualDialUiTest {
             button(panel, "Call")!!.performClick()
             assertEquals("place:911", fake.events.last())
             assertTrue(callControls.isEmpty())
+            assertEquals(View.GONE, button(panel, "Call controls")!!.visibility)
             button(panel, "Call controls")!!.performClick()
             assertTrue(callControls.isEmpty()) // No call is active; never show an ended call screen.
             active = true
+            StudioInCallService.notifyCallObservers()
+            assertEquals(View.VISIBLE, button(panel, "Call controls")!!.visibility)
             button(panel, "Call controls")!!.performClick()
             assertEquals(listOf(false), callControls) // Cached canvas still has a live return path.
             val ordinary = PhonePanel(activity, fake, openCallControls = { callControls += it },
@@ -77,7 +79,7 @@ class ManualDialUiTest {
             button(ordinary, "Call")!!.performClick()
             assertEquals("place:5550100", fake.events.last())
             assertEquals(listOf(false, true), callControls)
-            button(panel, "Restore previous Phone app")!!.performClick()
+            button(panel, "Change Phone app")!!.performClick()
             assertEquals("restore", fake.events.last())
             fake.role = false // Revoked while visible: no external dialer is launched.
             button(panel, "Call")!!.performClick()
@@ -105,13 +107,18 @@ class ManualDialUiTest {
             val panel = PhonePanel(activity, fake, openCallControls = { openings += it },
                 hasActiveCall = { active }).view()
             activity.setContentView(panel)
+            assertEquals(View.GONE, button(panel, "Call controls")!!.visibility)
             button(panel, "Call controls")!!.performClick()
             assertTrue(openings.isEmpty())
             fake.role = true
             active = true
+            StudioInCallService.notifyCallObservers()
+            assertEquals(View.VISIBLE, button(panel, "Call controls")!!.visibility)
             button(panel, "Call controls")!!.performClick()
             assertEquals(listOf(false), openings)
             fake.role = false
+            StudioInCallService.notifyCallObservers()
+            assertEquals(View.GONE, button(panel, "Call controls")!!.visibility)
             button(panel, "Call controls")!!.performClick()
             assertEquals(listOf(false), openings)
         } }
