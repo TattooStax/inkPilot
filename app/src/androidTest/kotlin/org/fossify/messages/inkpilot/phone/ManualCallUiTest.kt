@@ -65,6 +65,25 @@ class ManualCallUiTest {
         } }
     }
 
+    @Test fun lockedSimAccountChoicesHidePhoneAccountIdsWithoutChangingSelection() {
+        ActivityScenario.launch(ManualCallActivity::class.java).use { scenario -> scenario.onActivity { activity ->
+            val fake = FakeCalls().apply {
+                state = listOf(ManualCallState("sim", null, Call.STATE_SELECT_PHONE_ACCOUNT,
+                    accounts = listOf("line-5550101", "line-5550102")))
+            }
+            val screen = ManualCallScreen(activity, {}, {})
+            activity.setContentView(screen.view)
+            screen.update(fake, true)
+            assertFalse(texts(screen.view).any { "5550101" in it || "5550102" in it })
+            assertEquals("Use SIM 1", row(screen.view, "sim:simline-5550101").text.toString())
+            assertEquals("Use SIM 2", row(screen.view, "sim:simline-5550102").text.toString())
+            row(screen.view, "sim:simline-5550102").performClick()
+            assertEquals(Triple("sim", "sim", "line-5550102"), fake.dispatched.last())
+            screen.update(fake, false)
+            assertEquals("Use SIM line-5550102", row(screen.view, "sim:simline-5550102").text.toString())
+        } }
+    }
+
     @Test fun repeatedUpdatesRetainSmallDisplayScrollAndAccessibilityFocusTargets() {
         ActivityScenario.launch(ManualCallActivity::class.java).use { scenario -> scenario.onActivity { activity ->
             val fake = FakeCalls().apply {

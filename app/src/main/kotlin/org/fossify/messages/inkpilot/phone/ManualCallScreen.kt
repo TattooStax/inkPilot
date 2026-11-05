@@ -40,7 +40,9 @@ internal class ManualCallScreen(private val activity: Activity, private val unlo
                 if (call.postDial) { button("continue", "Continue keypad sequence"); button("cancel", "Cancel keypad sequence") }
             }
             if (call.state == Call.STATE_SELECT_PHONE_ACCOUNT)
-                call.accounts.forEach { button("sim", "Use SIM " + it, it) }
+                call.accounts.forEachIndexed { index, account ->
+                    button("sim", if (locked) "Use SIM ${index + 1}" else "Use SIM $account", account)
+                }
         }
         if (controller != null && calls.isNotEmpty()) {
             row("mute", if (controller.muted()) "Unmute" else "Mute") { controller.dispatch("", "mute") }
