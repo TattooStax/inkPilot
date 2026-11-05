@@ -37,9 +37,24 @@ fi
 if ((status == 0)) && python3 scripts/inkpilot-device-result.py "$result" > /dev/null 2>&1; then
   printf 'PASS %s\n' "$class" | tee "$evidence/result.txt"
 else
-  # Only a Kotlin test filename and line number may leave the temporary raw
-  # result. Assertion messages can contain customer text or phone numbers.
+  # Only a source-controlled method identifier and Kotlin filename/line may
+  # leave the temporary raw result; assertions can contain customer data.
   site=$(grep -Eo '[A-Za-z_][A-Za-z0-9_]*Test\.kt:[0-9]+' "$result" | head -n 1 || true)
-  printf 'FAIL %s (%s; raw output withheld)\n' "$class" "${site:-instrumentation failed}" | tee "$evidence/result.txt" >&2
+  # AndroidJUnitRunner's test identifier is a source-controlled method name.
+  # Pair it with a failure code; never publish assertion text or stack values.
+  method=$(awk '
+    /^INSTRUMENTATION_STATUS: test=/ {
+      current = substr($0, length("INSTRUMENTATION_STATUS: test=") + 1)
+      sub(/\r$/, "", current)
+    }
+    /^INSTRUMENTATION_STATUS_CODE: -[12]\r?$/ {
+      if (current ~ /^[A-Za-z_][A-Za-z0-9_]*$/) { print current; exit }
+    }
+  ' "$result")
+  if [[ -n $method ]]; then
+    printf 'FAIL %s#%s (%s; raw output withheld)\n' "$class" "$method" "${site:-instrumentation failed}" | tee "$evidence/result.txt" >&2
+  else
+    printf 'FAIL %s (%s; raw output withheld)\n' "$class" "${site:-instrumentation failed}" | tee "$evidence/result.txt" >&2
+  fi
   exit 1
 fi

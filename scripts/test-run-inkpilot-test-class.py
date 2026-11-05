@@ -120,6 +120,22 @@ if 'instrument' in sys.argv:
         self.assertNotIn('synthetic-secret-body', verdict.read_text())
         self.assertIn('ShellBaselineTest.kt:84', verdict.read_text())
 
+    def test_failed_method_name_is_reported_without_assertion_text(self):
+        self.env['INSTRUMENT_RESULT'] = (
+            "INSTRUMENTATION_STATUS: test=safeRouteCheck\n"
+            "INSTRUMENTATION_STATUS_CODE: 1\n"
+            "INSTRUMENTATION_STATUS: test=exactSettingsRoute\n"
+            "INSTRUMENTATION_STATUS: stack=private-client-body\n"
+            "\tat a.b.ShellIngressTest.exactSettingsRoute(ShellIngressTest.kt:42)\n"
+            "INSTRUMENTATION_STATUS_CODE: -2\n"
+            "FAILURES!!! private-client-body"
+        )
+        result = self.run_runner('emulator-5554', 'a.b.Test')
+        self.assertNotEqual(0, result.returncode)
+        verdict = (self.root / 'app/build/test-class-evidence/a.b.Test/result.txt').read_text()
+        self.assertIn('a.b.Test#exactSettingsRoute (ShellIngressTest.kt:42', verdict)
+        self.assertNotIn('private-client-body', verdict + result.stdout + result.stderr)
+
     def test_shell_keeps_later_class_evidence_after_an_assertion_failure(self):
         first = 'org.fossify.messages.inkpilot.data.LegacyFirstLaunchTest'
         last = 'org.fossify.messages.transport.BridgeHistoryTest'
