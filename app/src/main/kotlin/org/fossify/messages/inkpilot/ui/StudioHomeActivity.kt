@@ -43,6 +43,7 @@ class StudioHomeActivity : AppCompatActivity() {
     private lateinit var studio: StudioPanels
     private lateinit var navigator: StudioNavigator
     private lateinit var panels: StudioCanvasState
+    private lateinit var contactEdit: ContactEditState
     private val tab get() = navigator.selectedTab
     private var smsObserver: SmsRefreshObserver? = null
     internal val composerRoutes by lazy { ComposerRouteCoordinator(this, navigator, panels, ::render) }
@@ -80,6 +81,7 @@ class StudioHomeActivity : AppCompatActivity() {
         attachmentThread = savedInstanceState?.getLong("attachment.thread") ?: 0L
         navigator = StudioNavigator(savedInstanceState)
         panels = StudioCanvasState(savedInstanceState?.getBundle("studio.panels") ?: Bundle())
+        contactEdit = ContactEditState(savedInstanceState?.getBundle("contact.edit"))
         if (savedInstanceState == null) {
             intent.getBundleExtra(ExternalRouteParser.ROUTE)?.decodeRoute()?.let { navigator.acceptExternalRoute(it) }
                 ?: intent.getStringExtra("inkpilot_panel")?.let { navigator.acceptPanelHint(it, panels) }
@@ -145,7 +147,7 @@ class StudioHomeActivity : AppCompatActivity() {
                     is StudioRoute.Draft -> inlineDraft(route.draftId)
                     else -> auxiliaryCanvas(this, route, repository, work, auxiliary, studio, agent,
                         ::refreshPanels, ::openRoute)
-                        ?: dailyCanvas(this, tab, messages, repository, work, studio, ::refreshPanels,
+                        ?: dailyCanvas(this, tab, messages, repository, work, studio, contactEdit, ::refreshPanels,
                             ::openRoute, { number ->
                                 navigator.open(StudioRoute.Tab(StudioTab.PHONE))
                                 openRoute(StudioRoute.PhoneDial(number))
@@ -317,6 +319,7 @@ class StudioHomeActivity : AppCompatActivity() {
         outState.putLong("attachment.thread", attachmentThread)
         navigator.save(outState)
         outState.putBundle("studio.panels", panels.save())
+        contactEdit.save()?.let { outState.putBundle("contact.edit", it) }
         agent.soulDraft?.let { outState.putString("soul_draft", it) }
         super.onSaveInstanceState(outState)
     }

@@ -66,6 +66,9 @@ class VCardImportRouteUiTest {
             }
         } finally {
             gate.countDown()
+            StudioRepository(context).use { repository ->
+                repository.database.delete("studio_contacts", "number = ?", arrayOf(phone))
+            }
             file.delete()
             context.baseConfig.lastUnlockTimestampMs = priorUnlock
         }

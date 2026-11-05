@@ -16,6 +16,7 @@
     <item name="inkpilot_contact_list" type="id" />
     <item name="inkpilot_add_contact" type="id" />
     <item name="inkpilot_contact_memory" type="id" />
+    <item name="inkpilot_contact_source" type="id" />
     <item name="inkpilot_contact_paused" type="id" />
     <item name="inkpilot_draft_list" type="id" />
     <item name="inkpilot_draft_body" type="id" />

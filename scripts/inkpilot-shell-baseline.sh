@@ -55,6 +55,7 @@ run_class org.fossify.messages.inkpilot.data.StudioCrossThreadAttentionTest
 run_class org.fossify.messages.inkpilot.data.StudioContactIdentityTest
 run_class org.fossify.messages.inkpilot.ui.ContactForgetUiTest
 run_class org.fossify.messages.inkpilot.ui.ContactSaveFailureUiTest
+run_class org.fossify.messages.inkpilot.ui.ContactEditRotationUiTest
 run_class org.fossify.messages.inkpilot.ui.LockedComposerPickerTest
 run_class org.fossify.messages.inkpilot.data.StudioVCardImportTest
 run_class org.fossify.messages.inkpilot.data.ThreadDraftLookupTest

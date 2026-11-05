@@ -69,6 +69,7 @@ internal fun dailyCanvas(
     repository: StudioRepository,
     work: StudioWork,
     studio: StudioPanels,
+    contactEdit: ContactEditState,
     refresh: () -> Unit,
     open: (StudioRoute) -> Unit,
     openPhone: (String) -> Unit,
@@ -77,7 +78,7 @@ internal fun dailyCanvas(
     StudioTab.PHONE -> messages.phone()
     StudioTab.CONTACTS -> ContactPanel(activity, repository, work, refresh,
         openImages = { contactId -> open(StudioRoute.ImageLinks(contactId = contactId)) },
-        openPhone = openPhone).view()
+        openPhone = openPhone, editState = contactEdit).view()
     StudioTab.STUDIO -> studio.albums()
     StudioTab.CALENDAR -> studio.calendar()
 }
