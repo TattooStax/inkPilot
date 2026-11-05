@@ -29,7 +29,10 @@ internal data class CalendarProposal(
         require(room.length <= 80) { "Keep the room name under 80 characters." }
         require(projectId == null || (projectId.isNotBlank() && projectId.length <= 80)) { "Keep the project ID under 80 characters." }
         require(reminderAt == null || reminderAt in 0 until startsAt) { "Set a reminder before the entry." }
-        val zone = ZoneId.of(zoneId)
+        validateTimeZone(ZoneId.of(zoneId))
+    }
+
+    fun validateTimeZone(zone: ZoneId) {
         listOf(startsAt, endsAt - 1).forEach { epoch ->
             val local = Instant.ofEpochMilli(epoch).atZone(zone).toLocalDateTime()
             require(zone.rules.getValidOffsets(local).size == 1) { "Choose a time outside a daylight-saving change." }

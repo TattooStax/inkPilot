@@ -1,6 +1,7 @@
 package org.fossify.messages.inkpilot.studio
 
 import android.database.sqlite.SQLiteDatabase
+import java.time.ZoneId
 
 /** Additive v4 -> v5 calendar upgrade. Existing rows, IDs and image links are retained. */
 internal object StudioCalendarSchema {
@@ -24,5 +25,7 @@ internal object StudioCalendarSchema {
             label TEXT NOT NULL DEFAULT '')""")
         db.execSQL("CREATE INDEX studio_time_off_window ON studio_time_off(staff_id,starts_at,ends_at)")
         db.execSQL("CREATE INDEX studio_calendar_reminder ON studio_calendar(reminder_at,status)")
+        db.execSQL("CREATE TABLE studio_calendar_settings (id INTEGER PRIMARY KEY CHECK(id=1),zone_id TEXT NOT NULL)")
+        db.execSQL("INSERT INTO studio_calendar_settings(id,zone_id) VALUES(1,?)", arrayOf(ZoneId.systemDefault().id))
     }
 }

@@ -29,7 +29,7 @@ def frozen_v4():
 
 class StudioCalendarV5MigrationTest(unittest.TestCase):
     def test_upgrade_retains_old_records_and_adds_constraints(self):
-        self.assertEqual(8, len(STATEMENTS))
+        self.assertEqual(9, len(STATEMENTS))
         with frozen_v4() as db:
             db.execute("BEGIN")
             for sql in STATEMENTS:

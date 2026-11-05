@@ -3,6 +3,8 @@ package org.fossify.messages.inkpilot.studio
 import java.time.LocalDateTime
 import java.time.ZoneId
 import org.junit.Assert.assertThrows
+import org.junit.Assert.assertTrue
+import org.junit.Assert.assertFalse
 import org.junit.Test
 
 class CalendarTimeRulesTest {
@@ -32,6 +34,17 @@ class CalendarTimeRulesTest {
             proposal(start + 1, start + 60_001).validate()
         }
         proposal(start, start + 60_000).validate()
+    }
+
+    @Test fun weeklyHoursFollowWallClockAcrossSpringAndFall() {
+        val sunday = mapOf(7 to StaffHours(7, 9 * 60, 17 * 60))
+        fun fits(day: String, hour: String) = CalendarWallHours.fits(
+            epoch("$day"+"T"+hour), epoch("$day"+"T"+hour) + 60_000, zone, sunday,
+        )
+        assertFalse(fits("2027-03-14", "08:30"))
+        assertTrue(fits("2027-03-14", "09:30"))
+        assertFalse(fits("2027-11-07", "08:30"))
+        assertTrue(fits("2027-11-07", "09:30"))
     }
 
     @Test fun reminderMustPrecedeItsEntry() {

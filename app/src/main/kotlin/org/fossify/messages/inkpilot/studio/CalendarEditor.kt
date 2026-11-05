@@ -23,9 +23,9 @@ internal class CalendarEditor(
     private val staff: List<StudioStaff>,
     private val contacts: List<StudioContact>,
     private val onSaved: () -> Unit,
+    private val zone: ZoneId,
     private val existing: CalendarEntry? = null,
 ) {
-    private val zone = ZoneId.of(existing?.zoneId ?: ZoneId.systemDefault().id)
     private var day = existing?.let { Instant.ofEpochMilli(it.startsAt).atZone(zone).toLocalDate() } ?: initialDay
     private var time = existing?.let { Instant.ofEpochMilli(it.startsAt).atZone(zone).toLocalTime() } ?: LocalTime.NOON
 

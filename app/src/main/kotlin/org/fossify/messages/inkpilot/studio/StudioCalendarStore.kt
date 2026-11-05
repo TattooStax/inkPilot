@@ -3,7 +3,6 @@ package org.fossify.messages.inkpilot.studio
 import android.content.ContentValues
 import org.fossify.messages.inkpilot.data.StudioRepository
 import org.fossify.messages.inkpilot.data.transaction
-import java.time.Instant
 import java.time.ZoneId
 
 internal data class StaffHours(val weekday: Int, val opensMinute: Int, val closesMinute: Int)
@@ -23,6 +22,29 @@ internal class StudioCalendarStore(
     }
 
     fun contacts() = repository.contacts()
+
+    fun studioZone(): ZoneId = db.rawQuery("SELECT zone_id FROM studio_calendar_settings WHERE id=1", null).use {
+        check(it.moveToFirst())
+        ZoneId.of(it.getString(0))
+    }
+
+    fun setStudioZone(value: String) {
+        val zone = ZoneId.of(value.trim())
+        db.transaction {
+            db.rawQuery("""SELECT staff_id,starts_at,ends_at FROM studio_calendar
+                WHERE status='scheduled'""", null).use { rows ->
+                while (rows.moveToNext()) {
+                    CalendarProposal("Existing", "task", rows.getLong(0), rows.getLong(1),
+                        rows.getLong(2), zone.id, "").validateTimeZone(zone)
+                    val rules = hours(rows.getLong(0)).associateBy { it.weekday }
+                    if (rules.isNotEmpty()) check(CalendarWallHours.fits(rows.getLong(1), rows.getLong(2), zone, rules)) {
+                        "Move or cancel booked entries before changing the studio time zone."
+                    }
+                }
+            }
+            db.execSQL("UPDATE studio_calendar_settings SET zone_id=? WHERE id=1", arrayOf(zone.id))
+        }
+    }
 
     fun addStaff(name: String): Long {
         val value = name.trim()
@@ -62,7 +84,7 @@ internal class StudioCalendarStore(
             db.rawQuery("""SELECT starts_at,ends_at,zone_id FROM studio_calendar
                 WHERE staff_id=? AND status='scheduled'""", arrayOf(staffId.toString())).use { rows ->
                 while (rows.moveToNext()) {
-                    check(fitsHours(rows.getLong(0), rows.getLong(1), ZoneId.of(rows.getString(2)), proposed)) {
+                    check(CalendarWallHours.fits(rows.getLong(0), rows.getLong(1), studioZone(), proposed)) {
                         "Move or cancel booked entries before changing hours."
                     }
                 }
@@ -80,7 +102,7 @@ internal class StudioCalendarStore(
                 db.rawQuery("""SELECT starts_at,ends_at,zone_id FROM studio_calendar
                     WHERE staff_id=? AND status='scheduled'""", arrayOf(staffId.toString())).use { rows ->
                     while (rows.moveToNext()) {
-                        check(fitsHours(rows.getLong(0), rows.getLong(1), ZoneId.of(rows.getString(2)), remaining)) {
+                        check(CalendarWallHours.fits(rows.getLong(0), rows.getLong(1), studioZone(), remaining)) {
                             "Move or cancel booked entries before changing hours."
                         }
                     }
@@ -129,7 +151,7 @@ internal class StudioCalendarStore(
             is ScheduleResult.Conflict -> CalendarAvailability.Conflict(
                 if (result.sharedRoom) "Room unavailable." else "Staff unavailable.",
             )
-            is ScheduleResult.Unavailable -> CalendarAvailability.Conflict(result.reason)
+            is ScheduleResult.Unavailable -> CalendarAvailability.Conflict("Staff unavailable.")
             else -> error("Only conflict results are returned by availability")
         }
     }
@@ -219,6 +241,7 @@ internal class StudioCalendarStore(
     }
 
     private fun check(p: CalendarProposal, exceptId: Long?): ScheduleResult? {
+        p.validateTimeZone(studioZone())
         val args = arrayOf(p.endsAt.toString(), p.startsAt.toString(), p.staffId.toString(),
             p.room.trim(), p.room.trim(), (exceptId ?: -1).toString())
         db.rawQuery("""SELECT title,staff_id FROM studio_calendar WHERE status='scheduled'
@@ -231,24 +254,10 @@ internal class StudioCalendarStore(
             if (it.moveToFirst()) return ScheduleResult.Unavailable("Staff time off: ${it.getString(0)}")
         }
         val hours = hours(p.staffId).associateBy { it.weekday }
-        if (hours.isNotEmpty() && !fitsHours(p.startsAt, p.endsAt, ZoneId.of(p.zoneId), hours)) {
+        if (hours.isNotEmpty() && !CalendarWallHours.fits(p.startsAt, p.endsAt, studioZone(), hours)) {
             return ScheduleResult.Unavailable("Outside this staff member's hours.")
         }
         return null
     }
 
-    private fun fitsHours(start: Long, end: Long, zone: ZoneId, hours: Map<Int, StaffHours>): Boolean {
-        val first = Instant.ofEpochMilli(start).atZone(zone).toLocalDate()
-        val last = Instant.ofEpochMilli(end - 1).atZone(zone).toLocalDate()
-        var date = first
-        while (!date.isAfter(last)) {
-            val range = hours[date.dayOfWeek.value] ?: return false
-            val dayStart = date.atStartOfDay(zone).toInstant().toEpochMilli()
-            val open = dayStart + range.opensMinute * 60_000L
-            val close = dayStart + range.closesMinute * 60_000L
-            if (maxOf(start, dayStart) < open || minOf(end, date.plusDays(1).atStartOfDay(zone).toInstant().toEpochMilli()) > close) return false
-            date = date.plusDays(1)
-        }
-        return true
-    }
 }

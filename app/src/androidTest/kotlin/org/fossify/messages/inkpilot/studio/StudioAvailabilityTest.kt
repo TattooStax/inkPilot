@@ -54,16 +54,47 @@ class StudioAvailabilityTest {
         assertTrue(store.availability("missing-client", b, "", entry.startsAt, entry.endsAt, zone) is CalendarAvailability.Conflict)
     }
 
+    @Test fun canonicalStudioZoneAndWallHoursHoldAcrossDstTransitions() {
+        store.setStudioZone(zone)
+        store.setWeeklyHours(a, 7, 9 * 60, 17 * 60) // Sunday
+        assertTrue(store.schedule(booking(a, "2027-03-14T09:30")) is ScheduleResult.Saved)
+        assertTrue(store.schedule(booking(a, "2027-03-14T08:30")) is ScheduleResult.Unavailable)
+        assertTrue(store.schedule(booking(a, "2027-11-07T09:30")) is ScheduleResult.Saved)
+        assertTrue(store.schedule(booking(a, "2027-11-07T08:30")) is ScheduleResult.Unavailable)
+        repository.close()
+        repository = StudioRepository(context, name); store = StudioCalendarStore(repository) { _, _, _ -> }
+        assertEquals(zone, store.studioZone().id)
+    }
+
+    @Test fun callerDisplayZoneCannotBypassStaffHours() {
+        store.setStudioZone(zone)
+        store.setWeeklyHours(a, 2, 9 * 60, 17 * 60)
+        val instant = at("2027-06-01T03:00")
+        val chicago = CalendarProposal("Night", "task", a, instant, instant + 3_600_000, zone, "")
+        val london = chicago.copy(zoneId = "Europe/London")
+        assertTrue(store.schedule(chicago) is ScheduleResult.Unavailable)
+        assertTrue(store.schedule(london) is ScheduleResult.Unavailable)
+        assertEquals(
+            CalendarAvailability(store).propose(null, a, "", instant, instant + 3_600_000, zone),
+            CalendarAvailability(store).propose(null, a, "", instant, instant + 3_600_000, "Europe/London"),
+        )
+    }
+
     @Test fun hoursTimeOffAndBoundariesAreCheckedBeforeWriting() {
+        store.setStudioZone(zone)
         store.setWeeklyHours(a, 2, 9 * 60, 17 * 60) // Tuesday, 2027-06-01.
         assertTrue(store.schedule(booking(a, "2027-06-01T08:00")) is ScheduleResult.Unavailable)
         assertTrue(store.schedule(booking(a, "2027-06-01T09:00")) is ScheduleResult.Saved)
-        store.addTimeOff(a, at("2027-06-01T12:00"), at("2027-06-01T13:00"), "Lunch")
+        store.addTimeOff(a, at("2027-06-01T12:00"), at("2027-06-01T13:00"), "Private medical leave")
+        val availability = CalendarAvailability(store).propose(null, a, "",
+            at("2027-06-01T12:00"), at("2027-06-01T13:00"), zone) as CalendarAvailability.Conflict
+        assertEquals("Staff unavailable.", availability.reason)
         assertTrue(store.schedule(booking(a, "2027-06-01T12:00")) is ScheduleResult.Unavailable)
         assertTrue(store.schedule(booking(a, "2027-06-01T13:00")) is ScheduleResult.Saved)
     }
 
     @Test fun availabilityChangesCannotInvalidateExistingBookings() {
+        store.setStudioZone(zone)
         val entry = booking(a, "2027-06-01T10:00")
         assertTrue(store.schedule(entry) is ScheduleResult.Saved)
         assertThrows(IllegalStateException::class.java) {
@@ -138,6 +169,7 @@ class StudioAvailabilityTest {
         } finally { old.close() }
         repository = StudioRepository(context, name); store = StudioCalendarStore(repository) { _, _, _ -> }
         assertEquals(5, repository.database.version)
+        assertEquals(ZoneId.systemDefault(), store.studioZone())
         val row = store.entries(1_800_000_000_000, 1_800_003_600_000).single()
         assertEquals("Original", row.title)
         assertEquals(72L, row.id)
