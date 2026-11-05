@@ -153,20 +153,22 @@ class StudioAvailabilityTest {
 
     @Test fun frozenV4MigrationPreservesCalendarAndImageLinks() {
         repository.close(); context.deleteDatabase(name)
-        val old = context.openOrCreateDatabase(name, Context.MODE_PRIVATE, null)
-        try {
-            old.execSQL("CREATE TABLE studio_contacts(id TEXT PRIMARY KEY, number TEXT NOT NULL, display_name TEXT NOT NULL)")
-            old.execSQL("CREATE TABLE studio_staff(id INTEGER PRIMARY KEY, name TEXT NOT NULL)")
-            old.execSQL("CREATE TABLE studio_calendar(id INTEGER PRIMARY KEY, title TEXT NOT NULL, kind TEXT NOT NULL, staff_id INTEGER NOT NULL, starts_at INTEGER NOT NULL, ends_at INTEGER NOT NULL, zone_id TEXT NOT NULL, room TEXT NOT NULL, status TEXT NOT NULL)")
-            old.execSQL("CREATE TABLE studio_images(id INTEGER PRIMARY KEY, filename TEXT NOT NULL, display_name TEXT NOT NULL, imported_at INTEGER NOT NULL)")
-            old.execSQL("CREATE TABLE image_links(image_id INTEGER,contact_id TEXT,project_id TEXT,staff_id INTEGER,appointment_id INTEGER,source_origin TEXT,source_id INTEGER,thread_id INTEGER,PRIMARY KEY(image_id,contact_id,source_origin,source_id))")
-            old.execSQL("INSERT INTO studio_contacts VALUES('client','+12025550101','Synthetic')")
+        // Build the complete released v4 shape, including draft/send tables. A partial
+        // hand-written fixture once failed onOpen before calendar migration was exercised.
+        org.fossify.messages.inkpilot.data.StudioV1Fixture(context, name).use { fixture ->
+            val old = fixture.writableDatabase
+            org.fossify.messages.inkpilot.data.StudioRevisionSchema.upgrade(old)
+            old.execSQL("INSERT INTO studio_contacts(id,number,display_name) VALUES('client','+12025550101','Synthetic')")
+            org.fossify.messages.inkpilot.data.StudioIdentitySchema.create(old)
+            StudioImageLinkSchema.create(old)
             old.execSQL("INSERT INTO studio_staff VALUES(71,'A')")
             old.execSQL("INSERT INTO studio_calendar VALUES(72,'Original','task',71,1800000000000,1800003600000,'America/Chicago','','scheduled')")
             old.execSQL("INSERT INTO studio_images VALUES(73,'old.png','Old',1)")
             old.execSQL("INSERT INTO image_links VALUES(73,'client','project',71,72,'MMS',74,75)")
+            old.execSQL("INSERT INTO inbound_events VALUES('v4-event','75','client','+12025550101','Synthetic',1,1,0)")
+            old.execSQL("INSERT INTO held_drafts VALUES('v4-held','v4-event','CUSTOMER_SERVICE_REPLY','75','client','+12025550101',0,'Held text','HELD',2)")
             old.version = 4
-        } finally { old.close() }
+        }
         repository = StudioRepository(context, name); store = StudioCalendarStore(repository) { _, _, _ -> }
         assertEquals(6, repository.database.version)
         assertEquals(ZoneId.systemDefault(), store.studioZone())
@@ -174,6 +176,10 @@ class StudioAvailabilityTest {
         assertEquals("Original", row.title)
         assertEquals(72L, row.id)
         assertEquals(0L, row.revision)
+        repository.database.rawQuery("SELECT body,state FROM held_drafts WHERE draft_id='v4-held'", null).use {
+            assertTrue(it.moveToFirst()); assertEquals("Held text", it.getString(0))
+            assertEquals("HELD", it.getString(1))
+        }
         repository.database.rawQuery("SELECT image_id,contact_id,appointment_id,source_id FROM image_links", null).use {
             assertTrue(it.moveToFirst())
             assertEquals(73L, it.getLong(0)); assertEquals("client", it.getString(1))
