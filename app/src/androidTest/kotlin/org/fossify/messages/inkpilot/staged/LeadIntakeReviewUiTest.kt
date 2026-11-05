@@ -193,6 +193,7 @@ class LeadIntakeReviewUiTest : StudioDatabaseTestBase() {
             put("stored", target.hasStoredReview)
             put("missing", JSONArray(target.reviewed?.missingQuestions?.map { it.name } ?: emptyList<String>()))
             put("controls", JSONArray(visibleControls()))
+            put("window", stagedWindowEvidence(context))
         })
         File(context.filesDir, "device-test-evidence/staged-review.json").apply {
             parentFile!!.mkdirs()

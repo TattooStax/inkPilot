@@ -21,7 +21,7 @@ def main(path):
         if not isinstance(item, dict):
             raise ValueError("unexpected diagnostic snapshot")
         expected = {"stage", "sizeClass", "sizeCheckable", "sizeChecked",
-                    "parentCheckable", "parentChecked", "revision", "stored", "missing", "controls"}
+                    "parentCheckable", "parentChecked", "revision", "stored", "missing", "controls", "window"}
         if set(item) != expected:
             raise ValueError("unexpected diagnostic keys")
         checked(item["stage"], {"SIZE_TAPPED", "SAVE_CLICKED", "SAVE_WAIT_EXPIRED",
@@ -43,6 +43,33 @@ def main(path):
                               "Select at least one missing detail, or clear the review.",
                               "Review saved for a future drafting option. Current drafts do not use it.",
                               "That conversation changed. Open it and review the latest message."})
+        window = item["window"]
+        if not isinstance(window, dict) or set(window) != {"activePackage", "activeClass", "activeHasNext",
+                                                         "locked", "windowCount", "windows"}:
+            raise ValueError("unexpected window diagnostic")
+        packages = {"inkpilot", "android", "permission", "none", "other"}
+        classes = {"frame", "linear", "list", "scroll", "text", "none", "other"}
+        checked(window["activePackage"], packages)
+        checked(window["activeClass"], classes)
+        for flag in ("activeHasNext", "locked"):
+            if type(window[flag]) is not bool:
+                raise ValueError("unexpected window flag")
+        if type(window["windowCount"]) is not int or not 0 <= window["windowCount"] <= 8:
+            raise ValueError("unexpected window count")
+        if not isinstance(window["windows"], list) or len(window["windows"]) != window["windowCount"]:
+            raise ValueError("unexpected window list")
+        for entry in window["windows"]:
+            if not isinstance(entry, dict) or set(entry) != {"kind", "layer", "active", "focused", "package",
+                                                           "class", "hasNext"}:
+                raise ValueError("unexpected window entry")
+            checked(entry["kind"], {"application", "input", "system", "accessibility", "other"})
+            checked(entry["package"], packages)
+            checked(entry["class"], classes)
+            if type(entry["layer"]) is not int or not -10000 <= entry["layer"] <= 10000:
+                raise ValueError("unexpected window layer")
+            for flag in ("active", "focused", "hasNext"):
+                if type(entry[flag]) is not bool:
+                    raise ValueError("unexpected window entry flag")
         snapshots.append(item)
     print(json.dumps(snapshots, indent=2, sort_keys=True))
 
