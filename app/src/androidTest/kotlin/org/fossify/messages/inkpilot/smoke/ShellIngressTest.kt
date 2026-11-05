@@ -328,6 +328,7 @@ class ShellIngressTest {
         val unlock = instrumentation.addMonitor(org.fossify.commons.activities.AppLockActivity::class.java.name, null, false)
         var home: android.app.Activity? = null
         var gate: android.app.Activity? = null
+        var deliveredHome: StudioHomeActivity? = null
         try {
             instrumentation.runOnMainSync {
                 config.appPasswordHash = java.security.MessageDigest.getInstance("SHA-1").digest("3947".toByteArray())
@@ -355,14 +356,35 @@ class ShellIngressTest {
                 putExtra(Intent.EXTRA_STREAM, privateUri); clipData = ClipData.newRawUri("Locked reference", privateUri)
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_GRANT_READ_URI_PERMISSION)
             })
-            instrumentation.waitForIdleSync()
+            // ACTION_SEND media is copied on a worker before the compatibility ingress forwards
+            // to Home. Waiting for idle alone can run before that worker posts the route.
+            val delivered = SmokeViews.await("locked share forwarded to Home") {
+                var matching: StudioHomeActivity? = null
+                instrumentation.runOnMainSync {
+                    matching = Stage.values().asSequence().filter { it != Stage.DESTROYED }
+                        .flatMap { ActivityLifecycleMonitorRegistry.getInstance().getActivitiesInStage(it).asSequence() }
+                        .filterIsInstance<StudioHomeActivity>().distinct()
+                        .firstOrNull { activity ->
+                            !activity.isFinishing && !activity.isDestroyed &&
+                                (activity.intent.getBundleExtra(ExternalRouteParser.ROUTE)?.decodeRoute()
+                                    as? StudioRoute.Compose)?.let { route ->
+                                    route.body == "Private locked reference" && route.mediaUris == listOf(privateUri)
+                                } == true
+                        }
+                }
+                matching
+            }
+            deliveredHome = delivered
             instrumentation.runOnMainSync {
-                val routed = home!!.intent.getBundleExtra(ExternalRouteParser.ROUTE)?.decodeRoute() as? StudioRoute.Compose
+                val routed = delivered.intent.getBundleExtra(ExternalRouteParser.ROUTE)?.decodeRoute() as? StudioRoute.Compose
                 assertNotNull(routed)
                 assertEquals("Private locked reference", routed!!.body)
                 assertEquals(listOf(privateUri), routed.mediaUris)
-                assertEquals(privateUri, home!!.intent.clipData?.getItemAt(0)?.uri)
-                assertEquals(0, home!!.findViewById<android.view.ViewGroup>(org.fossify.messages.R.id.inkpilot_canvas).childCount)
+                assertEquals(privateUri, delivered.intent.clipData?.getItemAt(0)?.uri)
+                assertEquals(0, delivered.findViewById<android.view.ViewGroup>(org.fossify.messages.R.id.inkpilot_canvas).childCount)
+                assertTrue(delivered.window.attributes.flags and android.view.WindowManager.LayoutParams.FLAG_SECURE != 0)
+                assertTrue(ActivityLifecycleMonitorRegistry.getInstance().getActivitiesInStage(Stage.RESUMED)
+                    .none { it is ThreadActivity || it is CompatibilityIngressActivity })
                 assertTrue(context.appLockManager.isLocked())
             }
         } finally {
@@ -371,9 +393,9 @@ class ShellIngressTest {
                 context.appLockManager.unlock(); config.lastUnlockTimestampMs = previousTimestamp
                 val lifecycle = androidx.test.runner.lifecycle.ActivityLifecycleMonitorRegistry.getInstance()
                 androidx.test.runner.lifecycle.Stage.values().flatMap { lifecycle.getActivitiesInStage(it) }
-                    .filterIsInstance<org.fossify.commons.activities.AppLockActivity>()
+                    .filter { it is org.fossify.commons.activities.AppLockActivity || it is CompatibilityIngressActivity }
                     .distinct().forEach { it.finish() }
-                gate?.finish(); home?.finish()
+                gate?.finish(); deliveredHome?.takeUnless { it === home }?.finish(); home?.finish()
             }
             instrumentation.removeMonitor(shell); instrumentation.removeMonitor(unlock)
         }
