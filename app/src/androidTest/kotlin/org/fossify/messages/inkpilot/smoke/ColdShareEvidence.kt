@@ -65,6 +65,15 @@ internal fun recordColdShareFailure(target: Context, sender: Context, sharedUri:
     val senderRead = runCatching { senderMarker.readText() }.getOrNull()
     val activityTasks = readShell("dumpsys activity activities")
     val activityLog = readShell("logcat -d -t 2000 -v brief -s ActivityTaskManager:I ActivityManager:I AndroidRuntime:E")
+    val senderCrash = activityLog?.substringAfterLast("FATAL EXCEPTION")
+        ?.takeIf { it.contains("CrossPackageShareSender") }
+    val cause = senderCrash?.let { crash ->
+        Regex("Caused by: ([A-Za-z0-9_.]+(?:Exception|Error))").findAll(crash).lastOrNull()?.groupValues?.get(1)
+    }?.substringAfterLast('.')
+    val allowedCauses = setOf("ClassNotFoundException", "NoClassDefFoundError", "SecurityException",
+        "IllegalArgumentException", "IllegalStateException", "FileNotFoundException", "IOException",
+        "RuntimeException", "OutOfMemoryError", "UnsatisfiedLinkError")
+    val firstFrame = senderCrash?.lineSequence()?.firstOrNull { it.contains("at ") }?.substringAfter("at ")
     val evidence = JSONObject().apply {
         put("shareAliasResolved", runCatching { target.packageManager.getActivityInfo(alias, 0).exported }.getOrDefault(false))
         put("senderActivityResolved", runCatching { sender.packageManager.getActivityInfo(senderActivity, 0).exported }.getOrDefault(false))
@@ -80,6 +89,17 @@ internal fun recordColdShareFailure(target: Context, sender: Context, sharedUri:
             activityLog?.contains("Background activity launch blocked", ignoreCase = true) == true)
         put("senderCrashLogged", activityLog?.contains("FATAL EXCEPTION") == true &&
             activityLog?.contains("CrossPackageShareSender") == true)
+        put("senderCrashCause", cause?.takeIf { it in allowedCauses } ?: "other")
+        put("senderFirstFrame", when {
+            firstFrame?.contains("CrossPackageShareSender") == true -> "sender"
+            firstFrame?.contains("ActivityThread") == true -> "activityThread"
+            firstFrame?.contains("Instrumentation") == true -> "instrumentation"
+            firstFrame == null -> "none"
+            else -> "other"
+        })
+        put("senderOnCreateFrame", senderCrash?.contains("CrossPackageShareSender.onCreate") == true)
+        put("senderBitmapFrame", senderCrash?.contains("android.graphics.Bitmap") == true)
+        put("senderFileFrame", senderCrash?.contains("java.io.FileOutputStream") == true)
         put("unlockResumed", unlockResumed)
         put("homes", stages)
     }

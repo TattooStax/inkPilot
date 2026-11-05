@@ -37,6 +37,7 @@ class CrossPackageShareSender : Activity() {
             source.delete() // The hosted runner reads the bounded stage marker after this test.
         } else {
             stage.delete()
+            stage.writeText("entered")
             Bitmap.createBitmap(8, 8, Bitmap.Config.ARGB_8888).let { bitmap ->
                 source.outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }
                 bitmap.recycle()
