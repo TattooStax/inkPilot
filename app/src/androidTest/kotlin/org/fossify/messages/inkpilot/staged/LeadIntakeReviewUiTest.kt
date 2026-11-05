@@ -29,10 +29,15 @@ import org.junit.Assert.assertTrue
 import org.junit.Assume.assumeTrue
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.json.JSONArray
+import org.json.JSONObject
+import java.io.File
 import java.util.concurrent.Executor
 
 @RunWith(AndroidJUnit4::class)
 class LeadIntakeReviewUiTest : StudioDatabaseTestBase() {
+    private val snapshots = JSONArray()
+
     @Test fun stagedDialogCanSaveCorrectAndClearMissingQuestionsWithoutProductionEntry() {
         assumeTrue(Build.FINGERPRINT.contains("generic") || Build.MODEL.contains("sdk"))
         assumeTrue(!context.baseConfig.isAppPasswordProtectionOn && context.baseConfig.appPasswordHash.isEmpty())
@@ -51,16 +56,16 @@ class LeadIntakeReviewUiTest : StudioDatabaseTestBase() {
                 clickTarget("Maya · Not reviewed · Can I book a consultation?")
                 SmokeViews.clickText("Next")
                 clickTarget("Size")
-                assertTrue("Size choice did not become checked: ${choiceState("Size")}",
-                    findVisibleText(InstrumentationRegistry.getInstrumentation().uiAutomation.rootInActiveWindow,
-                        "Size")?.isChecked == true)
+                recordDiagnostic("SIZE_TAPPED")
                 SmokeViews.clickText("Save review")
+                recordDiagnostic("SAVE_CLICKED")
                 try {
                     SmokeViews.await("saved lead question") {
                         repository.leadIntakeTargets().single().reviewed
                             ?.takeIf { it.missingQuestions == setOf(LeadQuestion.SIZE) }
                     }
                 } catch (failure: AssertionError) {
+                    recordDiagnostic("SAVE_WAIT_EXPIRED")
                     val target = repository.leadIntakeTargets().single()
                     throw AssertionError("Review save failed: revision=${target.request.expectedRevision}, " +
                         "stored=${target.hasStoredReview}, missing=${target.reviewed?.missingQuestions}, " +
@@ -145,11 +150,32 @@ class LeadIntakeReviewUiTest : StudioDatabaseTestBase() {
         return null
     }
 
-    private fun choiceState(label: String): String {
-        val node = findVisibleText(InstrumentationRegistry.getInstrumentation().uiAutomation.rootInActiveWindow, label)
-        return "visible=${node?.isVisibleToUser}, checkable=${node?.isCheckable}, checked=${node?.isChecked}, " +
-            "parentCheckable=${node?.parent?.isCheckable}, parentChecked=${node?.parent?.isChecked}, " +
-            "controls=${visibleControls()}"
+    private fun recordDiagnostic(stage: String) {
+        val root = InstrumentationRegistry.getInstrumentation().uiAutomation.rootInActiveWindow
+        val size = findVisibleText(root, "Size")
+        val parent = size?.parent
+        val target = repository.leadIntakeTargets().single()
+        snapshots.put(JSONObject().apply {
+            put("stage", stage)
+            put("sizeClass", when (size?.className?.toString()) {
+                "android.widget.CheckedTextView" -> "CHECKED_TEXT"
+                "android.widget.TextView" -> "TEXT"
+                null -> "ABSENT"
+                else -> "OTHER"
+            })
+            put("sizeCheckable", size?.isCheckable == true)
+            put("sizeChecked", size?.isChecked == true)
+            put("parentCheckable", parent?.isCheckable == true)
+            put("parentChecked", parent?.isChecked == true)
+            put("revision", target.request.expectedRevision)
+            put("stored", target.hasStoredReview)
+            put("missing", JSONArray(target.reviewed?.missingQuestions?.map { it.name } ?: emptyList<String>()))
+            put("controls", JSONArray(visibleControls()))
+        })
+        File(context.filesDir, "device-test-evidence/staged-review.json").apply {
+            parentFile!!.mkdirs()
+            writeText(snapshots.toString())
+        }
     }
 
     private fun visibleControls(): List<String> {

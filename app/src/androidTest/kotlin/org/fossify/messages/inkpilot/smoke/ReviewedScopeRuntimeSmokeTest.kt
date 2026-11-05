@@ -56,7 +56,11 @@ class ReviewedScopeRuntimeSmokeTest {
                 val oldBody = "A staff-written synthetic test reply"
                 val write = HeldDraftWrite(DraftKey(priorHeld.eventId), priorHeld.threadId,
                     priorHeld.contactId, "+12025550132", priorHeld.expectedRevision, oldBody)
+                // holdIfCurrent enforces the drafting switch; create this fixture before
+                // pausing again for the staff review/revision transition.
+                repository.setDraftingEnabled(true)
                 assertTrue(repository.holdIfCurrent(write) is DraftStoreResult.Held)
+                repository.setDraftingEnabled(false)
                 val heldReview = repository.reviewLeadIntake(priorHeld, ReplyLanguage.EN,
                     setOf(LeadQuestion.PLACEMENT)) as LeadIntakeReviewResult.Saved
                 val queuedSource = repository.readSource(queued.eventId)
