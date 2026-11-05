@@ -65,7 +65,7 @@ class StudioStaffQuestionTest : StudioDatabaseTestBase() {
         repository.database.execSQL("""INSERT INTO held_drafts(draft_id,event_id,kind,thread_id,contact_id,
             recipient,source_revision,body,renderer_policy,created_at)
             VALUES('raw',?,'CUSTOMER_SERVICE_REPLY',?,?,?,?,'Old unsafe text','LEGACY_RAW',1000)""",
-            arrayOf(original.eventId, original.threadId, original.contactId, "+15551234567", original.expectedRevision))
+            arrayOf<Any>(original.eventId, original.threadId, original.contactId, "+15551234567", original.expectedRevision))
         val reviewed = (repository.reviewLeadIntake(original, ReplyLanguage.FR,
             setOf(LeadQuestion.REFERENCE)) as LeadIntakeReviewResult.Saved).request
         val id = (repository.holdStaffQuestion(reviewed, LeadQuestion.REFERENCE) as StaffQuestionResult.Held).draftId
