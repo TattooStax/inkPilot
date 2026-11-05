@@ -29,6 +29,21 @@ class StudioContactIdentityTest : StudioDatabaseTestBase() {
         assertTrue(lifecycle.registered)
     }
 
+    @Test fun blankNameOnExistingNumberPreservesStaffLabelAndRevision() {
+        val named = repository.upsertContact("+15550101111", "Maya")
+        val again = repository.upsertContact(named.number, "   ")
+        assertEquals(named.id, again.id)
+        assertEquals("Maya", again.displayName)
+        assertEquals(named.revision, again.revision)
+
+        repository.reviewAlias("+15550102222", "", named.id)
+        val afterReview = requireNotNull(repository.contact(named.id))
+        val alias = repository.upsertContact("+15550102222", "")
+        assertEquals(named.id, alias.id)
+        assertEquals("Maya", alias.displayName)
+        assertEquals(afterReview.revision, alias.revision)
+    }
+
     @Test fun countryCodeCandidatesRequireReviewWithoutMerging() {
         val local = repository.upsertContact("5551234567", "Local")
         val global = repository.upsertContact("+15551234567", "Global")

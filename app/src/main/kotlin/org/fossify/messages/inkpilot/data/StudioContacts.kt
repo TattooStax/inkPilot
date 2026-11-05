@@ -45,9 +45,10 @@ internal fun SQLiteDatabase.reviewedAddressContact(number: String): StudioContac
 internal fun SQLiteDatabase.upsertStudioContact(number: String, displayName: String): StudioContact {
     val normalized = canonicalStudioNumber(number)
     require(displayName.length <= 256) { "Contact name is too long" }
-    val name = displayName.trim().ifEmpty { normalized }
+    val label = displayName.trim()
     return transaction {
         val existing = reviewedAddressContact(normalized) ?: contactByNumber(normalized)
+        val name = label.ifEmpty { existing?.displayName ?: normalized }
         val id = existing?.id ?: UUID.randomUUID().toString()
         if (existing == null) {
             insertOrThrow("studio_contacts", null, ContentValues().apply {
