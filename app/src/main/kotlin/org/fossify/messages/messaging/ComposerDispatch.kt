@@ -28,6 +28,7 @@ fun ComposerStore.submit(
 internal fun ComposerStore.saveUnclaimed(request: OutgoingMessage): Boolean {
     if (isUnknown(request.threadId) || wasSubmitted(request)) return false
     val removed = load(request.threadId)?.attachmentUris.orEmpty() - request.attachmentUris.toSet()
+    if (!appContext.markSharedComposerImagesForDiscard(removed)) return false
     val saved = prefs.edit().putString(request.threadId.toString(), JSONObject()
         .put("attemptId", request.attemptId).put("recipient", request.recipient)
         .put("body", request.body).put("subscriptionId", request.subscriptionId)
