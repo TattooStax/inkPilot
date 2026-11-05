@@ -9,14 +9,7 @@ import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
-internal class StudioCalendarPanel(
-    private val host: StudioPanelHost,
-    private val store: StudioCalendarStore,
-    private val remindersAvailable: () -> Boolean = {
-        CalendarReminderGate.canPost(host.activity,
-            host.activity.getSystemService(android.app.NotificationManager::class.java))
-    },
-) {
+internal class StudioCalendarPanel(private val host: StudioPanelHost, private val store: StudioCalendarStore) {
     private var zone = ZoneId.systemDefault()
     private var day = LocalDate.now(zone)
     private var content = host.column()
@@ -52,10 +45,8 @@ internal class StudioCalendarPanel(
         val generation = ++renderGeneration
         content.removeAllViews()
         content.addView(host.text("Calendar", 22f))
-        if (!remindersAvailable()) {
-            content.addView(host.text("Reminders paused. Enable inkPilot notifications in Android settings. " +
-                "Saved reminders will retry.", 14f))
-        }
+        calendarReminderNotice(host, CalendarReminderGate.canPost(host.activity,
+            host.activity.getSystemService(android.app.NotificationManager::class.java)))?.let(content::addView)
         if (!zoneReady) {
             content.addView(host.text(if (zoneSaving) "Saving studio time zone…" else "Loading studio time zone…"))
             if (!zoneSaving) content.addView(host.button("Retry calendar") { loadZone() })
@@ -271,3 +262,8 @@ internal class StudioCalendarPanel(
         return if (hour in 0..23 && minute in 0..59) hour * 60 + minute else null
     }
 }
+
+/** Keep the disabled state visible while staff are using the calendar. */
+internal fun calendarReminderNotice(host: StudioPanelHost, available: Boolean): View? =
+    if (available) null else host.text("Reminders paused. Enable inkPilot notifications in Android settings. " +
+        "Saved reminders will retry.")
