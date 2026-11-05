@@ -6,6 +6,7 @@ import org.json.JSONObject
 
 /** Synchronous commit before dispatch: preserves human text, recipient, SIM and URI identity. */
 class ComposerStore(context: Context) {
+    internal val appContext = context.applicationContext
     private val lockFile = java.io.File(context.filesDir, "composer-dispatch.lock")
     internal fun <T> locked(block: () -> T): T = synchronized(processLock) {
         java.io.RandomAccessFile(lockFile, "rw").use { file -> file.channel.lock().use { block() } }
@@ -33,6 +34,9 @@ class ComposerStore(context: Context) {
         when (outcome) {
             is DispatchOutcome.Accepted -> {
                 markComposeCompleted(request.threadId)
+                // Keep the saved URI until its private copy is removed. A crash must not
+                // erase the only reference before cleanup after an accepted handoff.
+                appContext.discardSharedComposerImages(request.attachmentUris)
                 check(prefs.edit().remove(request.threadId.toString()).remove("unknown:${request.threadId}")
                     .remove("mms-failed:${request.threadId}").commit())
                 check(pendingFile(request.threadId).delete())
@@ -45,7 +49,15 @@ class ComposerStore(context: Context) {
         }
     }
     internal val prefs = context.getSharedPreferences("durable_composers", Context.MODE_PRIVATE)
-    init { locked { recoverMmsConfirmations() } }
+    init { locked { recoverMmsConfirmations(); recoverSharedMediaAfterCrash() } }
+    private fun recoverSharedMediaAfterCrash() {
+        val requests = try {
+            prefs.all.keys.mapNotNull { it.toLongOrNull() }.mapNotNull(::load)
+        } catch (_: Exception) { return } // An unreadable draft must never permit copy deletion.
+        val referenced = requests.flatMap(OutgoingMessage::attachmentUris)
+            .mapNotNull(appContext::ownedSharedComposerName).toSet()
+        appContext.recoverSharedComposerImages(referenced)
+    }
     fun save(request: OutgoingMessage): Boolean = locked { saveUnclaimed(request) }
     fun load(threadId: Long): OutgoingMessage? = prefs.getString(threadId.toString(), null)?.let {
         val json = JSONObject(it)
@@ -65,7 +77,12 @@ class ComposerStore(context: Context) {
     fun isUnknown(threadId: Long): Boolean = hasCompletedCompose(threadId) ||
         pendingFile(threadId).exists() || prefs.contains("unknown:$threadId") ||
         load(threadId)?.let(::wasSubmitted) == true
-    fun clear(threadId: Long) { pendingFile(threadId).delete(); check(prefs.edit().remove(threadId.toString())
-        .remove("unknown:$threadId").remove("mms-failed:$threadId").remove("mms-confirmed:$threadId").commit()) }
+    fun clear(threadId: Long) {
+        val media = load(threadId)?.attachmentUris.orEmpty()
+        pendingFile(threadId).delete()
+        check(prefs.edit().remove(threadId.toString()).remove("unknown:$threadId")
+            .remove("mms-failed:$threadId").remove("mms-confirmed:$threadId").commit())
+        appContext.discardSharedComposerImages(media)
+    }
     companion object { private val processLock = Any() }
 }

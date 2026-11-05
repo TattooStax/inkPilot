@@ -49,7 +49,7 @@ internal class ThreadComposer(private val activity: AppCompatActivity, private v
         recipient.addTextChangedListener(watcher); text.addTextChangedListener(watcher)
         val editable = mutableListOf<View>(recipient, text)
         uris.forEach { uri ->
-            val remove = StudioUi.button(activity, "Remove attachment: ${uri.lastPathSegment}") {
+            val remove = StudioUi.button(activity, "Remove attachment: ${activity.composerAttachmentName(uri)}") {
                 uris = uris - uri; persist(); refresh()
             }
             root.addView(remove)
