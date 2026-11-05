@@ -54,6 +54,7 @@ snapshot_work() {
   local location
   for location in no_backup/androidx.work.workdb databases/androidx.work.workdb; do
     if adb -s "$serial" exec-out run-as "$package" cat "$location" > "$temporary/work.db" 2>/dev/null; then
+      rm -f "$temporary/work.db-wal"
       adb -s "$serial" exec-out run-as "$package" cat "$location-wal" > "$temporary/work.db-wal" 2>/dev/null || :
       return 0
     fi
@@ -119,6 +120,20 @@ assert rows == [(0,)], rows  # One ENQUEUED job for the current revision.
 PY
   then requeued=1; break; fi
 done
-[[ $requeued == 1 ]] || { echo 'FAIL: closed-app wakeup did not persist one reminder.' >&2; exit 1; }
+if [[ $requeued != 1 ]]; then
+  snapshot_work
+  python3 - "$temporary/work.db" "$reminder_id" <<'PY'
+import sqlite3, sys
+db = sqlite3.connect(f'file:{sys.argv[1]}?mode=ro', uri=True)
+for label, name in (('periodic', 'studio-calendar-recovery-periodic'),
+                    ('one-time', f'studio-reminder:{sys.argv[2]}:0')):
+    rows = db.execute('''SELECT WorkSpec.state, WorkSpec.run_attempt_count
+        FROM WorkName JOIN WorkSpec ON WorkName.work_spec_id=WorkSpec.id
+        WHERE WorkName.name=?''', (name,)).fetchall()
+    print(f'REDACTED {label} state/attempt rows: {rows}')
+PY
+  echo 'FAIL: closed-app wakeup did not persist one active reminder.' >&2
+  exit 1
+fi
 echo 'PASS OS-dispatched recovery with the staff Activity closed'
 run_class StudioReminderClosedAppVerifyTest
