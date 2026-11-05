@@ -8,6 +8,7 @@ import java.util.UUID
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
+import android.os.SystemClock
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import org.fossify.messages.activities.*
@@ -23,6 +24,23 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 class ShellIngressTest {
     private val context get() = InstrumentationRegistry.getInstrumentation().targetContext
+
+    /** ActivityMonitor sees onCreate; route rendering happens when the shell resumes. */
+    private fun awaitRenderedTitle(activity: StudioHomeActivity, expected: String) {
+        val instrumentation = InstrumentationRegistry.getInstrumentation()
+        val deadline = SystemClock.uptimeMillis() + 5_000L
+        var actual = ""
+        do {
+            instrumentation.waitForIdleSync()
+            instrumentation.runOnMainSync {
+                actual = activity.findViewById<android.widget.TextView>(
+                    org.fossify.messages.R.id.inkpilot_title)?.text?.toString().orEmpty()
+            }
+            if (actual == expected) return
+            Thread.sleep(50)
+        } while (SystemClock.uptimeMillis() < deadline)
+        assertEquals(expected, actual)
+    }
 
     @Test fun shareAndSmsIntentsKeepSeparateRecipientsBodyAndGrantedMedia() {
         val a = Uri.parse("content://synthetic/reference-a")
@@ -77,14 +95,23 @@ class ShellIngressTest {
         assertNotEquals(compose.composerId, legacy.composerId)
     }
 
-    @Test fun oldExplicitComponentsResolveOnlyToNonvisualShim() {
+    @Test fun oldExplicitComponentsResolveToSecureIngressTargets() {
         val packageManager = context.packageManager
-        listOf(MainActivity::class.java, ThreadActivity::class.java, NewConversationActivity::class.java,
-            SettingsActivity::class.java, ArchivedConversationsActivity::class.java,
-            RecycleBinConversationsActivity::class.java, ConversationDetailsActivity::class.java).forEach { old ->
+        val aliases = listOf(
+            MainActivity::class.java to CompatibilityIngressActivity::class.java,
+            ThreadActivity::class.java to CompatibilityIngressActivity::class.java,
+            NewConversationActivity::class.java to CompatibilityIngressActivity::class.java,
+            SettingsActivity::class.java to SettingsIngressActivity::class.java,
+            ArchivedConversationsActivity::class.java to ArchiveIngressActivity::class.java,
+            RecycleBinConversationsActivity::class.java to RecycleIngressActivity::class.java,
+            ConversationDetailsActivity::class.java to DetailsIngressActivity::class.java,
+            VCardViewerActivity::class.java to VCardIngressActivity::class.java,
+        )
+        aliases.forEach { (old, target) ->
             @Suppress("DEPRECATION")
             val info = packageManager.getActivityInfo(ComponentName(context, old), 0)
-            assertEquals(CompatibilityIngressActivity::class.java.name, info.targetActivity)
+            assertEquals(target.name, info.targetActivity)
+            assertTrue(CompatibilityIngressActivity::class.java.isAssignableFrom(target))
         }
         assertEquals(StudioRoute.Thread(47), ExternalRouteParser.parse(Intent(context, ThreadActivity::class.java).putExtra(THREAD_ID, 47L)))
         assertEquals(StudioRoute.Auxiliary("archive"), ExternalRouteParser.parse(Intent(context, ArchivedConversationsActivity::class.java)))
@@ -103,25 +130,25 @@ class ShellIngressTest {
             old.send()
             val first = shell.waitForActivityWithTimeout(10_000) as StudioHomeActivity?
             assertNotNull(first)
+            awaitRenderedTitle(first!!, "Conversation")
             instrumentation.runOnMainSync {
-                assertNotNull(first!!.findViewById<android.view.View>(org.fossify.messages.R.id.inkpilot_home))
-                assertEquals("Conversation", first.findViewById<android.widget.TextView>(org.fossify.messages.R.id.inkpilot_title).text.toString())
+                assertNotNull(first.findViewById<android.view.View>(org.fossify.messages.R.id.inkpilot_home))
                 first.finish()
             }
             context.startActivity(Intent(context, SettingsActivity::class.java)
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK))
             val explicitSettings = shell.waitForActivityWithTimeout(10_000) as StudioHomeActivity?
             assertNotNull(explicitSettings)
+            awaitRenderedTitle(explicitSettings!!, "Settings")
             instrumentation.runOnMainSync {
-                assertEquals("Settings", explicitSettings!!.findViewById<android.widget.TextView>(org.fossify.messages.R.id.inkpilot_title).text.toString())
                 explicitSettings.finish()
             }
             context.startActivity(Intent(Intent.ACTION_APPLICATION_PREFERENCES).setPackage(context.packageName)
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK))
             val settings = shell.waitForActivityWithTimeout(10_000) as StudioHomeActivity?
             assertNotNull(settings)
+            awaitRenderedTitle(settings!!, "Settings")
             instrumentation.runOnMainSync {
-                assertEquals("Settings", settings!!.findViewById<android.widget.TextView>(org.fossify.messages.R.id.inkpilot_title).text.toString())
                 settings.onBackPressedDispatcher.onBackPressed()
                 assertEquals("SMS", settings.findViewById<android.widget.TextView>(org.fossify.messages.R.id.inkpilot_title).text.toString())
                 settings.finish()
@@ -130,8 +157,8 @@ class ShellIngressTest {
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK))
             val archive = shell.waitForActivityWithTimeout(10_000) as StudioHomeActivity?
             assertNotNull(archive)
+            awaitRenderedTitle(archive!!, "Archive")
             instrumentation.runOnMainSync {
-                assertEquals("Archive", archive!!.findViewById<android.widget.TextView>(org.fossify.messages.R.id.inkpilot_title).text.toString())
                 archive.onBackPressedDispatcher.onBackPressed()
                 assertEquals("SMS", archive.findViewById<android.widget.TextView>(org.fossify.messages.R.id.inkpilot_title).text.toString())
                 archive.finish()
@@ -140,8 +167,8 @@ class ShellIngressTest {
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK))
             val recycle = shell.waitForActivityWithTimeout(10_000) as StudioHomeActivity?
             assertNotNull(recycle)
+            awaitRenderedTitle(recycle!!, "Recycle")
             instrumentation.runOnMainSync {
-                assertEquals("Recycle", recycle!!.findViewById<android.widget.TextView>(org.fossify.messages.R.id.inkpilot_title).text.toString())
                 recycle.onBackPressedDispatcher.onBackPressed()
                 assertEquals("SMS", recycle.findViewById<android.widget.TextView>(org.fossify.messages.R.id.inkpilot_title).text.toString())
                 recycle.finish()
@@ -151,30 +178,24 @@ class ShellIngressTest {
             })
             val details = shell.waitForActivityWithTimeout(10_000) as StudioHomeActivity?
             assertNotNull(details)
-            instrumentation.runOnMainSync {
-                assertEquals("Details", details!!.findViewById<android.widget.TextView>(org.fossify.messages.R.id.inkpilot_title).text.toString())
-            }
+            awaitRenderedTitle(details!!, "Details")
             context.startActivity(Intent(context, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
-            instrumentation.waitForIdleSync()
-            instrumentation.runOnMainSync {
-                assertEquals("SMS", details!!.findViewById<android.widget.TextView>(org.fossify.messages.R.id.inkpilot_title).text.toString())
-                details.finish()
-            }
+            awaitRenderedTitle(details, "SMS")
+            instrumentation.runOnMainSync { details.finish() }
             context.startActivity(Intent(context, VCardViewerActivity::class.java)
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK))
             val vcard = shell.waitForActivityWithTimeout(10_000) as StudioHomeActivity?
             assertNotNull(vcard)
+            awaitRenderedTitle(vcard!!, "Contacts")
             instrumentation.runOnMainSync {
-                assertEquals("Contacts", vcard!!.findViewById<android.widget.TextView>(
-                    org.fossify.messages.R.id.inkpilot_title).text.toString())
                 vcard.finish()
             }
             context.startActivity(Intent(context, MainActivity::class.java)
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK))
             val up = shell.waitForActivityWithTimeout(10_000) as StudioHomeActivity?
             assertNotNull(up)
+            awaitRenderedTitle(up!!, "SMS")
             instrumentation.runOnMainSync {
-                assertEquals("SMS", up!!.findViewById<android.widget.TextView>(org.fossify.messages.R.id.inkpilot_title).text.toString())
                 up.finish()
             }
             instrumentation.runOnMainSync {

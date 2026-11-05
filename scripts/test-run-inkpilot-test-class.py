@@ -15,7 +15,7 @@ class RunnerContract(unittest.TestCase):
         self.temp = tempfile.TemporaryDirectory(dir=os.environ.get('TMPDIR'))
         self.root = Path(self.temp.name)
         (self.root / 'scripts').mkdir()
-        for name in ('run-inkpilot-test-class.sh', 'inkpilot-sms-role-preflight.sh', 'inkpilot-device-result.py'):
+        for name in ('run-inkpilot-test-class.sh', 'inkpilot-shell-baseline.sh', 'inkpilot-sms-role-preflight.sh', 'inkpilot-device-result.py'):
             shutil.copy2(ROOT / 'scripts' / name, self.root / 'scripts' / name)
         self.app = self.root / 'app/build/outputs/apk/foss/debug/app.apk'
         self.tests = self.root / 'app/build/outputs/apk/androidTest/foss/debug/test.apk'
@@ -37,6 +37,9 @@ if sys.argv[3:] == ['shell', 'cmd', 'role', 'get-role-holders', '--user', '0', '
 if sys.argv[3:] == ['shell', 'appops', 'get', 'app.inkpilot.android.debug', 'WRITE_SMS']:
     print('Uid mode: WRITE_SMS: allow')
 if 'instrument' in sys.argv:
+    if os.environ.get('FAKE_FAILED_CLASS') in sys.argv:
+        print('FAILURES!!!')
+        sys.exit(0)
     print(os.environ.get('INSTRUMENT_RESULT', 'OK (1 test)'))
     sys.exit(int(os.environ.get('ADB_EXIT', '0')))
 ''')
@@ -116,6 +119,33 @@ if 'instrument' in sys.argv:
         verdict = self.root / 'app/build/test-class-evidence/a.b.Test/result.txt'
         self.assertNotIn('synthetic-secret-body', verdict.read_text())
         self.assertIn('ShellBaselineTest.kt:84', verdict.read_text())
+
+    def test_shell_keeps_later_class_evidence_after_an_assertion_failure(self):
+        first = 'org.fossify.messages.inkpilot.data.LegacyFirstLaunchTest'
+        last = 'org.fossify.messages.transport.BridgeHistoryTest'
+        self.env['FAKE_FAILED_CLASS'] = first
+        result = subprocess.run(['bash', 'scripts/inkpilot-shell-baseline.sh'], cwd=self.root,
+                                env=self.env, capture_output=True, text=True, timeout=120)
+        self.assertEqual(1, result.returncode, result.stderr)
+        self.assertIn(first, result.stderr)
+        self.assertTrue((self.root / f'app/build/test-class-evidence/{first}/result.txt')
+                        .read_text().startswith('FAIL '))
+        self.assertEqual(f'PASS {last}\n', (self.root / f'app/build/test-class-evidence/{last}/result.txt').read_text())
+        instruments = [call for call in self.calls() if 'instrument' in call]
+        self.assertIn(first, instruments[0])
+        self.assertIn(last, instruments[-1])
+
+    def test_shell_stops_on_instrumentation_timeout(self):
+        fake_timeout = self.root / 'timeout'
+        fake_timeout.write_text('#!/bin/sh\nexit 124\n')
+        fake_timeout.chmod(0o755)
+        result = subprocess.run(['bash', 'scripts/inkpilot-shell-baseline.sh'], cwd=self.root,
+                                env=self.env, capture_output=True, text=True, timeout=30)
+        self.assertEqual(2, result.returncode, result.stderr)
+        first = 'org.fossify.messages.inkpilot.data.LegacyFirstLaunchTest'
+        last = 'org.fossify.messages.transport.BridgeHistoryTest'
+        self.assertIn('instrumentation timeout', (self.root / f'app/build/test-class-evidence/{first}/result.txt').read_text())
+        self.assertFalse((self.root / f'app/build/test-class-evidence/{last}/result.txt').exists())
 
     def test_failures_are_nonzero(self):
         for output, code in [('FAILURES!!!', '0'), ('OK (0 tests)', '0'),

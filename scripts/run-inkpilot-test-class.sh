@@ -19,17 +19,22 @@ if [[ ${#apks[@]} -ne 1 || ${#tests[@]} -ne 1 ]]; then
   echo 'Expected exactly one foss debug APK and one instrumentation APK; build them first.' >&2
   exit 2
 fi
-[[ $(adb -s "$serial" get-state) == device ]]
+[[ $(adb -s "$serial" get-state) == device ]] || { echo 'Emulator unavailable' >&2; exit 2; }
 [[ $(adb -s "$serial" shell getprop ro.kernel.qemu | tr -d '\r') == 1 ]] || { echo 'Test runner requires a disposable emulator' >&2; exit 2; }
-adb -s "$serial" install -r "${apks[0]}"
-adb -s "$serial" install -r "${tests[0]}"
-scripts/inkpilot-sms-role-preflight.sh "$serial" app.inkpilot.android.debug
+adb -s "$serial" install -r "${apks[0]}" || { echo 'App installation failed' >&2; exit 2; }
+adb -s "$serial" install -r "${tests[0]}" || { echo 'Test installation failed' >&2; exit 2; }
+scripts/inkpilot-sms-role-preflight.sh "$serial" app.inkpilot.android.debug || { echo 'SMS role preflight failed' >&2; exit 2; }
 # Keep only a redacted verdict; raw assertions stay in a private temporary file.
 result=$(mktemp)
 trap 'rm -f "$result"' EXIT
-if timeout 600 adb -s "$serial" shell am instrument -w -e class "$class" \
-  app.inkpilot.android.debug.test/androidx.test.runner.AndroidJUnitRunner > "$result" 2>&1 && \
-  python3 scripts/inkpilot-device-result.py "$result" > /dev/null 2>&1; then
+status=0
+timeout 600 adb -s "$serial" shell am instrument -w -e class "$class" \
+  app.inkpilot.android.debug.test/androidx.test.runner.AndroidJUnitRunner > "$result" 2>&1 || status=$?
+if ((status == 124 || status == 137)); then
+  printf 'FAIL %s (instrumentation timeout; raw output withheld)\n' "$class" | tee "$evidence/result.txt" >&2
+  exit 2
+fi
+if ((status == 0)) && python3 scripts/inkpilot-device-result.py "$result" > /dev/null 2>&1; then
   printf 'PASS %s\n' "$class" | tee "$evidence/result.txt"
 else
   # Only a Kotlin test filename and line number may leave the temporary raw
