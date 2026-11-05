@@ -21,6 +21,9 @@ internal class DraftPanel(
         val body = StudioUi.column(activity)
         body.addView(StudioUi.text(activity, "Drafts and staff replies", TITLE_SIZE, true))
         body.addView(StudioUi.text(activity, "Nothing sends until a staff member reviews and approves it.", NOTE_SIZE))
+        body.addView(StudioUi.button(activity, "Review lead questions") {
+            LeadIntakeReviewUi(activity, repository, work, refresh).open()
+        })
         body.addView(StudioUi.button(activity, "Refresh", refresh))
         val list = StudioUi.column(activity, 0).apply { id = R.id.inkpilot_draft_list }
         body.addView(list)

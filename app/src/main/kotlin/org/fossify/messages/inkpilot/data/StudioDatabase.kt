@@ -6,13 +6,14 @@ import android.database.sqlite.SQLiteException
 import android.database.sqlite.SQLiteOpenHelper
 import org.fossify.messages.inkpilot.studio.StudioFeatureSchema
 
-private const val STUDIO_SCHEMA_VERSION = 7
+private const val STUDIO_SCHEMA_VERSION = 8
 private const val STUDIO_V1 = 1
 private const val STUDIO_V2 = 2
 private const val STUDIO_V3 = 3
 private const val STUDIO_V4 = 4
 private const val STUDIO_V5 = 5
 private const val STUDIO_V6 = 6
+private const val STUDIO_V7 = 7
 
 /** Business records are never placed in the inherited, destructively rebuildable SMS cache. */
 internal class StudioDatabase(context: Context, name: String) :
@@ -115,10 +116,11 @@ internal class StudioDatabase(context: Context, name: String) :
         org.fossify.messages.inkpilot.studio.StudioImageLinkSchema.create(db)
         org.fossify.messages.inkpilot.studio.StudioCalendarSchema.create(db)
         StudioProposalSchema.create(db)
+        StudioLeadIntakeSchema.create(db)
     }
 
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
-        if (oldVersion !in STUDIO_V1..STUDIO_V6 || newVersion != STUDIO_SCHEMA_VERSION) {
+        if (oldVersion !in STUDIO_V1..STUDIO_V7 || newVersion != STUDIO_SCHEMA_VERSION) {
             throw SQLiteException("No studio migration from $oldVersion to $newVersion")
         }
         if (oldVersion <= STUDIO_V5) {
@@ -128,7 +130,8 @@ internal class StudioDatabase(context: Context, name: String) :
             if (oldVersion <= STUDIO_V4) org.fossify.messages.inkpilot.studio.StudioCalendarSchema.upgrade(db)
             StudioProposalSchema.create(db)
         }
-        StudioStaffAttentionSchema.create(db)
+        if (oldVersion <= STUDIO_V6) StudioStaffAttentionSchema.create(db)
+        StudioLeadIntakeSchema.create(db)
     }
 
     companion object { private val openLock = Any() }

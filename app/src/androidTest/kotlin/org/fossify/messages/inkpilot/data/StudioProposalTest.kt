@@ -191,7 +191,7 @@ class StudioProposalTest : StudioDatabaseTestBase() {
         repository.database.execSQL("DROP TABLE staff_attention")
         repository.database.version = 5
         reopen()
-        assertEquals(7, repository.database.version)
+        assertEquals(8, repository.database.version)
         assertNotNull(repository.readSource(scope.eventId))
         assertTrue(repository.proposals().isEmpty())
         assertEquals(1, repository.pendingRequests().size)

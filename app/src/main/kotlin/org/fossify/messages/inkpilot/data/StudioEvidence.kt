@@ -14,5 +14,6 @@ internal fun SQLiteDatabase.studioDraftEvidence(request: DraftRequest): DraftEvi
     val source = studioSource(request.eventId) ?: return@transaction null
     if (source.eventId != request.eventId || source.contactId != request.contactId ||
         source.threadId != request.threadId) return@transaction null
-    DraftEvidence(request, source, studioMemory(source.contactId), studioSoul())
+    DraftEvidence(request, source, studioMemory(source.contactId), studioSoul(),
+        reviewedLeadIntake = studioLeadIntake(source))
 }
