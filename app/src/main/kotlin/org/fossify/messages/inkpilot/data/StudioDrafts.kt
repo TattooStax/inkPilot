@@ -47,7 +47,7 @@ internal fun SQLiteDatabase.holdStudioDraft(write: HeldDraftWrite): DraftStoreRe
             } else DraftStoreResult.SourceChanged
         }
         if (rawQuery("SELECT 1 FROM send_claims s JOIN held_drafts d ON d.draft_id = s.draft_id WHERE d.event_id = ?", arrayOf(write.key.eventId)).use { it.moveToFirst() }) return@transaction DraftStoreResult.SourceChanged
-        if (rawQuery("SELECT 1 FROM held_drafts WHERE event_id=? AND kind='PROPOSAL_REPLY' AND state='HELD'",
+        if (rawQuery("SELECT 1 FROM held_drafts WHERE event_id=? AND kind IN ('PROPOSAL_REPLY','STAFF_QUESTION') AND state='HELD'",
                 arrayOf(write.key.eventId)).use { it.moveToFirst() }) return@transaction DraftStoreResult.SourceChanged
         val historyNeedsAuthorization = rawQuery(
             "SELECT 1 FROM held_drafts WHERE event_id = ? AND kind = ? AND NOT EXISTS (SELECT 1 FROM draft_regenerations WHERE event_id = ? AND source_revision = ?)",
@@ -76,8 +76,10 @@ internal fun SQLiteDatabase.reviewStudioDrafts(heldOnly: Boolean = true, limit: 
             SELECT d.draft_id, d.event_id, d.thread_id, d.contact_id, d.recipient, c.display_name,
                    e.body, d.body, d.source_revision, e.subscription_id, d.created_at,
                    (d.state = 'HELD' AND ${StudioDraftPolicySchema.REVIEWABLE} AND c.paused = 0 AND c.revision = d.source_revision AND c.latest_event_id = d.event_id
-                    AND (SELECT drafting_enabled FROM agent_settings WHERE id = 1) = 1),
-                   d.state, s.body, d.staff_edit_body, d.renderer_policy
+                    AND NOT EXISTS (SELECT 1 FROM staff_attention a WHERE a.event_id=d.event_id AND a.resolution='STAFF_HANDLED')
+                    AND (d.staff_question_policy = 'STAFF_QUESTION_V1' OR
+                         (SELECT drafting_enabled FROM agent_settings WHERE id = 1) = 1)),
+                   d.state, s.body, d.staff_edit_body, ${StudioDraftPolicySchema.EFFECTIVE_POLICY}
             FROM held_drafts d JOIN studio_contacts c ON c.id = d.contact_id
             JOIN inbound_events e ON e.event_id = d.event_id LEFT JOIN send_claims s ON s.draft_id = d.draft_id
             WHERE $condition$filter ORDER BY d.created_at DESC, d.draft_id LIMIT ?

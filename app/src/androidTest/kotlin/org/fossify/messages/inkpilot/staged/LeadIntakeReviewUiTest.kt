@@ -49,7 +49,7 @@ class LeadIntakeReviewUiTest : StudioDatabaseTestBase() {
                 scenario.onActivity { activity ->
                     val screen = DraftPanel(activity, repository,
                         StudioWork(activity, Executor { it.run() }), refresh = {}).view()
-                    assertFalse(hasText(screen, "Review lead questions"))
+                    assertTrue(hasText(screen, "Review lead questions"))
                     activity.setContentView(screen)
                 }
                 openStagedDialog(scenario)
@@ -204,7 +204,7 @@ class LeadIntakeReviewUiTest : StudioDatabaseTestBase() {
         val root = InstrumentationRegistry.getInstrumentation().uiAutomation.rootInActiveWindow
         return listOf("Next", "Size", "Placement", "Save review", "Clear review", "Close", "Cancel",
             "Select at least one missing detail, or clear the review.",
-            "Review saved for a future drafting option. Current drafts do not use it.",
+            "Review saved. Choose one missing detail in the conversation to prepare a held staff question.",
             "That conversation changed. Open it and review the latest message.")
             .filter { findVisibleText(root, it) != null }
     }

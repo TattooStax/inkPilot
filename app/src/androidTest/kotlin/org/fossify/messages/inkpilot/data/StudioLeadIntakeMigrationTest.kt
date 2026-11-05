@@ -17,7 +17,7 @@ class StudioLeadIntakeMigrationTest : StudioDatabaseTestBase() {
         repository.database.execSQL("DROP TABLE lead_intake_reviews")
         repository.database.version = 7
         reopen()
-        assertEquals(10, repository.database.version)
+        assertEquals(11, repository.database.version)
         assertEquals(existing.body, repository.draft(existing.draftId)?.body)
         assertNull(repository.readEvidence(request)?.reviewedLeadIntake)
         val saved = repository.reviewLeadIntake(request, ReplyLanguage.EN,

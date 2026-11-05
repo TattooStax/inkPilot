@@ -42,7 +42,7 @@ class StudioDraftPolicyMigrationTest {
             }
             repeat(2) {
                 StudioRepository(context, name).use { repository ->
-                    assertEquals(10, repository.database.version)
+                    assertEquals(11, repository.database.version)
                     val receipt = requireNotNull(repository.findHeldDraft(DraftKey("e")))
                     assertEquals(DraftRendererPolicy.LEGACY_RAW, receipt.rendererPolicy)
                     val old = requireNotNull(repository.draft("old"))

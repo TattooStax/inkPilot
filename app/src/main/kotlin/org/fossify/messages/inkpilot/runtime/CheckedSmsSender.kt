@@ -20,7 +20,11 @@ internal fun StudioRepository.heldDraftForSend(draftId: String) =
 internal class CheckedSmsSender(private val context: Context) {
     fun approveAndSend(draftId: String, editedBody: String, subscriptionId: Int): String {
         require(editedBody.isNotBlank() && editedBody.length <= 800) { "Replies must be between 1 and 800 characters." }
-        check(AgentSettings(context).enabled) { "Model drafts are unqualified. Reply directly in the conversation." }
+        val draft = StudioRepository(context).use { it.heldDraftForSend(draftId) }
+            ?: error("This draft is no longer waiting for approval.")
+        if (draft.rendererPolicy != inkpilot.agent.DraftRendererPolicy.STAFF_QUESTION_V1) {
+            check(AgentSettings(context).enabled) { "Model drafts are unqualified. Reply directly in the conversation." }
+        }
         check(org.fossify.messages.helpers.SmsRole.isHeld(context)) { "Make inkPilot the default SMS app first." }
         for (permission in listOf(Manifest.permission.SEND_SMS, Manifest.permission.READ_PHONE_STATE)) {
             check(ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED) { "Allow SMS and phone permissions first." }
@@ -32,8 +36,6 @@ internal class CheckedSmsSender(private val context: Context) {
         val parts = manager.divideMessage(editedBody)
         require(parts.size in 1..32) { "This reply cannot be sent as SMS." }
         StudioRepository(context).use { repository ->
-            val draft = repository.heldDraftForSend(draftId)
-                ?: error("This draft is no longer waiting for approval.")
             val claim = repository.claimDraftForSend(draftId, draft.body, editedBody, subscriptionId)
                 ?: error("This conversation changed or was paused. Review it again before sending.")
             var invoked = false

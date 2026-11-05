@@ -266,6 +266,9 @@ class StudioHomeActivity : AppCompatActivity() {
                     root.addView(review.view(draft), index)
                 }
             }
+            root.addView(StudioUi.button(this, "Ask a lead question") {
+                StaffQuestionUi(this, repository, work, ::refreshPanels, ::openRoute).open(threadId)
+            })
             root.addView(ThreadComposer(this, work, ::pickAttachment, ::refreshPanels, ::openRoute,
                 composerRoutes::acceptedThread).view(threadId))
         } else {

@@ -27,6 +27,8 @@ internal fun SQLiteDatabase.regenerateStudioDraft(
         if (source.staffPaused || source.revision != expectedRevision || staffHandledSource(eventId)) {
             return@transaction DraftRegenerationOutcome.Stale
         }
+        if (rawQuery("SELECT 1 FROM held_drafts WHERE event_id=? AND kind='STAFF_QUESTION' AND state='HELD'",
+                arrayOf(eventId)).use { it.moveToFirst() }) return@transaction DraftRegenerationOutcome.Stale
         if (!allowStoredLeadReview && hasStoredLeadIntake(eventId)) {
             return@transaction DraftRegenerationOutcome.ReviewScopeUnavailable
         }

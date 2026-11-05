@@ -168,6 +168,9 @@ class StudioProposalStore(private val repository: StudioRepository) {
     }
 
     private fun applyDraftReply(item: StudioProposal, payload: ProposalPayload.DraftReply, recipient: String): ProposalActionResult {
+        if (db.rawQuery("SELECT 1 FROM held_drafts WHERE event_id=? AND kind='STAFF_QUESTION' AND state='HELD'",
+                arrayOf(item.eventId)).use { it.moveToFirst() })
+            return ProposalActionResult.Conflict("Dismiss the held staff question before choosing another reply")
         if (db.rawQuery("""SELECT 1 FROM send_claims s JOIN held_drafts d ON d.draft_id=s.draft_id
             WHERE d.event_id=? LIMIT 1""", arrayOf(item.eventId)).use { it.moveToFirst() })
             return ProposalActionResult.Conflict("A reply has already been sent or claimed")

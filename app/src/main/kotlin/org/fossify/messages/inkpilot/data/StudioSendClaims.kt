@@ -11,6 +11,7 @@ private const val CLAIM_THREAD_COLUMN = 4
 private const val CLAIM_CONTACT_COLUMN = 5
 private const val CLAIM_RECIPIENT_COLUMN = 6
 private const val CLAIM_STAFF_EDIT_COLUMN = 7
+private const val CLAIM_POLICY_COLUMN = 8
 
 private fun Cursor.matchesHeldClaim(expectedBody: String, editedBody: String): Boolean =
     moveToFirst() && getString(CLAIM_STATE_COLUMN) == "HELD" && getString(1) == expectedBody &&
@@ -29,13 +30,16 @@ internal fun SQLiteDatabase.claimStudioDraft(
     return transaction {
         rawQuery(
             """SELECT d.event_id, d.body, d.source_revision, d.state, d.thread_id, d.contact_id,
-                d.recipient, d.staff_edit_body FROM held_drafts d
+                d.recipient, d.staff_edit_body, ${StudioDraftPolicySchema.EFFECTIVE_POLICY} FROM held_drafts d
                 WHERE d.draft_id = ? AND ${StudioDraftPolicySchema.REVIEWABLE}""",
             arrayOf(draftId),
         ).use {
             if (!it.matchesHeldClaim(expectedBody, editedBody)) return@transaction null
             val source = studioSource(it.getString(0)) ?: return@transaction null
-            if (!it.matchesClaimSource(source)) return@transaction null
+            val scopedSource = if (it.getString(CLAIM_POLICY_COLUMN) == "STAFF_QUESTION_V1")
+                source.copy(staffPaused = studioContact(source.contactId)?.paused != false)
+            else source
+            if (!it.matchesClaimSource(scopedSource) || staffHandledSource(source.eventId)) return@transaction null
             if (rawQuery("""SELECT 1 FROM send_claims s JOIN held_drafts d ON d.draft_id=s.draft_id
                 WHERE d.event_id=? LIMIT 1""", arrayOf(it.getString(0))).use { claim -> claim.moveToFirst() })
                 return@transaction null

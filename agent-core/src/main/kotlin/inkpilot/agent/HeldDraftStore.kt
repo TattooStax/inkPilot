@@ -3,7 +3,7 @@ package inkpilot.agent
 enum class DraftKind { CUSTOMER_SERVICE_REPLY }
 
 /** LEGACY_RAW includes every row written before the policy-version migration. */
-enum class DraftRendererPolicy { LEGACY_RAW, BOUNDED_INTENT_V1, STAFF_PROPOSAL_V1 }
+enum class DraftRendererPolicy { LEGACY_RAW, BOUNDED_INTENT_V1, STAFF_PROPOSAL_V1, STAFF_QUESTION_V1 }
 
 data class DraftKey(val eventId: String, val kind: DraftKind = DraftKind.CUSTOMER_SERVICE_REPLY)
 

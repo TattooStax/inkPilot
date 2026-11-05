@@ -10,6 +10,7 @@ import org.fossify.messages.inkpilot.data.StudioRepository
 import org.fossify.messages.inkpilot.data.clearLeadIntake
 import org.fossify.messages.inkpilot.data.leadIntakeTargets
 import org.fossify.messages.inkpilot.data.reviewLeadIntake
+import org.fossify.messages.inkpilot.data.staffQuestionTarget
 import org.fossify.messages.inkpilot.runtime.AgentRuntime
 
 /** Staff chooses missing fields; the model can never issue or edit this review. */
@@ -42,6 +43,13 @@ internal class LeadIntakeReviewUi(
             AlertDialog.Builder(activity).setTitle("Review lead questions")
                 .setItems(labels) { _, index -> chooseLanguage(targets[index]) }
                 .setNegativeButton("Close", null).show()
+        }
+    }
+
+    fun openForThread(threadId: Long) {
+        work.load({ repository.staffQuestionTarget(threadId) }) { target ->
+            if (target == null) StudioUi.error(activity, "The client message changed or cannot be reviewed.")
+            else chooseLanguage(target)
         }
     }
 
@@ -90,8 +98,8 @@ internal class LeadIntakeReviewUi(
     private fun finish(result: LeadIntakeReviewResult) {
         StudioUi.error(activity, when (result) {
             is LeadIntakeReviewResult.Saved -> if (AgentRuntime.BOUNDED_INTENT_QUALIFIED)
-                "Lead questions saved. Generate a held draft for staff review; nothing was sent."
-            else "Review saved for a future drafting option. Current drafts do not use it."
+                "Lead questions saved. Choose one question in the conversation; nothing was sent."
+            else "Review saved. Choose one missing detail in the conversation to prepare a held staff question."
             LeadIntakeReviewResult.Stale -> "That conversation changed. Open it and review the latest message."
         })
         refresh()

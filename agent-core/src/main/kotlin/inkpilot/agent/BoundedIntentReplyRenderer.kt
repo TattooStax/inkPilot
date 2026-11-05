@@ -41,6 +41,10 @@ object BoundedIntentReplyRenderer : DraftReplyRenderer {
         ),
     )
 
+    /** The same closed vocabulary is usable when staff, rather than a model, selects a detail. */
+    fun staffQuestion(language: ReplyLanguage, question: LeadQuestion): String =
+        checkNotNull(templates[language]?.get(question))
+
     private fun reviewedScope(evidence: DraftEvidence?): ReviewedLeadIntake? {
         val packet = evidence ?: return null
         val scope = packet.reviewedLeadIntake ?: return null

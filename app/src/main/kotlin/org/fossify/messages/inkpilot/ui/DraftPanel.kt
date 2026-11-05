@@ -25,11 +25,9 @@ internal class DraftPanel(
         val body = StudioUi.column(activity)
         body.addView(StudioUi.text(activity, "Drafts and staff replies", TITLE_SIZE, true))
         body.addView(StudioUi.text(activity, "Nothing sends until a staff member reviews and approves it.", NOTE_SIZE))
-        if (AgentRuntime.BOUNDED_INTENT_QUALIFIED) {
-            body.addView(StudioUi.button(activity, "Review lead questions") {
-                LeadIntakeReviewUi(activity, repository, work, refresh).open()
-            })
-        }
+        body.addView(StudioUi.button(activity, "Review lead questions") {
+            LeadIntakeReviewUi(activity, repository, work, refresh).open()
+        })
         body.addView(StudioUi.button(activity, "Refresh", refresh))
         val list = StudioUi.column(activity, 0).apply { id = R.id.inkpilot_draft_list }
         body.addView(list)
@@ -82,7 +80,7 @@ internal class DraftPanel(
 
     private fun renderDrafts(list: LinearLayout, drafts: List<ReviewDraft>) {
         if (drafts.isNotEmpty()) {
-            val title = if (AgentRuntime.BOUNDED_INTENT_QUALIFIED) "Drafts to review"
+            val title = if (drafts.any(::reviewableInUi)) "Drafts to review"
                 else "Earlier drafts and send history"
             list.addView(StudioUi.text(activity, title, SECTION_SIZE, true))
         }
@@ -96,7 +94,7 @@ internal class DraftPanel(
             maxLines = MESSAGE_LINES
         })
         list.addView(StudioUi.text(activity, draft.sendBody ?: draft.staffEditBody ?: draft.body, DRAFT_SIZE))
-        val canReview = draft.canReview && AgentRuntime.BOUNDED_INTENT_QUALIFIED
+        val canReview = reviewableInUi(draft)
         list.addView(StudioUi.text(activity, statusText(draft, canReview), DETAIL_SIZE))
         renderDraftActions(list, draft, canReview)
         list.addView(StudioUi.rule(activity))
@@ -110,7 +108,7 @@ internal class DraftPanel(
         }
         if (draft.status == "HELD") {
             if (!canReview && AgentRuntime.BOUNDED_INTENT_QUALIFIED &&
-                draft.rendererPolicy != DraftRendererPolicy.LEGACY_RAW) {
+                draft.rendererPolicy == DraftRendererPolicy.BOUNDED_INTENT_V1) {
                 list.addView(StudioUi.button(activity, "Regenerate with current memory") {
                     work.load({
                         val source = repository.readSource(draft.eventId)
@@ -138,6 +136,9 @@ internal class DraftPanel(
     private fun statusText(draft: ReviewDraft, current: Boolean) = when (draft.status) {
         "HELD" -> if (draft.rendererPolicy == DraftRendererPolicy.LEGACY_RAW)
             "Earlier unqualified draft. Reply directly or dismiss; it cannot be regenerated."
+        else if (draft.rendererPolicy == DraftRendererPolicy.STAFF_QUESTION_V1)
+            if (current) "Staff question ready for review" else
+                "Out of date or paused — dismiss and review the conversation."
         else if (!AgentRuntime.BOUNDED_INTENT_QUALIFIED)
             "Model drafting is off. Reply directly in the conversation."
         else if (current) "Ready for staff review" else
