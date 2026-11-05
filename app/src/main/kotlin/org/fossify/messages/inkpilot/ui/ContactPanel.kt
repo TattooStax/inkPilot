@@ -79,7 +79,10 @@ internal class ContactPanel(
         body.addView(StudioUi.button(activity, "Forget memory") {
             AlertDialog.Builder(activity).setMessage("Remove this client's stored memory?")
                 .setNegativeButton("Cancel", null).setPositiveButton("Forget") { _, _ ->
-                    work.load({ repository.forgetMemory(contact.id) }) { memory.setText(""); refresh() }
+                    // Retire the editor before enqueueing removal. Its stale Save action must
+                    // never run after the queued forget transaction and restore old memory.
+                    dialog.dismiss()
+                    work.load({ repository.forgetMemory(contact.id) }) { refresh() }
                 }.show()
         })
         body.addView(StudioUi.button(activity, "Export memory") {
