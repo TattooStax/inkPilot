@@ -59,6 +59,7 @@ run_class org.fossify.messages.inkpilot.data.ScheduledIdentityLifecycleTest
 run_class org.fossify.messages.inkpilot.data.StudioCrossThreadAttentionTest
 run_class org.fossify.messages.inkpilot.data.StudioContactIdentityTest
 run_class org.fossify.messages.inkpilot.ui.ContactForgetUiTest
+run_class org.fossify.messages.inkpilot.ui.BlockedKeywordsShellTest
 run_class org.fossify.messages.inkpilot.ui.ContactSaveFailureUiTest
 run_class org.fossify.messages.inkpilot.ui.ContactEditRotationUiTest
 run_class org.fossify.messages.inkpilot.ui.ContactOpenRouteUiTest

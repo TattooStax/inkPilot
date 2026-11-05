@@ -28,7 +28,8 @@ internal fun routeTitle(route: StudioRoute, tab: StudioTab): String = when (rout
     is StudioRoute.Attachment -> "Attachment"
     is StudioRoute.ImageLinks -> "Client References"
     is StudioRoute.Settings -> "Settings"
-    is StudioRoute.Auxiliary -> route.key.substringBefore(':').replaceFirstChar { it.uppercase() }
+    is StudioRoute.Auxiliary -> if (route.key == "blocked_keywords") "Blocked keywords"
+        else route.key.substringBefore(':').replaceFirstChar { it.uppercase() }
     else -> "Assistant"
 }
 
@@ -50,6 +51,8 @@ internal fun auxiliaryCanvas(
     StudioRoute.Auxiliary("archive") -> auxiliary.archive()
     StudioRoute.Auxiliary("recycle") -> auxiliary.recycle()
     StudioRoute.Auxiliary("search") -> auxiliary.search()
+    StudioRoute.Auxiliary("blocked_keywords") ->
+        BlockedKeywordsPanel(activity, refresh, activity.blockedKeywordEditState).view()
     is StudioRoute.Auxiliary -> auxiliaryDetail(auxiliary, route.key)
     StudioRoute.Soul -> agent.soul()
     StudioRoute.Model -> agent.model()

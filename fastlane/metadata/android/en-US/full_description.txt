@@ -1,7 +1,5 @@
-inkPilot combines SMS, MMS, contacts, a studio reference gallery, and a local calendar in one Android app for tattoo studios.
+inkPilot combines SMS, MMS, contacts, a studio reference gallery, a local calendar, and manual calling in one Android app for tattoo studios.
 
-Compatible LFM3 weights are imported by staff. Reply suggestions are generated on the device and held for staff to review, edit, or reject. The model cannot choose a recipient or send a message. Staff explicitly choose a SIM and approve each agent reply. Some model suggestions may be wrong; check every detail before sending or booking.
+Messages use the phone's carrier, and MMS requires mobile data. Staff control recipients and sends. Studio records and imported reference images are stored on the device. The Studio archive exports its database, including agent settings and copies of some message text; it does not include the phone's SMS/MMS history or imported model weights. Archive import and restore are not yet available.
 
-SMS and MMS use the phone's carrier. MMS requires mobile data. An optional companion bridge can use a network connection when staff enable it; the standalone local assistant does not require that bridge. The manual Phone screen handles user-controlled calls. AI answering of cellular calls is not supported.
-
-Studio records remain on the device. A complete studio backup and restore flow is still being qualified; keep a separate business archive before relying on this app. The app is open source at https://github.com/TattooStax/inkPilot.
+The optional LFM3 reply assistant is currently disabled while its exact local model and safety checks are qualified. It cannot answer cellular calls. An optional companion bridge can use a network connection when staff enable it; it is off by default. The app is open source at https://github.com/TattooStax/inkPilot.

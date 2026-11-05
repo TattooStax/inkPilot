@@ -24,4 +24,5 @@
     <item name="inkpilot_model_import" type="id" />
     <item name="inkpilot_model_status" type="id" />
     <item name="inkpilot_soul" type="id" />
+    <item name="inkpilot_blocked_keyword_input" type="id" />
 </resources>

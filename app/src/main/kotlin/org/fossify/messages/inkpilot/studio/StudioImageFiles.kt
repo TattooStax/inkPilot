@@ -4,15 +4,9 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
-import android.provider.OpenableColumns
 import java.io.File
 import java.io.FileOutputStream
 import java.util.UUID
-
-private const val UUID_TEXT = "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"
-private val IMPORT_JOURNAL = Regex("import-($UUID_TEXT)-($UUID_TEXT)\\.journal")
-private val IMPORT_PART = Regex("import-($UUID_TEXT)-($UUID_TEXT)\\.part")
-private val IMPORT_SESSION = UUID.randomUUID().toString()
 
 internal class StudioImageFiles(private val context: Context, private val store: StudioAlbumStore) {
     private val directory get() = File(context.filesDir, "studio-images").apply { mkdirs() }
@@ -36,54 +30,22 @@ internal class StudioImageFiles(private val context: Context, private val store:
     }
 
     /** Only previous-process journals can identify a final file abandoned before its DB row. */
-    internal fun recoverIncompleteImports(activeSession: String = IMPORT_SESSION) = synchronized(importLock) {
-        val owned = directory.canonicalFile
-        owned.listFiles().orEmpty().forEach { journal ->
-            val match = IMPORT_JOURNAL.matchEntire(journal.name) ?: return@forEach
-            if (match.groupValues[1] == activeSession || !journal.isFile) return@forEach
-            val filename = "${match.groupValues[2]}.image"
-            val original = File(owned, filename)
-            val ownedFile = runCatching { original.canonicalFile.parentFile == owned && original.isFile }
-                .getOrDefault(false)
-            if (store.hasOriginalFilename(filename)) journal.delete()
-            else if (!original.exists() || ownedFile && original.delete()) journal.delete()
-        }
-        owned.listFiles().orEmpty().filter { file ->
-            val match = IMPORT_PART.matchEntire(file.name)
-            match != null && match.groupValues[1] != activeSession && file.isFile &&
-                runCatching { file.canonicalFile.parentFile == owned }.getOrDefault(false)
-        }.forEach(File::delete)
-    }
+    internal fun recoverIncompleteImports() = synchronized(importLock) { recoverStudioImageImports(directory, store) }
 
     private fun copyOriginal(uri: Uri, albumId: Long?, link: StudioImageLink?): Long {
         recoverIncompleteImports()
         val mime = context.contentResolver.getType(uri)
         require(mime?.startsWith("image/") == true) { "Choose an image." }
-        val name = context.contentResolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)?.use {
-            if (it.moveToFirst()) it.getString(0) else null
-        } ?: "Reference image"
-        val temporary = File(directory, "import-$IMPORT_SESSION-${UUID.randomUUID()}.part")
+        val name = studioImageSourceName(context, uri)
+        val temporary = File(directory, "import-$studioImageImportSession-${UUID.randomUUID()}.part")
         check(temporary.createNewFile()) { "The image could not be saved." }
         val original = File(directory, "${UUID.randomUUID()}.image")
-        val journal = File(directory, "import-$IMPORT_SESSION-${original.name.removeSuffix(".image")}.journal")
+        val journal = File(directory,
+            "import-$studioImageImportSession-${original.name.removeSuffix(".image")}.journal")
         var recorded = false
         try {
             FileOutputStream(journal).use { output -> output.write(1); output.fd.sync() }
-            context.contentResolver.openInputStream(uri).use { input ->
-                requireNotNull(input) { "This image could not be opened." }
-                FileOutputStream(temporary).use { output ->
-                    val buffer = ByteArray(32 * 1024)
-                    var total = 0L
-                    while (true) {
-                        val count = input.read(buffer)
-                        if (count < 0) break
-                        total += count
-                        require(total <= 64L * 1024 * 1024) { "Choose an image smaller than 64 MB." }
-                        output.write(buffer, 0, count)
-                    }
-                    output.fd.sync()
-                }
-            }
+            copyStudioImageSource(context, uri, temporary)
             val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
             BitmapFactory.decodeFile(temporary.path, bounds)
             require(bounds.outWidth > 0 && bounds.outHeight > 0 &&

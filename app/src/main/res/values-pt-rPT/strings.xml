@@ -14,12 +14,12 @@
     <plurals name="delete_conversations">
         <item quantity="one">%d conversa</item>
         <item quantity="many">%d conversas</item>
-        <item quantity="other"/>
+        <item quantity="other">%d conversas</item>
     </plurals>
     <plurals name="delete_messages">
         <item quantity="one">%d mensagem</item>
         <item quantity="many">%d mensagens</item>
-        <item quantity="other"/>
+        <item quantity="other">%d mensagens</item>
     </plurals>
     <string name="mms_file_size_limit_none">Sem limite</string>
     <string name="group_message_mms">Enviar mensagens de grupo como MMS</string>
@@ -46,7 +46,7 @@
     <plurals name="and_other_contacts">
         <item quantity="one">e %d outro</item>
         <item quantity="many">e %d outros</item>
-        <item quantity="other"></item>
+        <item quantity="other">e %d outros</item>
     </plurals>
     <string name="new_conversation">Nova conversa</string>
     <string name="add_contact_or_number">Adicionar contacto ou número…</string>

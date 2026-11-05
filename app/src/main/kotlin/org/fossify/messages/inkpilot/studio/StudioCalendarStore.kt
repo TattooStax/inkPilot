@@ -14,6 +14,7 @@ internal class StudioCalendarStore(
     private val reminders: (Long, Long, Long?) -> Unit = { id, revision, due ->
         CalendarReminderScheduler(repository.applicationContext).schedule(id, revision, due)
     },
+    private val armRecovery: () -> Unit = { CalendarReminderRecovery(repository.applicationContext).arm() },
 ) {
     private val db get() = repository.database
 
@@ -157,6 +158,9 @@ internal class StudioCalendarStore(
     }
 
     fun schedule(proposal: CalendarProposal): ScheduleResult {
+        // WorkManager and the studio database cannot share a transaction. Persist the fallback
+        // before a reminder row can commit, so a process stop after commit still has a wakeup.
+        if (proposal.reminderAt != null) armRecovery()
         val result = db.transaction {
             proposal.validate()
             check(proposal, null)?.let { return@transaction it }
@@ -168,6 +172,7 @@ internal class StudioCalendarStore(
     }
 
     fun edit(id: Long, proposal: CalendarProposal, expectedRevision: Long? = null): ScheduleResult {
+        if (proposal.reminderAt != null) armRecovery()
         val result = db.transaction {
             proposal.validate()
             val current = db.rawQuery("SELECT revision,status FROM studio_calendar WHERE id=?", arrayOf(id.toString())).use {

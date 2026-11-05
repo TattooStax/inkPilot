@@ -51,6 +51,8 @@ class StudioHomeActivity : AppCompatActivity() {
     private lateinit var panels: StudioCanvasState
     private lateinit var contactEdit: ContactEditState
     internal val contactEditState get() = contactEdit
+    private lateinit var blockedKeywordEdit: BlockedKeywordEditState
+    internal val blockedKeywordEditState get() = blockedKeywordEdit
     internal val currentRoute get() = navigator.current
     private val tab get() = navigator.selectedTab
     private var smsObserver: SmsRefreshObserver? = null
@@ -91,6 +93,7 @@ class StudioHomeActivity : AppCompatActivity() {
         navigator = StudioNavigator(savedInstanceState)
         panels = StudioCanvasState(savedInstanceState?.getBundle("studio.panels") ?: Bundle())
         contactEdit = ContactEditState(savedInstanceState?.getBundle("contact.edit"))
+        blockedKeywordEdit = BlockedKeywordEditState(savedInstanceState?.getBundle("keyword.edit"))
         if (savedInstanceState == null) {
             intent.getBundleExtra(ExternalRouteParser.ROUTE)?.decodeRoute()?.let { navigator.acceptExternalRoute(it) }
                 ?: intent.getStringExtra("inkpilot_panel")?.let { navigator.acceptPanelHint(it, panels) }
@@ -312,7 +315,7 @@ class StudioHomeActivity : AppCompatActivity() {
             smsObserver?.start()
             window.decorView.post { showExportCleanupWarning() }
         }
-        else { canvas.removeAllViews(); smsObserver?.stop() }
+        else { blockedKeywordEdit.suspendUntilUnlock(); canvas.removeAllViews(); smsObserver?.stop() }
     }
     override fun onPause() { smsObserver?.stop(); super.onPause() }
     override fun onNewIntent(intent: Intent) {
@@ -333,6 +336,7 @@ class StudioHomeActivity : AppCompatActivity() {
         outState.putBundle("studio.panels", panels.save())
         studio.saveImportState()?.let { outState.putBundle("studio.image_import", it) }
         contactEdit.save()?.let { outState.putBundle("contact.edit", it) }
+        blockedKeywordEdit.save()?.let { outState.putBundle("keyword.edit", it) }
         agent.soulDraft?.let { outState.putString("soul_draft", it) }
         super.onSaveInstanceState(outState)
     }
@@ -367,6 +371,7 @@ class StudioHomeActivity : AppCompatActivity() {
     override fun onDestroy() {
         closing = true
         cleanupDialog?.dismiss()
+        blockedKeywordEdit.close()
         studioDrawer?.dismiss()
         smsObserver?.stop()
         executor.execute { repository.close() }

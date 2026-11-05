@@ -98,6 +98,7 @@ jobs:
           emulator-options: -no-window -no-snapshot -noaudio -no-boot-anim -gpu swiftshader_indirect -camera-back none
           script: |
             bash scripts/inkpilot-shell-baseline.sh
+            scripts/inkpilot-calendar-closed-app.sh emulator-5554
             scripts/run-inkpilot-test-class.sh emulator-5554 org.fossify.messages.inkpilot.smoke.OneShellAcceptanceTest
       - name: Upload redacted baseline verdicts
         if: always()

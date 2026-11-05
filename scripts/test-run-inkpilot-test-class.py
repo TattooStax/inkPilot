@@ -151,7 +151,7 @@ if 'instrument' in sys.argv:
 
     def test_shell_keeps_later_class_evidence_after_an_assertion_failure(self):
         first = 'org.fossify.messages.inkpilot.data.LegacyFirstLaunchTest'
-        last = 'org.fossify.messages.transport.BridgeHistoryTest'
+        last = 'org.fossify.messages.transport.HeartbeatAlarmCleanupTest'
         self.env['FAKE_FAILED_CLASS'] = first
         result = subprocess.run(['bash', 'scripts/inkpilot-shell-baseline.sh'], cwd=self.root,
                                 env=self.env, capture_output=True, text=True, timeout=120)
@@ -172,7 +172,7 @@ if 'instrument' in sys.argv:
                                 env=self.env, capture_output=True, text=True, timeout=30)
         self.assertEqual(2, result.returncode, result.stderr)
         first = 'org.fossify.messages.inkpilot.data.LegacyFirstLaunchTest'
-        last = 'org.fossify.messages.transport.BridgeHistoryTest'
+        last = 'org.fossify.messages.transport.HeartbeatAlarmCleanupTest'
         self.assertIn('instrumentation timeout', (self.root / f'app/build/test-class-evidence/{first}/result.txt').read_text())
         self.assertFalse((self.root / f'app/build/test-class-evidence/{last}/result.txt').exists())
 

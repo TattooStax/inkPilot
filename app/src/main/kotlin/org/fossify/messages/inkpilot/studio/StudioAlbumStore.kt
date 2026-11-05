@@ -5,7 +5,7 @@ import org.fossify.messages.inkpilot.data.StudioRepository
 import org.fossify.messages.inkpilot.data.transaction
 
 internal class StudioAlbumStore(private val repository: StudioRepository) {
-    private val db get() = repository.database
+    internal val db get() = repository.database
 
     fun albums(): List<StudioAlbum> = db.rawQuery(
         "SELECT id,name,artist FROM studio_albums ORDER BY name COLLATE NOCASE", null,
@@ -51,10 +51,6 @@ internal class StudioAlbumStore(private val repository: StudioRepository) {
     fun originalForSource(uri: String): Long? = db.rawQuery(
         "SELECT image_id FROM image_original_sources WHERE source_uri=?", arrayOf(uri),
     ).use { if (it.moveToFirst()) it.getLong(0) else null }
-
-    fun hasOriginalFilename(filename: String): Boolean = db.rawQuery(
-        "SELECT 1 FROM studio_images WHERE filename=? LIMIT 1", arrayOf(filename),
-    ).use { it.moveToFirst() }
 
     fun saveMmsOriginal(uri: String, filename: String, name: String, mime: String,
                         bytes: Long, width: Int, height: Int, link: StudioImageLink): Long = db.transaction {

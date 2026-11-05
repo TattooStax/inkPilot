@@ -42,6 +42,9 @@ internal class AuxiliaryPanel(private val activity: Activity, private val work: 
         body.addView(StudioUi.button(activity, "Search conversations") { open(StudioRoute.Auxiliary("search")) })
         body.addView(StudioUi.button(activity, "Archived conversations") { open(StudioRoute.Auxiliary("archive")) })
         body.addView(StudioUi.button(activity, "Recycle bin") { open(StudioRoute.Auxiliary("recycle")) })
+        body.addView(StudioUi.button(activity, "Blocked keywords") {
+            open(StudioRoute.Auxiliary("blocked_keywords"))
+        })
         body.addView(StudioUi.text(activity, StudioArchiveScope.DESCRIPTION, EXPORT_NOTICE_TEXT_SP))
         body.addView(StudioUi.button(activity, "Export Studio records and images") { exportStudio() })
         body.addView(StudioUi.button(activity, "Android app permissions") {
