@@ -19,7 +19,17 @@ cd "$(dirname "${BASH_SOURCE[0]}")/.."
 adb -s "$serial" shell pm path "$package" >/dev/null
 adb -s "$serial" shell pm path "$package.test" >/dev/null
 temporary=$(mktemp -d)
-trap 'rm -rf "$temporary"' EXIT
+clock_changed=0
+original_auto_time=
+restore_clock() {
+  if (( clock_changed )); then
+    adb -s "$serial" shell cmd alarm set-time "$(($(date +%s) * 1000))" >/dev/null 2>&1 || :
+    adb -s "$serial" shell settings put global auto_time "$original_auto_time" >/dev/null 2>&1 || :
+    clock_changed=0
+  fi
+}
+cleanup() { restore_clock; rm -rf "$temporary"; }
+trap cleanup EXIT
 
 run_class() {
   local class=$1
@@ -86,6 +96,16 @@ if row is None: raise SystemExit('Periodic recovery has no JobScheduler registra
 print(row[0])
 PY
 )
+periodic_due=$(python3 - "$temporary/work.db" <<'PY'
+import sqlite3, sys
+db = sqlite3.connect(f'file:{sys.argv[1]}?mode=ro', uri=True)
+rows = db.execute('''SELECT last_enqueue_time + initial_delay FROM WorkSpec JOIN WorkName
+    ON WorkSpec.id=WorkName.work_spec_id
+    WHERE WorkName.name='studio-calendar-recovery-periodic' AND WorkSpec.state=0''').fetchall()
+assert len(rows) == 1 and rows[0][0] > 0
+print(rows[0][0])
+PY
+)
 
 job_present() {
   local state
@@ -103,6 +123,24 @@ adb -s "$serial" shell am kill "$package"
 }
 if job_present; then echo 'PASS periodic OS job survives process kill'
 else echo 'FAIL periodic OS job absent after process kill' >&2; exit 1; fi
+
+# JobScheduler force-run bypasses its own delay, while WorkManager still checks
+# its persisted due time. Advance only this disposable emulator's wall clock.
+original_auto_time=$(adb -s "$serial" shell settings get global auto_time | tr -d '\r')
+[[ $original_auto_time == 0 || $original_auto_time == 1 ]]
+clock_changed=1
+adb -s "$serial" shell settings put global auto_time 0
+target_time=$((periodic_due + 60_000))
+if ! adb -s "$serial" shell cmd alarm set-time "$target_time" > "$temporary/clock-command" 2>&1; then
+  adb -s "$serial" root >/dev/null 2>&1 || { echo 'Emulator clock advance unavailable.' >&2; exit 1; }
+  adb -s "$serial" wait-for-device
+  adb -s "$serial" shell cmd alarm set-time "$target_time" > "$temporary/clock-command" 2>&1 || {
+    echo 'Emulator clock advance unavailable.' >&2; exit 1;
+  }
+fi
+device_seconds=$(adb -s "$serial" shell date +%s | tr -d '\r')
+(( device_seconds * 1000 >= periodic_due )) || { echo 'Emulator clock remained before recovery due time.' >&2; exit 1; }
+echo 'PASS disposable emulator reached persisted periodic due time'
 
 # Force only the already persisted periodic JobScheduler job. This starts the
 # Worker process, but does not launch the app's UI or register new work in test code.
@@ -127,7 +165,7 @@ import sqlite3, sys
 db = sqlite3.connect(f'file:{sys.argv[1]}?mode=ro', uri=True)
 for label, name in (('periodic', 'studio-calendar-recovery-periodic'),
                     ('one-time', f'studio-reminder:{sys.argv[2]}:0')):
-    rows = db.execute('''SELECT WorkSpec.state, WorkSpec.run_attempt_count
+    rows = db.execute('''SELECT WorkSpec.state, WorkSpec.run_attempt_count, WorkSpec.period_count
         FROM WorkName JOIN WorkSpec ON WorkName.work_spec_id=WorkSpec.id
         WHERE WorkName.name=?''', (name,)).fetchall()
     print(f'REDACTED {label} state/attempt rows: {rows}')
@@ -136,4 +174,5 @@ PY
   exit 1
 fi
 echo 'PASS OS-dispatched recovery with the staff Activity closed'
+restore_clock
 run_class StudioReminderClosedAppVerifyTest
