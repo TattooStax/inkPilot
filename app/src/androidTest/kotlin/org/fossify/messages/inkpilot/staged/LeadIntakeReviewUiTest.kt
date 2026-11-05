@@ -1,4 +1,4 @@
-package org.fossify.messages.inkpilot.ui
+package org.fossify.messages.inkpilot.staged
 
 import android.os.Build
 import android.graphics.Rect
@@ -18,6 +18,10 @@ import org.fossify.commons.extensions.baseConfig
 import org.fossify.messages.inkpilot.data.StudioDatabaseTestBase
 import org.fossify.messages.inkpilot.data.leadIntakeTargets
 import org.fossify.messages.inkpilot.smoke.SmokeViews
+import org.fossify.messages.inkpilot.ui.DraftPanel
+import org.fossify.messages.inkpilot.ui.LeadIntakeReviewUi
+import org.fossify.messages.inkpilot.ui.StudioHomeActivity
+import org.fossify.messages.inkpilot.ui.StudioWork
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -47,10 +51,20 @@ class LeadIntakeReviewUiTest : StudioDatabaseTestBase() {
                 clickTarget("Maya · Not reviewed · Can I book a consultation?")
                 SmokeViews.clickText("Next")
                 clickTarget("Size")
+                assertTrue("Size choice did not become checked: ${choiceState("Size")}",
+                    findVisibleText(InstrumentationRegistry.getInstrumentation().uiAutomation.rootInActiveWindow,
+                        "Size")?.isChecked == true)
                 SmokeViews.clickText("Save review")
-                SmokeViews.await("saved lead question") {
-                    repository.leadIntakeTargets().single().reviewed
-                        ?.takeIf { it.missingQuestions == setOf(LeadQuestion.SIZE) }
+                try {
+                    SmokeViews.await("saved lead question") {
+                        repository.leadIntakeTargets().single().reviewed
+                            ?.takeIf { it.missingQuestions == setOf(LeadQuestion.SIZE) }
+                    }
+                } catch (failure: AssertionError) {
+                    val target = repository.leadIntakeTargets().single()
+                    throw AssertionError("Review save failed: revision=${target.request.expectedRevision}, " +
+                        "stored=${target.hasStoredReview}, missing=${target.reviewed?.missingQuestions}, " +
+                        "controls=${visibleControls()}", failure)
                 }
                 val firstRevision = repository.leadIntakeTargets().single().request.expectedRevision
 
@@ -96,7 +110,7 @@ class LeadIntakeReviewUiTest : StudioDatabaseTestBase() {
     private fun clickTarget(label: String) {
         try {
             val instrumentation = InstrumentationRegistry.getInstrumentation()
-            val node = SmokeViews.await("visible dialog choice: $label") {
+            val node = SmokeViews.await("visible dialog choice") {
                 findVisibleText(instrumentation.uiAutomation.rootInActiveWindow, label)
             }
             // AlertDialog's ListView handles the row touch, but its visible text node
@@ -117,10 +131,8 @@ class LeadIntakeReviewUiTest : StudioDatabaseTestBase() {
             }
             instrumentation.waitForIdleSync()
         } catch (failure: AssertionError) {
-            val targets = repository.leadIntakeTargets().map {
-                "${it.displayName}:${it.reviewed != null}:${it.hasStoredReview}"
-            }
-            throw AssertionError("Staged target unavailable. Sources=$targets; active=${activeLabels()}", failure)
+            val targets = repository.leadIntakeTargets().map { "${it.reviewed != null}:${it.hasStoredReview}" }
+            throw AssertionError("Staged choice failed. Sources=$targets; controls=${visibleControls()}", failure)
         }
     }
 
@@ -133,13 +145,20 @@ class LeadIntakeReviewUiTest : StudioDatabaseTestBase() {
         return null
     }
 
-    private fun activeLabels(): List<String> = buildList {
-        fun collect(node: AccessibilityNodeInfo?) {
-            if (node == null || size >= 60) return
-            node.text?.toString()?.take(100)?.let { add(it) }
-            for (index in 0 until node.childCount) collect(node.getChild(index))
-        }
-        collect(InstrumentationRegistry.getInstrumentation().uiAutomation.rootInActiveWindow)
+    private fun choiceState(label: String): String {
+        val node = findVisibleText(InstrumentationRegistry.getInstrumentation().uiAutomation.rootInActiveWindow, label)
+        return "visible=${node?.isVisibleToUser}, checkable=${node?.isCheckable}, checked=${node?.isChecked}, " +
+            "parentCheckable=${node?.parent?.isCheckable}, parentChecked=${node?.parent?.isChecked}, " +
+            "controls=${visibleControls()}"
+    }
+
+    private fun visibleControls(): List<String> {
+        val root = InstrumentationRegistry.getInstrumentation().uiAutomation.rootInActiveWindow
+        return listOf("Next", "Size", "Placement", "Save review", "Clear review", "Close", "Cancel",
+            "Select at least one missing detail, or clear the review.",
+            "Review saved for a future drafting option. Current drafts do not use it.",
+            "That conversation changed. Open it and review the latest message.")
+            .filter { findVisibleText(root, it) != null }
     }
 
     private fun hasText(view: View, text: String): Boolean = when (view) {
