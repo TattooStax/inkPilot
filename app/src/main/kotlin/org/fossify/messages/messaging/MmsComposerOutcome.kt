@@ -36,7 +36,7 @@ private fun ComposerStore.reconcileConfirmed(threadId: Long, attemptId: String):
     val saved = load(threadId)
     if (saved != null && saved.attemptId != attemptId) return false
     markComposeCompleted(threadId)
-    if (saved != null) check(appContext.markSharedComposerImagesForDiscard(saved.attachmentUris))
+    if (saved != null) check(appContext.markSharedComposerImagesForDiscard(saved.attachmentUris, terminal = true))
     // Confirmation is journaled already. Delete while the saved URI remains recoverable.
     if (saved != null) appContext.discardSharedComposerImages(saved.attachmentUris)
     check(prefs.edit().remove(threadId.toString()).remove("unknown:$threadId")

@@ -58,6 +58,7 @@ run_class org.fossify.messages.inkpilot.data.ThreadDraftLookupTest
 run_class org.fossify.messages.inkpilot.smoke.ShellIngressTest
 run_class org.fossify.messages.inkpilot.ui.NotificationEntryRouteTest
 run_class org.fossify.messages.messaging.ComposerSharedMediaTest
+run_class org.fossify.messages.messaging.ComposerDiscardRecoveryTest
 run_class org.fossify.messages.inkpilot.smoke.ComposerShareFailureIngressTest
 run_class org.fossify.messages.inkpilot.runtime.CarrierIngressTest
 run_class org.fossify.messages.inkpilot.runtime.SmsAdmissionLedgerTest

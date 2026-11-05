@@ -17,6 +17,39 @@ import java.util.UUID
 class ComposerDiscardRecoveryTest {
     private val context get() = InstrumentationRegistry.getInstrumentation().targetContext
 
+    @Test fun interruptedAcceptedBeforeCompletedMarkerCleansCopyWithoutReplaying() =
+        interruptedAcceptedCleanup(completedBeforeRestart = false)
+
+    @Test fun interruptedAcceptedAfterCompletedMarkerCleansCopyWithoutReplaying() =
+        interruptedAcceptedCleanup(completedBeforeRestart = true)
+
+    private fun interruptedAcceptedCleanup(completedBeforeRestart: Boolean) {
+        val source = source()
+        val id = id()
+        val store = ComposerStore(context)
+        try {
+            val local = requireNotNull(context.captureSharedComposerImages(listOf(uri(source)))).single()
+            val copy = copy(local.lastPathSegment!!)
+            val request = OutgoingMessage(id, "+12025550145", "Reference", listOf(local), 1)
+            assertTrue(store.save(request))
+            assertTrue(store.locked { store.claim(request) })
+            // Accepted was returned, but the app stopped before deleting the image.
+            assertTrue(context.markSharedComposerImagesForDiscard(listOf(local), terminal = true))
+            if (completedBeforeRestart) store.markComposeCompleted(id)
+            val recovered = ComposerStore(context)
+            assertFalse(copy.exists())
+            assertFalse(discardMarkers().any { it.readText() == copy.name })
+            assertTrue(recovered.isUnknown(id))
+            var handoffs = 0
+            val dispatcher = MessageDispatcher({ true }, { true }) {
+                handoffs++
+                DispatchOutcome.Accepted()
+            }
+            assertTrue(recovered.submit(request, dispatcher) is DispatchOutcome.Rejected)
+            assertEquals(0, handoffs)
+        } finally { store.clear(id); source.delete() }
+    }
+
     @Test fun interruptedClearCommitReapsTheUnreferencedPrivateCopy() {
         val source = source()
         val id = id()
