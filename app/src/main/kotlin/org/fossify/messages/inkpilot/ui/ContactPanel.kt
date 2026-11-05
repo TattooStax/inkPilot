@@ -106,10 +106,12 @@ internal class ContactPanel(
                 val pause = paused.isChecked
                 val provenance = source.text.toString()
                 save.isEnabled = false
+                listOf(memory, paused, source).forEach { it.isEnabled = false }
                 work.load({ repository.saveContactEdit(contact.id, text, pause, provenance) },
                     failed = {
                         // Keep the editor and its typed fields so staff can retry or copy them.
                         save.isEnabled = true
+                        listOf(memory, paused, source).forEach { it.isEnabled = true }
                         memory.error = "Could not save. Try again."
                     }) {
                     dialog.dismiss()

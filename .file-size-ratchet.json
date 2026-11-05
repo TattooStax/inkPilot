@@ -301,7 +301,7 @@
     "app/src/main/kotlin/org/fossify/messages/inkpilot/ui/AuxiliaryPanel.kt": 130,
     "app/src/main/kotlin/org/fossify/messages/inkpilot/ui/CompatibilityIngressActivity.kt": 53,
     "app/src/main/kotlin/org/fossify/messages/inkpilot/ui/ComposerRouteCoordinator.kt": 51,
-    "app/src/main/kotlin/org/fossify/messages/inkpilot/ui/ContactPanel.kt": 160,
+    "app/src/main/kotlin/org/fossify/messages/inkpilot/ui/ContactPanel.kt": 162,
     "app/src/main/kotlin/org/fossify/messages/inkpilot/ui/ConversationGateway.kt": 91,
     "app/src/main/kotlin/org/fossify/messages/inkpilot/ui/ConversationPaging.kt": 19,
     "app/src/main/kotlin/org/fossify/messages/inkpilot/ui/DraftPanel.kt": 139,
