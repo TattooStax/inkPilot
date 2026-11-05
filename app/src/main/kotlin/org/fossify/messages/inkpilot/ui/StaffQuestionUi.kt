@@ -19,10 +19,12 @@ internal class StaffQuestionUi(
     fun open(threadId: Long) {
         work.load({ repository.staffQuestionTarget(threadId) }) { target ->
             when {
-                target == null -> StudioUi.error(activity, "No current client message is available in this conversation.")
+                target == null -> StudioUi.error(activity,
+                    "No current client message is available in this conversation.")
                 target.reviewed == null -> AlertDialog.Builder(activity)
                     .setTitle("Review the missing details")
-                    .setMessage("Read the latest client message, choose a language and mark what is still missing. Nothing will send.")
+                    .setMessage("Read the latest client message, choose a language and mark the missing details. " +
+                        "Nothing will send.")
                     .setPositiveButton("Review details") { _, _ ->
                         LeadIntakeReviewUi(activity, repository, work, refresh).openForThread(threadId)
                     }.setNegativeButton("Cancel", null).show()
@@ -33,8 +35,11 @@ internal class StaffQuestionUi(
                             work.load({ repository.holdStaffQuestion(target.request, questions[index]) }) { result ->
                                 when (result) {
                                     is StaffQuestionResult.Held -> navigate(StudioRoute.Draft(result.draftId))
+                                    StaffQuestionResult.ConflictingHeld -> StudioUi.error(activity,
+                                        "Review or dismiss the current held question before choosing another.")
                                     StaffQuestionResult.Stale -> {
-                                        StudioUi.error(activity, "The conversation or review changed. Review the latest message.")
+                                        StudioUi.error(activity,
+                                            "The conversation or review changed. Review the latest message.")
                                         refresh()
                                     }
                                 }

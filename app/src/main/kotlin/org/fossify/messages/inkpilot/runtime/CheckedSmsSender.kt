@@ -11,10 +11,18 @@ import android.telephony.SubscriptionManager
 import androidx.core.content.ContextCompat
 import org.fossify.messages.inkpilot.data.SendStatus
 import org.fossify.messages.inkpilot.data.StudioRepository
+import inkpilot.agent.DraftRendererPolicy
 
 /** Exact lookup: a thread draft remains sendable beyond the global review page. */
 internal fun StudioRepository.heldDraftForSend(draftId: String) =
     draft(draftId)?.takeIf { it.status == "HELD" && it.canReview }
+
+private fun requireSendPolicy(context: Context, policy: DraftRendererPolicy?) {
+    if (policy == DraftRendererPolicy.STAFF_QUESTION_V1) return
+    check(AgentSettings(context).enabled) {
+        "Model drafts are unqualified. Reply directly in the conversation."
+    }
+}
 
 /** Staff approval is the only caller. No worker or model can reach this send action. */
 internal class CheckedSmsSender(
@@ -23,11 +31,10 @@ internal class CheckedSmsSender(
 ) {
     fun approveAndSend(draftId: String, editedBody: String, subscriptionId: Int): String {
         require(editedBody.isNotBlank() && editedBody.length <= 800) { "Replies must be between 1 and 800 characters." }
+        val policy = repositories().use { it.draft(draftId)?.rendererPolicy }
+        requireSendPolicy(context, policy)
         val draft = repositories().use { it.heldDraftForSend(draftId) }
             ?: error("This draft is no longer waiting for approval.")
-        if (draft.rendererPolicy != inkpilot.agent.DraftRendererPolicy.STAFF_QUESTION_V1) {
-            check(AgentSettings(context).enabled) { "Model drafts are unqualified. Reply directly in the conversation." }
-        }
         check(org.fossify.messages.helpers.SmsRole.isHeld(context)) { "Make inkPilot the default SMS app first." }
         for (permission in listOf(Manifest.permission.SEND_SMS, Manifest.permission.READ_PHONE_STATE)) {
             check(ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED) { "Allow SMS and phone permissions first." }

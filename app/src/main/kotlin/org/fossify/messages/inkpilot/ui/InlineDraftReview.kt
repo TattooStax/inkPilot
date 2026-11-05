@@ -15,7 +15,8 @@ internal fun reviewableInUi(draft: ReviewDraft): Boolean = draft.canReview &&
 
 private fun reviewHeading(draft: ReviewDraft): String = when {
     draft.rendererPolicy == DraftRendererPolicy.STAFF_QUESTION_V1 -> "Held staff question"
-    AgentRuntime.BOUNDED_INTENT_QUALIFIED && draft.rendererPolicy != DraftRendererPolicy.LEGACY_RAW -> "Held assistant reply"
+    AgentRuntime.BOUNDED_INTENT_QUALIFIED && draft.rendererPolicy != DraftRendererPolicy.LEGACY_RAW ->
+        "Held assistant reply"
     else -> "Earlier unqualified model text"
 }
 

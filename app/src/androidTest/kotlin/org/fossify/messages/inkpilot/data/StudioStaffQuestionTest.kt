@@ -28,7 +28,7 @@ class StudioStaffQuestionTest : StudioDatabaseTestBase() {
         assertEquals(setOf(LeadQuestion.SIZE, LeadQuestion.DATE), target.reviewed?.missingQuestions)
         val first = repository.holdStaffQuestion(request, LeadQuestion.SIZE) as StaffQuestionResult.Held
         assertEquals(first, repository.holdStaffQuestion(request, LeadQuestion.SIZE))
-        assertEquals(StaffQuestionResult.Stale, repository.holdStaffQuestion(request, LeadQuestion.DATE))
+        assertEquals(StaffQuestionResult.ConflictingHeld, repository.holdStaffQuestion(request, LeadQuestion.DATE))
         assertNull(repository.getSendClaim(first.draftId))
         reopen()
         val held = requireNotNull(repository.draft(first.draftId))

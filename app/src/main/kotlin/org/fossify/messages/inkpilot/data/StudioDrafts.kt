@@ -15,6 +15,17 @@ private const val MAX_STUDIO_DRAFT_LENGTH = 800
 private const val RECEIPT_POLICY_COLUMN = 6
 private const val STAFF_EDIT_COLUMN = 14
 private const val RENDERER_POLICY_COLUMN = 15
+private const val REVIEW_SUBSCRIPTION_COLUMN = 9
+private const val REVIEW_CREATED_COLUMN = 10
+private const val REVIEW_ALLOWED_COLUMN = 11
+private const val REVIEW_STATE_COLUMN = 12
+private const val REVIEW_CONTACT_COLUMN = 3
+private const val REVIEW_RECIPIENT_COLUMN = 4
+private const val REVIEW_NAME_COLUMN = 5
+private const val REVIEW_INBOUND_COLUMN = 6
+private const val REVIEW_BODY_COLUMN = 7
+private const val REVIEW_REVISION_COLUMN = 8
+private const val REVIEW_SEND_BODY_COLUMN = 13
 
 internal fun SQLiteDatabase.studioReceipt(key: DraftKey): HeldDraftReceipt? = rawQuery(
     """SELECT draft_id, thread_id, contact_id, recipient, source_revision, body, renderer_policy
@@ -47,7 +58,8 @@ internal fun SQLiteDatabase.holdStudioDraft(write: HeldDraftWrite): DraftStoreRe
             } else DraftStoreResult.SourceChanged
         }
         if (rawQuery("SELECT 1 FROM send_claims s JOIN held_drafts d ON d.draft_id = s.draft_id WHERE d.event_id = ?", arrayOf(write.key.eventId)).use { it.moveToFirst() }) return@transaction DraftStoreResult.SourceChanged
-        if (rawQuery("SELECT 1 FROM held_drafts WHERE event_id=? AND kind IN ('PROPOSAL_REPLY','STAFF_QUESTION') AND state='HELD'",
+        if (rawQuery("""SELECT 1 FROM held_drafts WHERE event_id=?
+            AND kind IN ('PROPOSAL_REPLY','STAFF_QUESTION') AND state='HELD'""",
                 arrayOf(write.key.eventId)).use { it.moveToFirst() }) return@transaction DraftStoreResult.SourceChanged
         val historyNeedsAuthorization = rawQuery(
             "SELECT 1 FROM held_drafts WHERE event_id = ? AND kind = ? AND NOT EXISTS (SELECT 1 FROM draft_regenerations WHERE event_id = ? AND source_revision = ?)",
@@ -75,7 +87,8 @@ internal fun SQLiteDatabase.reviewStudioDrafts(heldOnly: Boolean = true, limit: 
         """
             SELECT d.draft_id, d.event_id, d.thread_id, d.contact_id, d.recipient, c.display_name,
                    e.body, d.body, d.source_revision, e.subscription_id, d.created_at,
-                   (d.state = 'HELD' AND ${StudioDraftPolicySchema.REVIEWABLE} AND c.paused = 0 AND c.revision = d.source_revision AND c.latest_event_id = d.event_id
+                   (d.state = 'HELD' AND ${StudioDraftPolicySchema.REVIEWABLE} AND c.paused = 0
+                    AND c.revision = d.source_revision AND c.latest_event_id = d.event_id
                     AND (d.staff_question_policy = 'STAFF_QUESTION_V1' OR
                          (SELECT drafting_enabled FROM agent_settings WHERE id = 1) = 1)),
                    d.state, s.body, d.staff_edit_body, ${StudioDraftPolicySchema.EFFECTIVE_POLICY}
@@ -87,16 +100,19 @@ internal fun SQLiteDatabase.reviewStudioDrafts(heldOnly: Boolean = true, limit: 
         buildList {
             while (cursor.moveToNext()) {
                 val policy = DraftRendererPolicy.valueOf(cursor.getString(RENDERER_POLICY_COLUMN))
-                val canReview = cursor.getInt(11) != 0 &&
+                val canReview = cursor.getInt(REVIEW_ALLOWED_COLUMN) != 0 &&
                     (policy != DraftRendererPolicy.STAFF_QUESTION_V1 || !staffHandledSource(cursor.getString(1)))
                 add(ReviewDraft(
-                cursor.getString(0), cursor.getString(1), cursor.getString(2).toLong(), cursor.getString(3),
-                cursor.getString(4), cursor.getString(5), cursor.getString(6), cursor.getString(7), cursor.getLong(8),
-                cursor.getInt(9), cursor.getLong(10), canReview, cursor.getString(12),
-                if (cursor.isNull(13)) null else cursor.getString(13),
-                if (cursor.isNull(STAFF_EDIT_COLUMN)) null else cursor.getString(STAFF_EDIT_COLUMN),
-                policy,
-            ))
+                    cursor.getString(0), cursor.getString(1), cursor.getString(2).toLong(),
+                    cursor.getString(REVIEW_CONTACT_COLUMN), cursor.getString(REVIEW_RECIPIENT_COLUMN),
+                    cursor.getString(REVIEW_NAME_COLUMN), cursor.getString(REVIEW_INBOUND_COLUMN),
+                    cursor.getString(REVIEW_BODY_COLUMN), cursor.getLong(REVIEW_REVISION_COLUMN),
+                    cursor.getInt(REVIEW_SUBSCRIPTION_COLUMN), cursor.getLong(REVIEW_CREATED_COLUMN),
+                    canReview, cursor.getString(REVIEW_STATE_COLUMN),
+                    if (cursor.isNull(REVIEW_SEND_BODY_COLUMN)) null else cursor.getString(REVIEW_SEND_BODY_COLUMN),
+                    if (cursor.isNull(STAFF_EDIT_COLUMN)) null else cursor.getString(STAFF_EDIT_COLUMN),
+                    policy,
+                ))
             }
         }
     }
