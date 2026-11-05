@@ -43,11 +43,17 @@ internal object StudioStaffAttentionSchema {
                        (resolved_at IS NOT NULL AND resolution IN ('STAFF_HANDLED', 'REPLACED')))
             )
         """.trimIndent())
-        // Previous v1–v6 failures become visible without clearing their retry suppression.
+        // Migrate only failures without a later held reply for that inbound event.
         db.execSQL("""
             INSERT INTO staff_attention(event_id, source_revision, reason)
             SELECT a.event_id, a.source_revision, a.reason
             FROM draft_attempts a JOIN inbound_events e ON e.event_id = a.event_id
+            WHERE NOT EXISTS (
+                SELECT 1 FROM held_drafts h WHERE h.event_id = a.event_id AND h.source_revision >= a.source_revision
+            ) AND NOT EXISTS (
+                SELECT 1 FROM send_claims s JOIN held_drafts h ON h.draft_id = s.draft_id
+                WHERE h.event_id = a.event_id
+            )
             ORDER BY e.rowid, a.source_revision
         """.trimIndent())
     }
@@ -67,18 +73,11 @@ internal fun SQLiteDatabase.recordStudioStaffAttention(eventId: String, sourceRe
     }, SQLiteDatabase.CONFLICT_IGNORE)
 }
 
-/** A successfully held reply replaces older tasks in its thread, while newer arrivals stay active. */
-internal fun SQLiteDatabase.resolveStaffAttentionThroughSource(eventId: String, sourceRevision: Long) {
+/** A held reply supersedes failures for this inbound event, never another client question. */
+internal fun SQLiteDatabase.resolveStaffAttentionForEvent(eventId: String, sourceRevision: Long) {
     execSQL("""
         UPDATE staff_attention SET resolved_at = ?, resolution = 'REPLACED'
-        WHERE resolved_at IS NULL AND attention_id IN (
-            SELECT a.attention_id FROM staff_attention a
-            JOIN inbound_events e ON e.event_id = a.event_id
-            JOIN inbound_events target ON target.event_id = ?
-            WHERE e.thread_id = target.thread_id AND (
-                e.rowid < target.rowid OR (e.rowid = target.rowid AND a.source_revision <= ?)
-            )
-        )
+        WHERE resolved_at IS NULL AND event_id = ? AND source_revision <= ?
     """.trimIndent(), arrayOf<Any>(System.currentTimeMillis(), eventId, sourceRevision))
 }
 

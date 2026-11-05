@@ -72,7 +72,6 @@ internal class StudioDatabase(context: Context, name: String) :
                 PRIMARY KEY(event_id, source_revision)
             )
         """.trimIndent())
-        StudioStaffAttentionSchema.create(db)
         db.execSQL("""
             CREATE TABLE held_drafts (
                 draft_id TEXT PRIMARY KEY NOT NULL,
@@ -100,6 +99,7 @@ internal class StudioDatabase(context: Context, name: String) :
                 error TEXT
             )
         """.trimIndent())
+        StudioStaffAttentionSchema.create(db)
         db.execSQL("""
             CREATE TABLE send_parts (
                 draft_id TEXT NOT NULL REFERENCES send_claims(draft_id),

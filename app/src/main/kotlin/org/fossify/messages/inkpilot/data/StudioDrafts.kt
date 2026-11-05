@@ -51,7 +51,7 @@ internal fun SQLiteDatabase.holdStudioDraft(write: HeldDraftWrite): DraftStoreRe
             put("thread_id", write.threadId); put("contact_id", write.contactId); put("recipient", write.recipient)
             put("source_revision", write.expectedRevision); put("body", write.body); put("created_at", System.currentTimeMillis())
         })
-        resolveStaffAttentionThroughSource(write.key.eventId, write.expectedRevision)
+        resolveStaffAttentionForEvent(write.key.eventId, write.expectedRevision)
         DraftStoreResult.Held(checkNotNull(studioReceipt(write.key)), DraftDisposition.CREATED)
     }
 }

@@ -102,6 +102,16 @@ class StudioStaffAttentionTest : StudioDatabaseTestBase() {
         assertEquals(later.eventId, repository.staffAttention().single().eventId)
     }
 
+    @Test fun safeHeldDraftForAnotherInboundEventCannotEraseBlockedQuestion() {
+        val blocked = inbound("sms:blocked")
+        assertTrue(repository.recordDraftAttempt(blocked.eventId, blocked.expectedRevision, "UNSAFE_CONTENT"))
+        val followup = inbound("sms:followup", receivedAt = 2_000)
+        assertTrue(repository.holdIfCurrent(write(followup)) is DraftStoreResult.Held)
+        assertEquals(blocked.eventId, repository.staffAttention().single().eventId)
+        reopen()
+        assertEquals(blocked.eventId, repository.staffAttention().single().eventId)
+    }
+
     @Test fun handlingStaleTaskDoesNotCloseNewerAlreadyWaitingTask() {
         val older = inbound("sms:z-older")
         assertTrue(repository.recordDraftAttempt(older.eventId, older.expectedRevision, "CONTEXT_LIMIT"))
@@ -111,9 +121,24 @@ class StudioStaffAttentionTest : StudioDatabaseTestBase() {
         assertEquals(newer.eventId, repository.staffAttention().single().eventId)
     }
 
-    @Test fun versionSixAttemptBackfillsAttentionDuringDataPreservingMigration() {
-        val request = inbound()
-        assertTrue(repository.recordDraftAttempt(request.eventId, request.expectedRevision, "CONTEXT_LIMIT"))
+    @Test fun versionSixMigrationBackfillsOnlyUnansweredAttempts() {
+        val active = inbound("sms:active")
+        assertTrue(repository.recordDraftAttempt(active.eventId, active.expectedRevision, "CONTEXT_LIMIT"))
+        val heldEvent = inbound("sms:held", number = "+15551234568", receivedAt = 2_000)
+        assertTrue(repository.recordDraftAttempt(heldEvent.eventId, heldEvent.expectedRevision, "MODEL_FAILED"))
+        repository.saveMemory(heldEvent.contactId, "Reviewed")
+        val heldRevision = checkNotNull(repository.readSource(heldEvent.eventId)).revision
+        val revisedHeld = DraftRequest(heldEvent.eventId, heldEvent.threadId, heldEvent.contactId, heldRevision)
+        assertTrue(repository.holdIfCurrent(write(revisedHeld)) is DraftStoreResult.Held)
+        val claimedEvent = inbound("sms:claimed", number = "+15551234569", receivedAt = 3_000)
+        assertTrue(repository.recordDraftAttempt(claimedEvent.eventId, claimedEvent.expectedRevision, "UNSAFE_CONTENT"))
+        repository.saveMemory(claimedEvent.contactId, "Reviewed")
+        val claimedRevision = checkNotNull(repository.readSource(claimedEvent.eventId)).revision
+        val revisedClaimed = DraftRequest(claimedEvent.eventId, claimedEvent.threadId, claimedEvent.contactId,
+            claimedRevision)
+        assertTrue(repository.holdIfCurrent(write(revisedClaimed)) is DraftStoreResult.Held)
+        val heldDraft = repository.heldDrafts().single { it.eventId == claimedEvent.eventId }
+        checkNotNull(repository.claimDraftForSend(heldDraft.draftId, heldDraft.body, heldDraft.body, 3))
         repository.close()
         context.openOrCreateDatabase(databaseName, Context.MODE_PRIVATE, null).use {
             it.execSQL("DROP TABLE staff_attention")
@@ -121,8 +146,11 @@ class StudioStaffAttentionTest : StudioDatabaseTestBase() {
         }
         reopen()
         assertEquals(7, repository.database.version)
-        assertEquals(request.eventId, repository.staffAttention().single().eventId)
+        assertEquals(active.eventId, repository.staffAttention().single().eventId)
         assertTrue(repository.pendingRequests().isEmpty())
+        repository.database.rawQuery("SELECT COUNT(*) FROM staff_attention", null).use {
+            assertTrue(it.moveToFirst()); assertEquals(1, it.getInt(0))
+        }
         repository.database.rawQuery("PRAGMA foreign_key_check", null).use {
             assertFalse(it.moveToFirst())
         }
