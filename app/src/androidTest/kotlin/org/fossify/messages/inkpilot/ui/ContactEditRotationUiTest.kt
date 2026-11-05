@@ -71,6 +71,7 @@ class ContactEditRotationUiTest {
                     assertNull(nodeOrNull(context, "inkpilot_contact_memory"))
                 }
             } finally {
+                repository.database.delete("contact_aliases", "contact_id = ?", arrayOf(contact.id))
                 repository.database.delete("studio_contacts", "id = ?", arrayOf(contact.id))
                 context.baseConfig.lastUnlockTimestampMs = priorUnlock
             }

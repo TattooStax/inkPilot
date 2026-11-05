@@ -43,6 +43,10 @@ run_class org.fossify.messages.inkpilot.smoke.ComposerClaimRecoveryTest
 run_class org.fossify.messages.inkpilot.studio.StudioImageLinksTest
 run_class org.fossify.messages.inkpilot.studio.StudioImageImportUiTest
 run_class org.fossify.messages.inkpilot.studio.StudioImagePickerRecoveryTest
+run_class org.fossify.messages.inkpilot.studio.StudioImageOrphanPreparationTest
+adb -s "$serial" shell am force-stop "$package"
+[[ -z $(adb -s "$serial" shell pidof "$package" 2>/dev/null | tr -d '\r') ]]
+run_class org.fossify.messages.inkpilot.studio.StudioImageOrphanRecoveryTest
 run_class org.fossify.messages.inkpilot.data.StudioArchiveTest
 run_class org.fossify.messages.inkpilot.data.StudioArchiveCleanupNoticeTest
 run_class org.fossify.messages.inkpilot.ui.StudioStaffAttentionTest
@@ -68,6 +72,11 @@ run_class org.fossify.messages.inkpilot.ui.VCardShellUiTest
 run_class org.fossify.messages.inkpilot.ui.VCardImportRouteUiTest
 run_class org.fossify.messages.messaging.ComposerSharedMediaTest
 run_class org.fossify.messages.messaging.ComposerDiscardRecoveryTest
+run_class org.fossify.messages.inkpilot.smoke.ShellComposerMediaPrepareTest
+adb -s "$serial" shell am force-stop "$package"
+run_class org.fossify.messages.inkpilot.smoke.ShellComposerMediaVerifyTest
+run_class org.fossify.messages.inkpilot.smoke.DispatchOutcomeTest
+run_class org.fossify.messages.inkpilot.smoke.ToolProtocolDeviceTest
 run_class org.fossify.messages.inkpilot.smoke.ComposerShareFailureIngressTest
 run_class org.fossify.messages.inkpilot.runtime.CarrierIngressTest
 run_class org.fossify.messages.inkpilot.runtime.DirectReplyPreservationTest
@@ -92,6 +101,7 @@ run_class org.fossify.messages.inkpilot.phone.CallNotificationActionsTest
 run_class org.fossify.messages.inkpilot.phone.ManualDialUiTest
 run_class org.fossify.messages.inkpilot.phone.ManualCallUiTest
 run_class org.fossify.messages.transport.BridgeHistoryTest
+run_class org.fossify.messages.transport.HeartbeatAlarmCleanupTest
 if ((${#failed_classes[@]})); then
   printf 'FAIL: %d test class(es); per-class redacted verdicts are in app/build/test-class-evidence/\n' "${#failed_classes[@]}" >&2
   printf '  %s\n' "${failed_classes[@]}" >&2

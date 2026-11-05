@@ -32,6 +32,10 @@ import org.fossify.messages.inkpilot.studio.StudioPanels
 import java.util.concurrent.Executors
 
 private const val THREAD_REVIEW_FOOTER_HEIGHT_DP = 280
+private const val MENU_WIDTH_DP = 64
+private const val MENU_HEIGHT_DP = 56
+private const val TITLE_SIZE_SP = 24f
+private const val ATTACHMENT_PICKER_REQUEST = 7310
 
 /** A small native host; panels own their UI and the repository owns all studio data. */
 class StudioHomeActivity : AppCompatActivity() {
@@ -46,6 +50,8 @@ class StudioHomeActivity : AppCompatActivity() {
     private lateinit var navigator: StudioNavigator
     private lateinit var panels: StudioCanvasState
     private lateinit var contactEdit: ContactEditState
+    internal val contactEditState get() = contactEdit
+    internal val currentRoute get() = navigator.current
     private val tab get() = navigator.selectedTab
     private var smsObserver: SmsRefreshObserver? = null
     internal val composerRoutes by lazy { ComposerRouteCoordinator(this, navigator, panels, ::render) }
@@ -125,8 +131,8 @@ class StudioHomeActivity : AppCompatActivity() {
         }.apply {
             id = R.id.inkpilot_menu
             contentDescription = "Open agent controls"
-        }, LinearLayout.LayoutParams(StudioUi.dp(root, 64), StudioUi.dp(root, 56)))
-        heading = StudioUi.text(this, "Messages", 24f, true).apply { id = R.id.inkpilot_title }
+        }, LinearLayout.LayoutParams(StudioUi.dp(root, MENU_WIDTH_DP), StudioUi.dp(root, MENU_HEIGHT_DP)))
+        heading = StudioUi.text(this, "Messages", TITLE_SIZE_SP, true).apply { id = R.id.inkpilot_title }
         header.addView(heading, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
         root.addView(header)
         root.addView(StudioUi.rule(this))
@@ -156,7 +162,7 @@ class StudioHomeActivity : AppCompatActivity() {
                     is StudioRoute.Draft -> inlineDraft(route.draftId)
                     else -> auxiliaryCanvas(this, route, repository, work, auxiliary, studio, agent,
                         ::refreshPanels, ::openRoute)
-                        ?: dailyCanvas(this, tab, messages, repository, work, studio, contactEdit, ::refreshPanels,
+                        ?: dailyCanvas(this, tab, messages, repository, work, studio, ::refreshPanels,
                             ::openRoute, { number ->
                                 navigator.open(StudioRoute.Tab(StudioTab.PHONE))
                                 openRoute(StudioRoute.PhoneDial(number))
@@ -197,9 +203,6 @@ class StudioHomeActivity : AppCompatActivity() {
     }
 
     internal fun openRoute(route: StudioRoute) { navigator.open(route); render() }
-    internal fun openRouteIfCurrent(expected: StudioRoute, destination: StudioRoute) {
-        if (navigator.current == expected) openRoute(destination)
-    }
     private fun openAgent(value: String) {
         navigator.open(when (value) {
             "soul" -> StudioRoute.Soul
@@ -246,7 +249,7 @@ class StudioHomeActivity : AppCompatActivity() {
             type = "image/*"; addCategory(Intent.CATEGORY_OPENABLE)
             putExtra(Intent.EXTRA_MIME_TYPES, arrayOf("image/jpeg", "image/png"))
             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION)
-        }, 7310)
+        }, ATTACHMENT_PICKER_REQUEST)
     }
     private fun threadFooter(threadId: Long, selectedDraftId: String? = null): android.view.View {
         val root = StudioUi.column(this, 0)
@@ -335,7 +338,7 @@ class StudioHomeActivity : AppCompatActivity() {
     }
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == 7310) {
+        if (requestCode == ATTACHMENT_PICKER_REQUEST) {
             // A picker return must not attach private content while the shell is locked.
             if (resultCode != RESULT_OK || data == null || appLockManager.isLocked()) return
             val uri = data.data ?: data.clipData?.takeIf { it.itemCount > 0 }?.getItemAt(0)?.uri

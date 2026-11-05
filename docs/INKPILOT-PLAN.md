@@ -121,10 +121,34 @@ is the first proof. Features outside the chain come after it.
 
 ## Evidence-driven repairs before beta
 
-1. **Finish the one-shell ingress matrix.** The focused selected draft, notification route, Settings alias and all five tabs at 1.5× text plus landscape pass on hosted source `0311decd`. The cross-package cold-share case still cannot find a resumed shell with its exact URI; trace sender, alias, app lock and lifecycle, then verify its private body/grant. Repeat the full route matrix on the OnePlus when Victus reconnects.
-2. **Ground the local reply.** Production currently makes one RAW generation from the latest inbound text and a reviewed contact note; it does not call the local tool registry or include prior thread turns. The unsupported consultation claim is now blocked with staff attention, but the pinned QAD run produced no useful accepted reply in that test. Keep the bounded selector disabled until its fixed corpus, blind staff scoring, consecutive offline phone turns and a verified source-backed reply path pass.
-3. **Persist staff edits with the record.** Held reply edits on the implementation branch still live in preferences outside the Studio archive. An isolated v9 schema and exact-body claim candidate passed six Android data tests, but its new Detekt complexity finding and inherited staged-review failure block integration; a local refactor needs hosted confirmation. Complete the v8 reviewed-intake gate, then rerun the combined v9 edit, migration, reopen, send, dismissal and archive checks. Export remains incomplete until a tested restore path exists.
-4. **Finish native transport and device proof.** Verify scheduled edit/alarm ordering, multipart callback reconciliation, optional bridge posture and direct reply lifecycle with zero new static-analysis debt. Then install one identified candidate on the OnePlus and record real SMS/MMS recipient delivery, default-role rollback and process-death behavior.
+1. **Finish the one-shell ingress matrix.** The exact cross-package image-share
+   test retains a private copy after the sender removes its original. The
+   broader shell suite still has an intermittent large-text tab action and a
+   locked-notification test with asynchronous route timing. Diagnose those
+   failures before full UI acceptance. Repeat cold/warm routes, Back, lock,
+   media and all five tabs on the exact OnePlus candidate.
+2. **Qualify local replies before enabling them.** The integrated guard
+   quarantines older ON state and stops worker/direct RAW drafting while the
+   bounded route is unqualified. Its pinned-model offline emulator loop passed
+   on an isolated source. Exact selector QAD matched 0/24 expected labels and
+   Q4_K_M matched 5/13 before stopping. A safer QAD prompt returned REVIEW
+   for all 24, including 16 ordinary leads. Keep drafting disabled until a
+   useful fixed renderer, blind staff scoring, source grounding and 20 offline
+   phone turns pass. The production tool registry has no agent-loop caller.
+3. **Verify durable Studio workflow on one tree.** The v8 reviewed intake and
+   v9 staff edits, picker recovery and truthful plaintext export are in the
+   combined test branch, but its same-source shell gate is pending. Finish
+   image-copy crash recovery, contact edit/navigation checks, calendar
+   reminder reconciliation and migration/reopen/send/dismissal tests. The ZIP
+   exports the Studio database and originals; it has no tested restore path
+   or native SMS/MMS history.
+4. **Finish native transport and physical proof.** Focused role-before-claim,
+   active-SIM scheduled send and SMS-only direct-reply tests passed on isolated
+   hosted branches. Combine them with native Delete/Read verification,
+   multipart callback receipts, optional bridge posture and zero new Detekt
+   debt. Then install one identified candidate on the OnePlus and record real
+   SMS/MMS recipient delivery, role rollback, ambiguous-send handling and
+   process-death behavior.
 5. **Qualify manual calls independently.** Run the real incoming/outgoing, locked screen, denied/revoked alert, SIM and audio-route matrix. The source has no call capture, transcription, speech synthesis or AI answer loop; that remains a later milestone after a device-proven audio path.
 
 ## Known gaps to verify

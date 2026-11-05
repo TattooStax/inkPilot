@@ -79,10 +79,11 @@ class ContactSaveFailureUiTest {
         }
     }
 
-    private fun memoryNode(context: Context): AccessibilityNodeInfo =
-        requireNotNull(InstrumentationRegistry.getInstrumentation().uiAutomation.rootInActiveWindow
+    private fun memoryNode(context: Context): AccessibilityNodeInfo = SmokeViews.await("visible contact memory editor") {
+        InstrumentationRegistry.getInstrumentation().uiAutomation.rootInActiveWindow
             ?.findAccessibilityNodeInfosByViewId(context.packageName + ":id/inkpilot_contact_memory")
-            ?.firstOrNull { it.isVisibleToUser })
+            ?.firstOrNull { it.isVisibleToUser }
+    }
 
     private fun findText(view: View, value: String): TextView? = when (view) {
         is TextView -> view.takeIf { it.text.toString() == value }

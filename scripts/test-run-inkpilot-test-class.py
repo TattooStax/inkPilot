@@ -176,6 +176,19 @@ if 'instrument' in sys.argv:
         self.assertIn('instrumentation timeout', (self.root / f'app/build/test-class-evidence/{first}/result.txt').read_text())
         self.assertFalse((self.root / f'app/build/test-class-evidence/{last}/result.txt').exists())
 
+    def test_shell_forcibly_restarts_between_media_phases(self):
+        result = subprocess.run(['bash', 'scripts/inkpilot-shell-baseline.sh'], cwd=self.root,
+                                env=self.env, capture_output=True, text=True, timeout=120)
+        self.assertEqual(0, result.returncode, result.stderr)
+        calls = self.calls()
+        prepare = 'org.fossify.messages.inkpilot.smoke.ShellComposerMediaPrepareTest'
+        verify = 'org.fossify.messages.inkpilot.smoke.ShellComposerMediaVerifyTest'
+        selected = [call for call in calls if 'instrument' in call or 'force-stop' in call]
+        first = next(index for index, call in enumerate(selected) if prepare in call)
+        self.assertEqual(['-s', 'emulator-5554', 'shell', 'am', 'force-stop',
+                          'app.inkpilot.android.debug'], selected[first + 1])
+        self.assertIn(verify, selected[first + 2])
+
     def test_failures_are_nonzero(self):
         for output, code in [('FAILURES!!!', '0'), ('OK (0 tests)', '0'),
                              ('INSTRUMENTATION_FAILED', '0'), ('', '0'), ('OK (1 test)', '1')]:

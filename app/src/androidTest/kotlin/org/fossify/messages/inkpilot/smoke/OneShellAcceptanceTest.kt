@@ -20,6 +20,7 @@ import org.fossify.messages.activities.NewConversationActivity
 import org.fossify.messages.activities.SettingsActivity
 import org.fossify.messages.activities.ThreadActivity
 import org.fossify.messages.inkpilot.data.ReviewDraft
+import org.fossify.messages.inkpilot.runtime.AgentRuntime
 import org.fossify.messages.inkpilot.ui.InlineDraftReview
 import org.fossify.messages.inkpilot.ui.StudioHomeActivity
 import org.fossify.messages.inkpilot.ui.StudioWork
@@ -153,7 +154,9 @@ class OneShellAcceptanceTest {
                 val editor = (0 until panel.childCount).map(panel::getChildAt).filterIsInstance<EditText>().single()
                 val label = (0 until panel.childCount).map(panel::getChildAt).filterIsInstance<TextView>()
                     .single { it.labelFor == editor.id }
-                assertEquals("Reply to review", label.text.toString())
+                val expected = if (AgentRuntime.BOUNDED_INTENT_QUALIFIED) "Reply to review"
+                    else "Historical text for staff context"
+                assertEquals(expected, label.text.toString())
                 assertEquals("Edit held reply", editor.hint.toString())
                 assertTrue("Editor has a stable view ID for its label", editor.id != View.NO_ID)
             }

@@ -63,6 +63,11 @@ host-only results do not satisfy the physical gate. See the dated
 `LFM3-MODEL-FAMILY-BENCHMARK-2026-11-04.md` pilot and the qualification
 report generated for the exact model hash.
 
+The later fixed-vocabulary selector has its own [exact-route checkpoint](LFM3-EXACT-SELECTOR-CHECKPOINT-2026-11-05.md):
+QAD matched 0/24 expected labels, Q4_K_M matched 5/13 before stopping, and a
+safer prompt returned REVIEW for every one of 24 cases, including all ordinary
+leads. None qualifies an enabled production drafting route.
+
 ## Physical phone checklist
 
 Use the intended studio phone and a separate receiving phone. For a fresh

@@ -28,6 +28,12 @@ class StudioPanels(
     private val albums = albumPanel()
     private val calendar = StudioCalendarPanel(host, StudioCalendarStore(repository))
 
+    init {
+        // A prior process may have stopped after finalizing image bytes but before DB commit.
+        host.load({ StudioImageFiles(activity.applicationContext, StudioAlbumStore(repository))
+            .recoverIncompleteImports() }) {}
+    }
+
     fun albums(): View = albums.view()
     fun linkedImages(contactId: String? = null, threadId: Long? = null): View = albumPanel().linkedView(contactId, threadId)
 

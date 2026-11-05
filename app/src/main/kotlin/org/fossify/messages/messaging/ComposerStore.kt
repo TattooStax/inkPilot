@@ -33,8 +33,8 @@ class ComposerStore(context: Context) {
     internal fun finish(request: OutgoingMessage, outcome: DispatchOutcome) {
         when (outcome) {
             is DispatchOutcome.Accepted -> {
+                check(appContext.markSharedComposerImagesForDiscard(request.attachmentUris, terminal = true))
                 markComposeCompleted(request.threadId)
-                check(appContext.markSharedComposerImagesForDiscard(request.attachmentUris))
                 // Keep the saved URI until its private copy is removed. A crash must not
                 // erase the only reference before cleanup after an accepted handoff.
                 appContext.discardSharedComposerImages(request.attachmentUris)

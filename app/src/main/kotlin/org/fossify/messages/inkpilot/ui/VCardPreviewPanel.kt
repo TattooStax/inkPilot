@@ -14,6 +14,10 @@ internal fun isVCardAttachment(mime: String, filename: String): Boolean =
         "application/vcard", "application/x-vcard") ||
         filename.lowercase().endsWith(".vcf")
 
+private fun StudioHomeActivity.openRouteIfCurrent(expected: StudioRoute, destination: StudioRoute) {
+    if (currentRoute == expected) openRoute(destination)
+}
+
 /** The card remains in the SMS canvas; only an explicit staff choice creates a Studio contact. */
 internal class VCardPreviewPanel(
     private val activity: StudioHomeActivity,

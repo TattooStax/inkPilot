@@ -39,6 +39,7 @@ class HeartbeatAlarmReceiver : BroadcastReceiver() {
             context.cancelHeartbeatSchedule()
             context.cancelHeartbeatNotification()
             context.cancelDrainRetrySchedule()
+            context.cancelOutboundPickupSchedule()
             return
         }
         context.scheduleNextHeartbeat(nextHeartbeatDelayMillis(isFirstBeat = false))

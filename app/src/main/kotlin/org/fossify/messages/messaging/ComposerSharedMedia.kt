@@ -12,10 +12,7 @@ private const val MAX_SHARED_IMAGES = 4
 private const val MAX_SHARED_IMAGE_BYTES = 1_048_576
 private const val COPY_BUFFER_BYTES = 8_192
 private const val OWNED_PATH = "composer_shared_images"
-private val OWNED_NAME = Regex("[0-9a-f-]{36}\\.(?:png|jpg)")
 private val COPY_SESSION = UUID.randomUUID().toString()
-private const val JOURNAL_SUFFIX = ".journal"
-private const val DISCARD_PREFIX = "discard-"
 
 /** A share grant ends with its task; retain bounded image bytes in private app storage. */
 internal fun Context.captureSharedComposerImages(uris: List<Uri>): List<Uri>? {
@@ -77,36 +74,6 @@ private fun InputStream.copySharedBytesTo(output: FileOutputStream) {
     }
 }
 
-/** Delete only this app's opaque composer copies; never follow an external URI or path. */
-internal fun Context.discardSharedComposerImages(uris: List<Uri>) {
-    val directory = File(filesDir, "composer-shares")
-    uris.mapNotNull(::ownedComposerName).forEach { directory.discardOwnedComposerImage(it) }
-}
-
-private fun File.discardOwnedComposerImage(name: String) {
-    val copy = File(this, name)
-    if (copy.exists() && !copy.delete()) return
-    listFiles().orEmpty().filter { file ->
-        file.name.startsWith("share-") && file.name.endsWith("-${name.substringBeforeLast('.')}$JOURNAL_SUFFIX") ||
-            file.name.startsWith(DISCARD_PREFIX) && file.name.endsWith(JOURNAL_SUFFIX) &&
-            runCatching { file.readText(Charsets.UTF_8) == name }.getOrDefault(false)
-    }.forEach(File::delete)
-}
-
-/** Commit an intent to release each owned copy before removing its saved URI. */
-internal fun Context.markSharedComposerImagesForDiscard(uris: List<Uri>): Boolean {
-    val directory = File(filesDir, "composer-shares").apply { mkdirs() }
-    return uris.mapNotNull(::ownedComposerName).all { name ->
-        runCatching {
-            val marker = File(directory, "$DISCARD_PREFIX${UUID.randomUUID()}$JOURNAL_SUFFIX")
-            FileOutputStream(marker).use { output ->
-                output.write(name.toByteArray(Charsets.UTF_8))
-                output.fd.sync()
-            }
-        }.isSuccess
-    }
-}
-
 /** The composer is durable before its per-copy recovery marker can be removed. */
 internal fun Context.settleSharedComposerImages(uris: List<Uri>) {
     val directory = File(filesDir, "composer-shares")
@@ -132,15 +99,7 @@ internal fun Context.recoverSharedComposerImages(referenced: Set<String>, active
             journal.delete()
         }
     }
-    directory.listFiles().orEmpty().filter { file ->
-        file.name.startsWith(DISCARD_PREFIX) && file.name.endsWith(JOURNAL_SUFFIX)
-    }.forEach { journal ->
-        val name = runCatching { journal.readText(Charsets.UTF_8) }.getOrNull()
-        when {
-            name == null || !OWNED_NAME.matches(name) || name in referenced -> journal.delete()
-            else -> directory.discardOwnedComposerImage(name)
-        }
-    }
+    directory.recoverDiscardSharedComposerImages(referenced)
 }
 
 internal fun Context.ownedSharedComposerName(uri: Uri): String? = ownedComposerName(uri)
@@ -149,7 +108,7 @@ internal fun Context.composerAttachmentName(uri: Uri): String =
     if (ownedComposerName(uri) != null) "Shared image"
     else uri.lastPathSegment.orEmpty()
 
-private fun Context.ownedComposerName(uri: Uri): String? {
+internal fun Context.ownedComposerName(uri: Uri): String? {
     if (uri.scheme != "content" || uri.authority != "$packageName.provider" || uri.pathSegments.size != 2) return null
     if (uri.pathSegments[0] != OWNED_PATH) return null
     return uri.pathSegments[1].takeIf(OWNED_NAME::matches)

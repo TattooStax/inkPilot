@@ -67,6 +67,8 @@ class VCardImportRouteUiTest {
         } finally {
             gate.countDown()
             StudioRepository(context).use { repository ->
+                repository.database.delete("contact_aliases",
+                    "contact_id IN (SELECT id FROM studio_contacts WHERE number = ?)", arrayOf(phone))
                 repository.database.delete("studio_contacts", "number = ?", arrayOf(phone))
             }
             file.delete()
