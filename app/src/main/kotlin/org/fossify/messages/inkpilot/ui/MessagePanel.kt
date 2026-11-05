@@ -83,10 +83,28 @@ internal class MessagePanel(
             }
         })
         body.addView(StudioUi.button(activity, "Load older messages") { load() }, 0)
-        body.addView(threadFooter?.invoke(threadId) ?: StudioUi.text(activity, "Read-only conversation", 14f))
+        val footer = threadFooter?.invoke(threadId) ?: StudioUi.text(activity, "Read-only conversation", 14f)
+        body.addView(footer)
+        if (threadFooter != null) reserveThreadViewport(body, list, footer)
         work.load({ gateway.markRead(threadId) }) { }
         load()
         return body
+    }
+
+    private fun reserveThreadViewport(body: android.widget.LinearLayout, list: View, footer: View) {
+        val preferredFooterHeight = footer.layoutParams.height
+        body.addOnLayoutChangeListener { _, _, top, _, bottom, _, _, _, _ ->
+            val fixed = (0 until body.childCount).sumOf { index ->
+                body.getChildAt(index).takeUnless { it === list || it === footer }?.height ?: 0
+            }
+            val room = (bottom - top - body.paddingTop - body.paddingBottom - fixed).coerceAtLeast(0)
+            val footerHeight = minOf(preferredFooterHeight, room / 2)
+            if (footer.layoutParams.height != footerHeight) {
+                footer.layoutParams = (footer.layoutParams as android.widget.LinearLayout.LayoutParams).apply {
+                    height = footerHeight
+                }
+            }
+        }
     }
 
     private fun recycler() = StudioPagedList(activity).apply {
