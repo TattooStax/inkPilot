@@ -41,7 +41,10 @@ open class CompatibilityIngressActivity : Activity() {
                     target.clipData = ClipData.newRawUri("Shared images", local.first()).apply {
                         local.drop(1).forEach { addItem(ClipData.Item(it)) }
                     }
-                } else if (local != null) discardSharedComposerImages(local)
+                } else {
+                    if (local != null) discardSharedComposerImages(local)
+                    target.putExtra(ExternalRouteParser.ROUTE, share.copy(shareCopyFailed = true).encode())
+                }
                 startActivity(target)
                 finish()
             }

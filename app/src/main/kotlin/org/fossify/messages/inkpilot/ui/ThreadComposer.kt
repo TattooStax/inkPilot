@@ -19,6 +19,8 @@ internal class ThreadComposer(private val activity: AppCompatActivity, private v
         val store = ComposerStore(activity)
         val saved = store.getOrCreate(OutgoingMessage(threadId, initial?.recipients?.joinToString("|").orEmpty(),
             initial?.body.orEmpty(), initial?.mediaUris.orEmpty(), -1))
+        val failedShareUris = if (initial?.shareCopyFailed == true) initial.mediaUris.toSet() else emptySet()
+        val sharedImageNeedsReattach = saved.attachmentUris.any { it in failedShareUris }
         val root = StudioUi.column(activity, 8)
         val recipient = EditText(activity).apply {
             id = android.view.View.generateViewId()
@@ -66,10 +68,12 @@ internal class ThreadComposer(private val activity: AppCompatActivity, private v
         editable.add(selector)
         fun enableEditor(enabled: Boolean) { editable.forEach { it.isEnabled = enabled } }
         enableEditor(!store.isUnknown(threadId))
-        val status = StudioUi.text(activity, initialComposerStatus(store, threadId))
+        val status = StudioUi.text(activity, if (sharedImageNeedsReattach)
+            "Shared image could not be kept. Remove it and attach again before sending."
+            else initialComposerStatus(store, threadId))
         root.addView(status)
         val send = StudioUi.button(activity, "Send message") {}
-        send.isEnabled = !store.isUnknown(threadId)
+        send.isEnabled = !store.isUnknown(threadId) && !sharedImageNeedsReattach
         val controls = ComposerSendControls(status, send, { request() },
             { enabled -> enableEditor(enabled) }, refresh, open, accepted)
         val controller = InShellSendController(activity, work, store, threadId, controls)
