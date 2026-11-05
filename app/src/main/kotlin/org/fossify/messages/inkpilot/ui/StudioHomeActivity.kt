@@ -42,6 +42,7 @@ class StudioHomeActivity : AppCompatActivity() {
     private lateinit var panels: StudioCanvasState
     private val tab get() = navigator.selectedTab
     private var smsObserver: SmsRefreshObserver? = null
+    internal val composerRoutes by lazy { ComposerRouteCoordinator(this, navigator, panels, ::render) }
     private var attachmentThread = 0L
     private var cleanupDialog: AlertDialog? = null
     private var closing = false
@@ -86,12 +87,7 @@ class StudioHomeActivity : AppCompatActivity() {
         studio = StudioPanels(this, executor, { StudioUi.error(this, it) }, repository)
         buildFrame()
         appLaunched(BuildConfig.APPLICATION_ID)
-        smsObserver = SmsRefreshObserver(this) {
-            panels.invalidate(StudioRoute.Tab(StudioTab.SMS))
-            val route = navigator.current
-            panels.invalidateThreads()
-            if (route is StudioRoute.Thread || route == StudioRoute.Tab(StudioTab.SMS)) render()
-        }
+        smsObserver = SmsRefreshObserver(this, composerRoutes::refreshFromProvider)
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
                 if (navigator.pop()) { render() }
@@ -131,6 +127,7 @@ class StudioHomeActivity : AppCompatActivity() {
     private fun render() {
         if (isDestroyed || isFinishing) return
         if (appLockManager.isLocked()) { canvas.removeAllViews(); return }
+        composerRoutes.prune()
         val route = navigator.current
         val messages = MessagePanel(this, work, ::setupSms, { openAgent("drafts") }, ::openRoute,
             threadFooter = ::threadFooter, importImage = ::importMmsImage)
@@ -139,7 +136,10 @@ class StudioHomeActivity : AppCompatActivity() {
             StudioRoute.Auxiliary("drafts") -> DraftPanel(this, repository, work, ::refreshPanels, ::openRoute).view()
             StudioRoute.Auxiliary("proposals") -> ProposalPanel(this, repository, work, ::refreshPanels).view()
             is StudioRoute.Thread -> messages.thread(route.threadId)
-            is StudioRoute.Compose -> StudioUi.scroll(this, ThreadComposer(this, work, ::pickAttachment, ::refreshPanels, ::openRoute).view(route.composerId, route))
+            is StudioRoute.Compose -> StudioUi.scroll(this, ThreadComposer(this, work, ::pickAttachment,
+                ::refreshPanels, { sent -> composerRoutes.completeCompose(route, sent) },
+                composerRoutes::acceptedThread)
+                .view(route.composerId, route))
             is StudioRoute.Draft -> inlineDraft(route.draftId)
             is StudioRoute.ImageLinks -> studio.linkedImages(route.contactId, route.threadId)
             is StudioRoute.Settings -> auxiliary.settings()
@@ -205,7 +205,6 @@ class StudioHomeActivity : AppCompatActivity() {
     }
 
     internal fun openRoute(route: StudioRoute) { navigator.open(route); render() }
-
     private fun openAgent(value: String) {
         navigator.open(when (value) {
             "soul" -> StudioRoute.Soul
@@ -249,8 +248,8 @@ class StudioHomeActivity : AppCompatActivity() {
     private fun pickAttachment(threadId: Long) {
         attachmentThread = threadId
         startActivityForResult(Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
-            type = "*/*"; addCategory(Intent.CATEGORY_OPENABLE)
-            putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
+            type = "image/*"; addCategory(Intent.CATEGORY_OPENABLE)
+            putExtra(Intent.EXTRA_MIME_TYPES, arrayOf("image/jpeg", "image/png"))
             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION)
         }, 7310)
     }
@@ -259,7 +258,8 @@ class StudioHomeActivity : AppCompatActivity() {
         work.load({ repository.draftsForThread(threadId) }) { drafts ->
             drafts.forEach { root.addView(InlineDraftReview(this, work, ::refreshPanels).view(it), 0) }
         }
-        root.addView(ThreadComposer(this, work, ::pickAttachment, ::refreshPanels, ::openRoute).view(threadId))
+        root.addView(ThreadComposer(this, work, ::pickAttachment, ::refreshPanels, ::openRoute,
+            composerRoutes::acceptedThread).view(threadId))
         return StudioUi.scroll(this, root).apply { layoutParams = LinearLayout.LayoutParams(-1, StudioUi.dp(root, 280)) }
     }
     private fun inlineDraft(id: String): android.view.View {
@@ -314,14 +314,14 @@ class StudioHomeActivity : AppCompatActivity() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == 7310 && resultCode == RESULT_OK && data != null) {
-            val uris = buildList {
-                data.data?.let { add(it) }
-                data.clipData?.let { clip -> for (i in 0 until clip.itemCount) add(clip.getItemAt(i).uri) }
-            }.distinct()
-            uris.forEach { uri -> try { contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION) } catch (_: Exception) { } }
-            val store = org.fossify.messages.messaging.ComposerStore(this)
-            store.load(attachmentThread)?.let { store.save(it.copy(attachmentUris = (it.attachmentUris + uris).distinct())) }
-            refreshPanels()
+            val uri = data.data ?: data.clipData?.takeIf { it.itemCount > 0 }?.getItemAt(0)?.uri
+            if (uri != null) {
+                try { contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION) }
+                catch (_: Exception) { /* The preflight checks whether the URI remains readable. */ }
+                val store = org.fossify.messages.messaging.ComposerStore(this)
+                store.load(attachmentThread)?.let { store.save(it.copy(attachmentUris = listOf(uri))) }
+                refreshPanels()
+            }
         } else if (requestCode == SMS_ROLE_REQUEST) SmsRolePermissions.request(this, SMS_ROLE_REQUEST, ::refreshPanels)
         else if (!agent.onActivityResult(requestCode, resultCode, data)) studio.onActivityResult(requestCode, resultCode, data)
     }

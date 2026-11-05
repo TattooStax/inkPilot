@@ -37,6 +37,7 @@ internal class SmsRefreshObserver(
         try {
             register(Telephony.MmsSms.CONTENT_URI, observer)
             register(Telephony.Sms.CONTENT_URI, observer)
+            register(Telephony.Mms.CONTENT_URI, observer)
             registered = true
         } catch (_: RuntimeException) {
             // The first registration can succeed before the second fails (including revocation).

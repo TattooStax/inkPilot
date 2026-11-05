@@ -162,7 +162,8 @@ class MessagingUtils(val context: Context) {
         attachment: Attachment?,
         settings: Settings,
         messageId: Long? = null,
-        scheduledCallback: ScheduledCallback? = null
+        scheduledCallback: ScheduledCallback? = null,
+        mmsComposerClaim: MmsComposerClaim? = null
     ) {
         val transaction = Transaction(context, settings)
         val message = Message(text, addresses.toTypedArray())
@@ -171,7 +172,7 @@ class MessagingUtils(val context: Context) {
             try {
                 val uri = attachment.getUri()
                 context.contentResolver.openInputStream(uri)?.use {
-                    val bytes = it.readBytes()
+                    val bytes = it.readMmsAttachment(attachment, mmsComposerClaim)
                     val mimeType = if (attachment.mimetype.isPlainTextMimeType()) {
                         "application/txt"
                     } else {
@@ -187,6 +188,10 @@ class MessagingUtils(val context: Context) {
 
         val mmsSentIntent = Intent(context, MmsSentReceiver::class.java)
         mmsSentIntent.putExtra(MmsSentReceiver.EXTRA_ORIGINAL_RESENT_MESSAGE_ID, messageId)
+        mmsComposerClaim?.let { claim ->
+            mmsSentIntent.putExtra(MmsSentReceiver.EXTRA_COMPOSER_THREAD_ID, claim.threadId)
+            mmsSentIntent.putExtra(MmsSentReceiver.EXTRA_COMPOSER_ATTEMPT_ID, claim.attemptId)
+        }
         scheduledCallback?.attach(mmsSentIntent, 0)
         mmsSentIntent.data = scheduledCallback?.let { Uri.parse(it.key.alarmIdentity() + "/" + it.offset) }
         transaction.setExplicitBroadcastForSentMms(mmsSentIntent)
@@ -208,3 +213,7 @@ class MessagingUtils(val context: Context) {
         const val ADDRESS_SEPARATOR = "|"
     }
 }
+
+private fun java.io.InputStream.readMmsAttachment(
+    attachment: Attachment, composerClaim: MmsComposerClaim?,
+): ByteArray = if (composerClaim == null) readBytes() else readBoundedMmsImage(attachment.mimetype)

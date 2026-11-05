@@ -27,7 +27,12 @@ internal class StudioCanvasState(private val saved: Bundle = Bundle()) {
     fun invalidate(route: StudioRoute) {
         views.remove(route)?.let { saveView(route, it) }
     }
-    fun invalidateThreads() { views.keys.filterIsInstance<StudioRoute.Thread>().toList().forEach(::invalidate) }
+    fun discard(route: StudioRoute) { views.remove(route); saved.remove(key(route)) }
+    fun invalidateThreads(keepState: (Long) -> Boolean = { true }) {
+        views.keys.filterIsInstance<StudioRoute.Thread>().toList().forEach { route ->
+            if (keepState(route.threadId)) invalidate(route) else discard(route)
+        }
+    }
     private fun saveView(route: StudioRoute, view: View) {
         saved.putSparseParcelableArray(key(route), SparseArray<Parcelable>().also(view::saveHierarchyState))
     }

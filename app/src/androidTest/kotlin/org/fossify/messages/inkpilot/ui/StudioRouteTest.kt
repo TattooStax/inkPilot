@@ -29,6 +29,34 @@ class StudioRouteTest {
         assertFalse(restored.pop())
     }
 
+    @Test fun completedComposeDoesNotReturnWithSeedTextOnBack() {
+        val route = StudioRoute.Compose(listOf("+15550105555"), "sent caption", emptyList())
+        val navigator = StudioNavigator()
+        navigator.open(route)
+        navigator.open(StudioRoute.Tab(StudioTab.CONTACTS))
+        navigator.open(route)
+        assertTrue(navigator.forget(route))
+        assertEquals(StudioRoute.Tab(StudioTab.CONTACTS), navigator.current)
+        assertFalse(navigator.pop())
+        navigator.open(StudioRoute.Tab(StudioTab.SMS))
+        assertEquals(StudioRoute.Tab(StudioTab.SMS), navigator.current)
+        assertFalse(navigator.pop())
+        val panels = StudioCanvasState()
+        val context = androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().targetContext
+        androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().runOnMainSync {
+            val editor = panels.view(route) { android.widget.EditText(context) } as android.widget.EditText
+            editor.setText("sent caption")
+            panels.discard(route)
+            val fresh = panels.view(route) { android.widget.EditText(context) } as android.widget.EditText
+            assertEquals("", fresh.text.toString())
+            fresh.setText("another sent reply")
+            val restored = StudioCanvasState(panels.save())
+            restored.discard(route)
+            val afterRecreation = restored.view(route) { android.widget.EditText(context) } as android.widget.EditText
+            assertEquals("", afterRecreation.text.toString())
+        }
+    }
+
     @Test fun roundTripsEveryDestination() {
         listOf(StudioRoute.Draft("draft-1"), StudioRoute.Settings("sms"), StudioRoute.Soul,
             StudioRoute.Model, StudioRoute.Auxiliary("drafts")).forEach { route ->
@@ -132,9 +160,9 @@ class StudioRouteTest {
         observer.start()
         assertEquals(1, removals)
         observer.start()
-        assertEquals(4, attempts)
+        assertEquals(5, attempts)
         observer.start()
-        assertEquals(4, attempts)
+        assertEquals(5, attempts)
         observer.stop()
         observer.stop()
         assertEquals(2, removals)

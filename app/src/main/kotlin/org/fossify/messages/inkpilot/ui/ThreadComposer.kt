@@ -1,24 +1,20 @@
 package org.fossify.messages.inkpilot.ui
 
 import android.Manifest
-import android.content.Intent
 import android.content.pm.PackageManager
-import android.net.Uri
+import androidx.core.content.ContextCompat
 import android.telephony.SubscriptionManager
 import android.text.Editable
 import android.text.TextWatcher
 import android.widget.EditText
+import android.view.View
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.content.ContextCompat
-import org.fossify.messages.extensions.getThreadParticipants
-import org.fossify.messages.extensions.getAddresses
-import org.fossify.messages.extensions.getThreadId
 import org.fossify.messages.messaging.*
-import org.fossify.messages.models.Attachment
 
 /** All changes are committed before navigation or carrier handoff. Never retries a claim. */
 internal class ThreadComposer(private val activity: AppCompatActivity, private val work: StudioWork,
-    private val pick: (Long) -> Unit, private val refresh: () -> Unit, private val open: (StudioRoute) -> Unit) {
+    private val pick: (Long) -> Unit, private val refresh: () -> Unit, private val open: (StudioRoute) -> Unit,
+    private val accepted: (Long) -> Unit = { refresh() }) {
     fun view(threadId: Long, initial: StudioRoute.Compose? = null): android.widget.LinearLayout {
         val store = ComposerStore(activity)
         val saved = store.getOrCreate(OutgoingMessage(threadId, initial?.recipients?.joinToString("|").orEmpty(),
@@ -44,57 +40,40 @@ internal class ThreadComposer(private val activity: AppCompatActivity, private v
         root.addView(recipient)
         root.addView(StudioUi.text(activity, "Message", 14f).apply { labelFor = text.id })
         root.addView(text)
-        if (threadId > 0 && saved.recipient.isBlank()) work.load({ activity.getThreadParticipants(threadId, null).getAddresses().filter { it.isNotBlank() }.joinToString("|") }) {
-            if (recipient.text.isBlank()) { recipient.setText(it); persist() }
-        }
+        loadRecipientForThread(activity, work, store, threadId, saved.recipient, recipient, ::persist)
         val watcher = object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) = Unit
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) { persist() }
             override fun afterTextChanged(s: Editable?) = Unit
         }
         recipient.addTextChangedListener(watcher); text.addTextChangedListener(watcher)
-        uris.forEach { uri -> root.addView(StudioUi.button(activity, "Remove attachment: ${uri.lastPathSegment}") { uris = uris - uri; persist(); refresh() }) }
-        root.addView(StudioUi.button(activity, "Attach image, video or file") { persist(); pick(threadId) })
+        val editable = mutableListOf<View>(recipient, text)
+        uris.forEach { uri ->
+            val remove = StudioUi.button(activity, "Remove attachment: ${uri.lastPathSegment}") {
+                uris = uris - uri; persist(); refresh()
+            }
+            root.addView(remove)
+            editable.add(remove)
+        }
+        val attach = StudioUi.button(activity, "Attach image (up to 1 MiB)") { persist(); pick(threadId) }
+        root.addView(attach)
+        editable.add(attach)
         val selector = StudioUi.button(activity, if (sim < 0) "Choose SIM" else "SIM subscription $sim") {}
-        selector.setOnClickListener { chooseComposerSim(activity, work) { id, label -> sim = id; selector.text = label; persist() } }
+        selector.setOnClickListener { chooseComposerSim(activity, work) { id, label ->
+            sim = id; selector.text = label; persist()
+        } }
         root.addView(selector)
-        val status = StudioUi.text(activity, if (store.isUnknown(threadId)) "Send outcome unknown. Check the conversation; this draft cannot be sent again." else "")
+        editable.add(selector)
+        fun enableEditor(enabled: Boolean) { editable.forEach { it.isEnabled = enabled } }
+        enableEditor(!store.isUnknown(threadId))
+        val status = StudioUi.text(activity, initialComposerStatus(store, threadId))
         root.addView(status)
         val send = StudioUi.button(activity, "Send message") {}
         send.isEnabled = !store.isUnknown(threadId)
-        send.setOnClickListener {
-            if (ContextCompat.checkSelfPermission(activity, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
-                status.text = "Choose a SIM after allowing SIM access"; return@setOnClickListener
-            }
-            val value = request()
-            if (value.body.isBlank() && value.attachmentUris.isEmpty()) { status.text = "Write a message or attach a file"; return@setOnClickListener }
-            send.isEnabled = false
-            work.load({ prepareComposerSend(store, value) {
-                val active = activity.getSystemService(SubscriptionManager::class.java).activeSubscriptionInfoList.orEmpty()
-                val dispatcher = MessageDispatcher.local(activity) { outgoing ->
-                    if (active.none { it.subscriptionId == outgoing.subscriptionId }) DispatchOutcome.Rejected("Choose an active SIM")
-                    else {
-                        activity.sendMessageCompat(outgoing.body, outgoing.recipient.split("|").filter { it.isNotBlank() }, outgoing.subscriptionId,
-                        outgoing.attachmentUris.map { Attachment(null, 0, it.toString(), activity.contentResolver.getType(it) ?: "application/octet-stream", 0, 0, it.lastPathSegment.orEmpty()) })
-                    }
-                }
-                dispatcher
-            } }) { result ->
-                val outcome = result.getOrElse {
-                    status.text = "Unable to prepare message. Draft retained."
-                    send.isEnabled = composerCanRetry(store, value)
-                    return@load
-                }
-                when (outcome) {
-                    is DispatchOutcome.Accepted -> {
-                        refresh()
-                        if (threadId <= 0L) work.load({ activity.getThreadId(value.recipient.split("|").filter { it.isNotBlank() }.toSet()) }) { open(StudioRoute.Thread(it)) }
-                    }
-                    is DispatchOutcome.Rejected -> { status.text = outcome.reason; send.isEnabled = composerCanRetry(store, value) }
-                    is DispatchOutcome.Unknown -> status.text = "Send outcome unknown. Draft retained. Check the conversation before composing another message."
-                }
-            }
-        }
+        val controls = ComposerSendControls(status, send, { request() },
+            { enabled -> enableEditor(enabled) }, refresh, open, accepted)
+        val controller = InShellSendController(activity, work, store, threadId, controls)
+        send.setOnClickListener { controller.onSend() }
         root.addView(send)
         root.focusHistoryOnOpen(threadId)
         return root

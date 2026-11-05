@@ -2,7 +2,6 @@ package org.fossify.messages.messaging
 
 import android.content.Context
 import android.net.Uri
-import org.json.JSONArray
 import org.json.JSONObject
 
 /** Synchronous commit before dispatch: preserves human text, recipient, SIM and URI identity. */
@@ -12,14 +11,15 @@ class ComposerStore(context: Context) {
         java.io.RandomAccessFile(lockFile, "rw").use { file -> file.channel.lock().use { block() } }
     }
     fun getOrCreate(request: OutgoingMessage): OutgoingMessage = locked {
-        load(request.threadId) ?: request.also { check(save(it)) }
+        if (hasCompletedCompose(request.threadId)) request.copy(body = "", attachmentUris = emptyList())
+        else load(request.threadId) ?: request.also { check(saveUnclaimed(it)) }
     }
-    private val claims = java.io.File(context.filesDir, "composer-claims").apply { mkdirs() }
+    internal val claims = java.io.File(context.filesDir, "composer-claims").apply { mkdirs() }
     private fun attemptFile(id: String) = java.io.File(claims, "attempt-" + java.security.MessageDigest.getInstance("SHA-256")
         .digest(id.toByteArray()).joinToString("") { "%02x".format(it) })
-    private fun pendingFile(threadId: Long) = java.io.File(claims, "pending-$threadId")
+    internal fun pendingFile(threadId: Long) = java.io.File(claims, "pending-$threadId")
     internal fun wasSubmitted(request: OutgoingMessage): Boolean = attemptFile(request.attemptId).exists()
-    private fun durableMarker(file: java.io.File) {
+    internal fun durableMarker(file: java.io.File) {
         java.io.FileOutputStream(file).use { it.write(1); it.fd.sync() }
     }
     internal fun claim(request: OutgoingMessage): Boolean {
@@ -31,7 +31,9 @@ class ComposerStore(context: Context) {
     internal fun finish(request: OutgoingMessage, outcome: DispatchOutcome) {
         when (outcome) {
             is DispatchOutcome.Accepted -> {
-                check(prefs.edit().remove(request.threadId.toString()).remove("unknown:${request.threadId}").commit())
+                markComposeCompleted(request.threadId)
+                check(prefs.edit().remove(request.threadId.toString()).remove("unknown:${request.threadId}")
+                    .remove("mms-failed:${request.threadId}").commit())
                 check(pendingFile(request.threadId).delete())
             }
             is DispatchOutcome.Rejected -> {
@@ -41,10 +43,9 @@ class ComposerStore(context: Context) {
             is DispatchOutcome.Unknown -> Unit // claim survives restart; no replay
         }
     }
-    private val prefs = context.getSharedPreferences("durable_composers", Context.MODE_PRIVATE)
-    fun save(request: OutgoingMessage): Boolean = prefs.edit().putString(request.threadId.toString(), JSONObject()
-        .put("attemptId", request.attemptId).put("recipient", request.recipient).put("body", request.body).put("subscriptionId", request.subscriptionId)
-        .put("uris", JSONArray(request.attachmentUris.map { it.toString() })).toString()).commit()
+    internal val prefs = context.getSharedPreferences("durable_composers", Context.MODE_PRIVATE)
+    init { locked { recoverMmsConfirmations() } }
+    fun save(request: OutgoingMessage): Boolean = locked { saveUnclaimed(request) }
     fun load(threadId: Long): OutgoingMessage? = prefs.getString(threadId.toString(), null)?.let {
         val json = JSONObject(it)
         val uris = json.getJSONArray("uris")
@@ -58,7 +59,9 @@ class ComposerStore(context: Context) {
             is DispatchOutcome.Rejected -> Unit
         }
     }
-    fun isUnknown(threadId: Long): Boolean = pendingFile(threadId).exists() || prefs.contains("unknown:$threadId")
-    fun clear(threadId: Long) { pendingFile(threadId).delete(); check(prefs.edit().remove(threadId.toString()).remove("unknown:$threadId").commit()) }
+    fun isUnknown(threadId: Long): Boolean = hasCompletedCompose(threadId) ||
+        pendingFile(threadId).exists() || prefs.contains("unknown:$threadId")
+    fun clear(threadId: Long) { pendingFile(threadId).delete(); check(prefs.edit().remove(threadId.toString())
+        .remove("unknown:$threadId").remove("mms-failed:$threadId").remove("mms-confirmed:$threadId").commit()) }
     companion object { private val processLock = Any() }
 }

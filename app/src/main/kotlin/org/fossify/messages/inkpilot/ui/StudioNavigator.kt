@@ -29,6 +29,17 @@ internal class StudioNavigator(savedState: Bundle? = null) {
         }
         open(route)
     }
+    fun composeRoutes(): List<StudioRoute.Compose> = stacks.values.flatMap { it }
+        .filterIsInstance<StudioRoute.Compose>().distinct()
+    fun threadRoutes(): List<StudioRoute.Thread> = stacks.values.flatMap { it }
+        .filterIsInstance<StudioRoute.Thread>().distinct()
+    /** Remove every completed copy, including hidden copies in another tab's stack. */
+    fun forget(route: StudioRoute): Boolean {
+        if (route is StudioRoute.Tab) return false
+        val visible = current == route
+        stacks.values.forEach { stack -> stack.removeAll { it == route } }
+        return visible
+    }
     fun pop(): Boolean {
         val stack = stacks.getValue(selectedTab)
         if (stack.size == 1) return false

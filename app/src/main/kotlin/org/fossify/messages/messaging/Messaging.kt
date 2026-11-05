@@ -40,7 +40,8 @@ fun Context.sendMessageCompat(
     addresses: List<String>,
     subId: Int?,
     attachments: List<Attachment>,
-    messageId: Long? = null
+    messageId: Long? = null,
+    mmsComposerClaim: MmsComposerClaim? = null
 ): DispatchOutcome {
     val settings = getSendMessageSettings()
     if (subId != null) {
@@ -76,9 +77,11 @@ fun Context.sendMessageCompat(
             }
 
             val lastAttachment = attachments[lastIndex]
-            messagingUtils.sendMmsMessage(text, addresses, lastAttachment, settings, messageId)
+            messagingUtils.sendMmsMessage(text, addresses, lastAttachment, settings, messageId,
+                mmsComposerClaim = mmsComposerClaim)
         } else {
-            messagingUtils.sendMmsMessage(text, addresses, null, settings, messageId)
+            messagingUtils.sendMmsMessage(text, addresses, null, settings, messageId,
+                mmsComposerClaim = mmsComposerClaim)
         }
         result = DispatchOutcome.Unknown(java.util.UUID.randomUUID().toString())
     } else {
