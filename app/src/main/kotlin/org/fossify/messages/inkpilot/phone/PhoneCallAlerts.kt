@@ -64,7 +64,7 @@ internal object PhoneCallAlerts {
             Build.VERSION.SDK_INT < Build.VERSION_CODES.UPSIDE_DOWN_CAKE || manager.canUseFullScreenIntent())
     }
 
-    /** The notification has no lock-screen call actions, so do not take the role without full-screen access. */
+    /** Require full-screen access for the locked call UI before taking the Phone role. */
     fun ensure(activity: Activity): Boolean {
         val block = blocker(activity) ?: return true
         address(activity, block)

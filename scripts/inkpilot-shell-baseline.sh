@@ -66,6 +66,9 @@ run_class org.fossify.messages.inkpilot.data.StudioProposalTest
 run_class org.fossify.messages.inkpilot.smoke.ModelQualificationTest
 run_class org.fossify.messages.inkpilot.smoke.OneShellAcceptanceTest
 run_class org.fossify.messages.inkpilot.phone.PhoneRoleQualificationTest
+run_class org.fossify.messages.inkpilot.phone.PhoneCallAlertsTest
+run_class org.fossify.messages.inkpilot.phone.CallNotificationActionsTest
+run_class org.fossify.messages.inkpilot.phone.ManualDialUiTest
 run_class org.fossify.messages.inkpilot.phone.ManualCallUiTest
 run_class org.fossify.messages.transport.BridgeHistoryTest
 if ((${#failed_classes[@]})); then
