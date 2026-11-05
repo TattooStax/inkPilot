@@ -171,7 +171,7 @@ class StudioStaffAttentionTest : StudioDatabaseTestBase() {
                 activity.setContentView(screen)
                 val labels = labels(screen)
                 assertTrue(labels.contains("Staff reply needed"))
-                assertTrue(labels.any { it.contains("unverified booking claim") })
+                assertTrue(labels.any { it.contains("unverified or unsupported reply") })
                 assertTrue(labels.any { it.contains("Client: Can I book a consultation?") })
                 findText(screen, "Open conversation").performClick()
                 assertEquals(StudioRoute.Thread(42), opened)
