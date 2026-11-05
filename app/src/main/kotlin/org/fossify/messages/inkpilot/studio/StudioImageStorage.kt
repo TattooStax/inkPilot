@@ -5,6 +5,7 @@ import android.net.Uri
 import android.provider.OpenableColumns
 import java.io.File
 import java.io.FileOutputStream
+import java.io.InputStream
 import java.util.UUID
 
 private const val UUID_TEXT = "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"
@@ -51,16 +52,20 @@ internal fun copyStudioImageSource(context: Context, uri: Uri, temporary: File) 
     context.contentResolver.openInputStream(uri).use { input ->
         requireNotNull(input) { "This image could not be opened." }
         FileOutputStream(temporary).use { output ->
-            val buffer = ByteArray(COPY_BUFFER_BYTES)
-            var total = 0L
-            while (true) {
-                val count = input.read(buffer)
-                if (count < 0) break
-                total += count
-                require(total <= MAX_ORIGINAL_BYTES) { "Choose an image smaller than 64 MB." }
-                output.write(buffer, 0, count)
-            }
+            copyBoundedBytes(input, output)
             output.fd.sync()
         }
+    }
+}
+
+private fun copyBoundedBytes(input: InputStream, output: FileOutputStream) {
+    val buffer = ByteArray(COPY_BUFFER_BYTES)
+    var total = 0L
+    while (true) {
+        val count = input.read(buffer)
+        if (count < 0) break
+        total += count
+        require(total <= MAX_ORIGINAL_BYTES) { "Choose an image smaller than 64 MB." }
+        output.write(buffer, 0, count)
     }
 }

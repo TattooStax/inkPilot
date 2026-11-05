@@ -10,28 +10,34 @@ import org.fossify.commons.extensions.appLockManager
 import org.fossify.messages.R
 import org.fossify.messages.extensions.config
 
+private const val HEADING_SP = 22f
+private const val EXPLANATION_SP = 14f
+private const val RULE_SP = 17f
+
 /** The inherited keyword filter remains editable without leaving the InkPilot shell. */
 internal class BlockedKeywordsPanel(private val activity: StudioHomeActivity, private val refresh: () -> Unit,
                                     private val editState: BlockedKeywordEditState) {
     fun view(): View {
         val body = StudioUi.column(activity)
-        body.addView(StudioUi.text(activity, "Blocked keywords", 22f, true))
+        body.addView(StudioUi.text(activity, "Blocked keywords", HEADING_SP, true))
         body.addView(StudioUi.text(activity,
             "Matching incoming SMS are held in Agent review instead of the normal inbox. " +
-                "Review the filtered arrivals before dismissing them.", 14f))
+                "Review the filtered arrivals before dismissing them.", EXPLANATION_SP))
         body.addView(StudioUi.button(activity, "Add keyword") { edit(null) })
         val keywords = activity.config.blockedKeywords.sortedWith(String.CASE_INSENSITIVE_ORDER)
         if (keywords.isEmpty()) body.addView(StudioUi.text(activity, "No blocked keywords."))
         keywords.forEach { keyword ->
-            body.addView(StudioUi.text(activity, keyword, 17f, true))
+            body.addView(StudioUi.text(activity, keyword, RULE_SP, true))
             body.addView(StudioUi.button(activity, "Edit $keyword") { edit(keyword) })
             body.addView(StudioUi.button(activity, "Remove $keyword") { remove(keyword) })
         }
         return StudioUi.scroll(activity, body).also { surface ->
             editState.takeRestoration()?.let { (original, draft) ->
                 surface.post {
-                    if (activity.currentRoute == StudioRoute.Auxiliary("blocked_keywords") &&
-                        !activity.isFinishing && !activity.isDestroyed && !activity.appLockManager.isLocked()) {
+                    val current = activity.currentRoute == StudioRoute.Auxiliary("blocked_keywords")
+                    val available = !activity.isFinishing && !activity.isDestroyed &&
+                        !activity.appLockManager.isLocked()
+                    if (current && available) {
                         edit(original, draft)
                     } else editState.deferRestoration()
                 }

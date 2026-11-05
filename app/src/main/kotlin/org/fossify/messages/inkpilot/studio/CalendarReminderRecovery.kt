@@ -13,11 +13,15 @@ import androidx.work.WorkerParameters
 import java.util.concurrent.TimeUnit
 import org.fossify.messages.inkpilot.data.StudioRepository
 
+private const val RECOVERY_INTERVAL_MINUTES = 15L
+private const val ENQUEUE_TIMEOUT_SECONDS = 8L
+
 /** A persistent wakeup committed before a reminder row, covering death before its one-time enqueue. */
 internal class CalendarReminderRecovery(private val context: Context) {
     fun arm() {
-        val request = PeriodicWorkRequestBuilder<CalendarReminderRecoveryWorker>(15, TimeUnit.MINUTES)
-            .setInitialDelay(15, TimeUnit.MINUTES).build()
+        val request = PeriodicWorkRequestBuilder<CalendarReminderRecoveryWorker>(
+            RECOVERY_INTERVAL_MINUTES, TimeUnit.MINUTES,
+        ).setInitialDelay(RECOVERY_INTERVAL_MINUTES, TimeUnit.MINUTES).build()
         await(WorkManager.getInstance(context).enqueueUniquePeriodicWork(
             PERIODIC_NAME, ExistingPeriodicWorkPolicy.KEEP, request,
         ))
@@ -31,7 +35,7 @@ internal class CalendarReminderRecovery(private val context: Context) {
         ))
     }
 
-    private fun await(operation: Operation) { operation.result.get(8, TimeUnit.SECONDS) }
+    private fun await(operation: Operation) { operation.result.get(ENQUEUE_TIMEOUT_SECONDS, TimeUnit.SECONDS) }
 
     companion object {
         const val PERIODIC_NAME = "studio-calendar-recovery-periodic"
@@ -50,7 +54,7 @@ internal class CalendarReminderRecoveryWorker(context: Context, params: WorkerPa
             }).reconcileReminders()
         }
         // Success means every requeue was accepted, not just requested asynchronously.
-        pending.forEach { it.result.get(8, TimeUnit.SECONDS) }
+        pending.forEach { it.result.get(ENQUEUE_TIMEOUT_SECONDS, TimeUnit.SECONDS) }
         Result.success()
     } catch (_: Exception) {
         Result.retry()
