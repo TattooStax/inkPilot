@@ -7,6 +7,7 @@ import android.provider.Settings
 import android.text.InputType
 import android.widget.EditText
 import android.widget.LinearLayout
+import org.fossify.messages.inkpilot.data.StudioArchiveScope
 import org.fossify.messages.extensions.conversationsDB
 import org.fossify.messages.extensions.config
 import org.fossify.messages.extensions.messagesDB
@@ -41,10 +42,7 @@ internal class AuxiliaryPanel(private val activity: Activity, private val work: 
         body.addView(StudioUi.button(activity, "Search conversations") { open(StudioRoute.Auxiliary("search")) })
         body.addView(StudioUi.button(activity, "Archived conversations") { open(StudioRoute.Auxiliary("archive")) })
         body.addView(StudioUi.button(activity, "Recycle bin") { open(StudioRoute.Auxiliary("recycle")) })
-        body.addView(StudioUi.text(activity,
-            "Studio export contains contacts, memory, appointments and all retained reference originals. " +
-                "The ZIP is plaintext. It excludes SMS/MMS and model files; restore is not available yet.",
-            EXPORT_NOTICE_TEXT_SP))
+        body.addView(StudioUi.text(activity, StudioArchiveScope.DESCRIPTION, EXPORT_NOTICE_TEXT_SP))
         body.addView(StudioUi.button(activity, "Export Studio records and images") { exportStudio() })
         body.addView(StudioUi.button(activity, "Android app permissions") {
             activity.startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:${activity.packageName}")))

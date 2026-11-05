@@ -26,6 +26,7 @@ import org.fossify.messages.inkpilot.data.StudioArchiveCleanupNotice
 import org.fossify.messages.inkpilot.data.StudioArchiveExporter
 import org.fossify.messages.inkpilot.data.StudioRepository
 import org.fossify.messages.inkpilot.data.saveStaffEdit
+import org.fossify.messages.inkpilot.studio.StudioCalendarStore
 import org.fossify.messages.inkpilot.studio.StudioPanels
 import java.util.concurrent.Executors
 
@@ -87,7 +88,10 @@ class StudioHomeActivity : AppCompatActivity() {
         repository = StudioRepository(applicationContext)
         work = StudioWork(this, executor)
         agent = AgentPanel(this, work, ::refreshPanels, savedInstanceState?.getString("soul_draft"))
-        studio = StudioPanels(this, executor, { StudioUi.error(this, it) }, repository)
+        studio = StudioPanels(this, executor, { StudioUi.error(this, it) }, repository,
+            savedInstanceState?.getBundle("studio.image_import"), ::refreshPanels)
+        // A process can stop after a calendar row commits but before WorkManager accepts its reminder.
+        work.load({ StudioCalendarStore(repository).reconcileReminders() }) {}
         buildFrame()
         appLaunched(BuildConfig.APPLICATION_ID)
         smsObserver = SmsRefreshObserver(this, composerRoutes::refreshFromProvider)
@@ -314,6 +318,7 @@ class StudioHomeActivity : AppCompatActivity() {
         outState.putLong("attachment.thread", attachmentThread)
         navigator.save(outState)
         outState.putBundle("studio.panels", panels.save())
+        studio.saveImportState()?.let { outState.putBundle("studio.image_import", it) }
         agent.soulDraft?.let { outState.putString("soul_draft", it) }
         super.onSaveInstanceState(outState)
     }
