@@ -84,7 +84,7 @@ class ContactEditRotationUiTest {
     }
 
     private fun node(context: Context, id: String): AccessibilityNodeInfo = requireNotNull(nodeOrNull(context, id)).also {
-        it.performAction(AccessibilityNodeInfo.ACTION_SHOW_ON_SCREEN)
+        it.performAction(AccessibilityNodeInfo.AccessibilityAction.ACTION_SHOW_ON_SCREEN.id)
     }
     private fun nodeOrNull(context: Context, id: String): AccessibilityNodeInfo? =
         InstrumentationRegistry.getInstrumentation().uiAutomation.rootInActiveWindow

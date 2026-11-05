@@ -15,31 +15,25 @@ Android API 35 x86_64. It:
    intake recovery, invalid-row progress and storage-failure retention.
 2. Installs the checksum-pinned official LFM3-1.7B QAD Q4_0 GGUF, then
    disables Wi-Fi and mobile data. The APK has no inference-server path.
-3. Injects a synthetic incoming SMS through the emulator modem, checks its
-   native provider row, and uses the production local runtime to produce
-   a held draft. No fake success model is used in this loop.
-4. Opens the actual draft review UI and captures a screenshot.
-5. Force-stops/reopens the application, checks the draft survives and
-   cannot be recreated by replay, and captures all five tabs.
-6. Rejects an invalid SIM without consuming the held draft. If the
-   emulator has an active virtual SIM, exercises approval/send, provider
-   persistence, and duplicate-approval rejection. Requires real terminal
-   callback receipts and matching native provider type/status; an unknown
-   or still-pending attempt fails this proof. A genuine emulator rejection
-   is accepted only with its failure callback and matching failed row.
-   This does not claim real-world recipient delivery.
+3. Injects a synthetic incoming SMS through the emulator modem and verifies
+   its native provider row. With the pinned model installed and radios off,
+   the current unqualified policy must report `BLOCKED_UNQUALIFIED`, make no
+   model call, and create no held or outgoing reply.
+4. Opens the staff-attention surface and captures a screenshot. Force-stops
+   and reopens the app to verify the block and attention survive restart;
+   captures all five tabs.
+5. Injects a second SMS for another synthetic contact and verifies normal
+   inbox receipt without waking model drafting. Native send, multipart
+   callback, and reviewed-scope fixtures remain separate tests for a future
+   qualified route; this blocked loop is not carrier-delivery proof.
 
-An additional incoming SMS to a separate synthetic contact must wake
-WorkManager and create its held reply without the test invoking the
-runtime directly. The app-lock test verifies that a locked notification
+The app-lock test verifies that a locked notification
 entry opens the inherited unlock screen without rendering studio data.
 The studio-memory editor test preserves unsaved text across resume and
 activity recreation, while requiring an explicit Save before records change.
-The final batch check forces a real-model context failure, then requires
-the next customer's reply to be generated in the same production batch.
 
 The Actions artifact contains instrumentation output, screenshots,
-model hash, local-loop evidence, and virtual-send evidence. A missing
+model hash and blocked-loop evidence. A missing
 model, failed test, crash, or skipped required test fails the gate.
 
 ## Model-family qualification gate
@@ -142,25 +136,25 @@ place/answer a call. The separate
 and hosted gates; this checklist remains mandatory for the exact installed
 candidate.
 
-- Install the APK, choose inkPilot as default SMS, grant permissions,
-  import the tested model, add current guidance, and enable drafting.
+- Install the APK, choose inkPilot as default SMS, and grant permissions.
+  Drafting remains disabled while the bounded LFM3 route is unqualified.
 - Receive a plain SMS; confirm one native message, one matching contact,
-  and one held reply. Verify no message leaves before staff approval.
-- Correct memory or pause during inference; confirm the stale result
-  cannot become a fresh reviewable draft.
-- Review/edit a reply, explicitly select the business SIM, and approve.
-  Verify the sender number and complete text at the receiving phone.
+  and a usable manual reply path. Confirm no model draft or automatic send.
+- Correct and forget contact memory; verify old content cannot be restored
+  by a queued Save or appear in another client's view.
+- Reply manually with an explicit business SIM. Verify sender number and
+  complete text at the receiving phone.
 - Test a multipart reply and a reply containing non-ASCII characters.
   Verify one native outgoing message and accurate status.
-- Kill/restart the app before approval and during a send. Confirm the
-  held draft persists and an ambiguous attempt is never automatically sent
-  again. Check the recipient before any manual resend.
+- Kill/restart before a manual send and during an ambiguous attempt. Verify
+  saved composer content and that nothing is automatically sent again.
+  Check the recipient before any manual resend.
 - Exercise airplane mode, no credit/service, permission/role removal,
   and dual-SIM selection. Errors must not claim delivery.
 - Send/receive MMS in the native conversation. Agent image understanding
   is not implemented, so do not interpret a text reply as image analysis.
-- Measure first-token/total draft time, peak RAM, battery use and thermal
-  behavior during repeated drafts on the target 4 GB/8 GB device.
+- After independent selector qualification, run the separate 20-turn local
+  model and held-draft acceptance matrix before enabling drafting.
 - Check contact isolation, album original preservation and calendar
   artist/room conflicts using the actual day-to-day workflow.
 
@@ -172,12 +166,14 @@ The calendar is local and does not know Square/Google bookings unless
 staff enter them. No automatic booking or price promise is authorized by
 a generated reply. Memory is staff-edited, not silently learned.
 
-Model generation can still be incorrect; all replies are held for review.
+Model generation remains off in the current production policy because its
+replies were not qualified. A future enabled route must hold every reply for review.
 Weights are an explicit import, not bundled or silently downloaded. The
 app disables Android cloud backup. Shell Settings offers a user-initiated,
 plaintext Studio ZIP export with a versioned table/image manifest and SHA-256
-entries; it includes retained originals even without album membership. It does
-not include native SMS/MMS, app settings or model weights, and there is no
+entries; it includes all Studio database tables, including agent settings,
+guide and copies of message text, plus retained originals without album
+membership. It excludes native SMS/MMS provider history and model weights; there is no
 supported import/restore yet. A lock during export stops it; if a document
 provider cannot delete an incomplete file, a generic cleanup warning persists
 until staff acknowledge it after unlock. Remove the file from its chosen location. Do not treat this phone
