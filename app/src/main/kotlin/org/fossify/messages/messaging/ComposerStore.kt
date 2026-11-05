@@ -22,10 +22,11 @@ class ComposerStore(context: Context) {
     internal fun durableMarker(file: java.io.File) {
         java.io.FileOutputStream(file).use { it.write(1); it.fd.sync() }
     }
+    internal var claimMarker: (java.io.File) -> Unit = { durableMarker(it) }
     internal fun claim(request: OutgoingMessage): Boolean {
         if (isUnknown(request.threadId) || wasSubmitted(request)) return false
-        durableMarker(attemptFile(request.attemptId))
-        durableMarker(pendingFile(request.threadId))
+        claimMarker(attemptFile(request.attemptId))
+        claimMarker(pendingFile(request.threadId))
         return true
     }
     internal fun finish(request: OutgoingMessage, outcome: DispatchOutcome) {
@@ -59,8 +60,11 @@ class ComposerStore(context: Context) {
             is DispatchOutcome.Rejected -> Unit
         }
     }
+    // The attempt marker commits first. If writing the pending marker fails, that
+    // attempt must still block replay and be visible for staff review after restart.
     fun isUnknown(threadId: Long): Boolean = hasCompletedCompose(threadId) ||
-        pendingFile(threadId).exists() || prefs.contains("unknown:$threadId")
+        pendingFile(threadId).exists() || prefs.contains("unknown:$threadId") ||
+        load(threadId)?.let(::wasSubmitted) == true
     fun clear(threadId: Long) { pendingFile(threadId).delete(); check(prefs.edit().remove(threadId.toString())
         .remove("unknown:$threadId").remove("mms-failed:$threadId").remove("mms-confirmed:$threadId").commit()) }
     companion object { private val processLock = Any() }

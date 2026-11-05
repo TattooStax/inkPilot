@@ -36,7 +36,8 @@ internal class InShellSendController(
         ui.enableEditor(false)
         work.load({ prepareInShellComposerSend(activity, store, value) }) { result ->
             val outcome = result.getOrElse {
-                ui.status.text = "Unable to prepare message. Draft retained."
+                if (store.isUnknown(threadId)) onUnknownComposerOutcome(store, threadId, ui.status, ui.refresh)
+                else ui.status.text = "Unable to prepare message. Draft retained."
                 reenable(value)
                 return@load
             }
