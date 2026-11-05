@@ -50,10 +50,13 @@ if [[ ${3:-} == --smoke ]]; then
 fi
 timeout 16000 "$bin" "$model" < "$out/cases.jsonl" > "$raw"
 python3 "$root/scripts/inkpilot_model_benchmark.py" score "$raw" "$sha" "$out/report.json"
-python3 - "$bin" "$out/report.json" <<'PY'
+python3 - "$bin" "$out/report.json" "$out/cases.jsonl" <<'PY'
 import hashlib, json, pathlib, sys
 digest = hashlib.sha256(pathlib.Path(sys.argv[1]).read_bytes()).hexdigest()
 report = json.loads(pathlib.Path(sys.argv[2]).read_text())
+corpus_digest = hashlib.sha256(pathlib.Path(sys.argv[3]).read_bytes()).hexdigest()
+if report['promptCorpusSha256'] != corpus_digest:
+    raise SystemExit('The scored prompt corpus differs from the generated input.')
 report['engineSha256'] = digest
 pathlib.Path(sys.argv[2]).write_text(json.dumps(report, indent=2) + '\n')
 print(f"{report['variant']}: {report['caseCount']} synthetic turns; {report['flaggedCount']} mechanically flagged; human review PENDING.")

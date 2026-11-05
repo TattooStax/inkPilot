@@ -8,6 +8,7 @@ class CustomerServiceDrafts(
     private val memory: ContactMemoryReader,
     private val model: LocalDraftModel,
     private val limits: DraftLimits = DraftLimits(),
+    private val safetyGate: DraftSafetyGate = DraftSafetyGate.NONE,
 ) {
     fun draft(request: DraftRequest, cancellation: DraftCancellation = DraftCancellation.NONE): DraftOutcome {
         var stage = DraftFailureStage.SOURCE_READ
@@ -43,6 +44,7 @@ class CustomerServiceDrafts(
             if (output.length > limits.replyCharacters) return stopped(DraftStopReason.REPLY_LIMIT)
             val body = output.trim()
             if (body.isEmpty()) return stopped(DraftStopReason.EMPTY_REPLY)
+            if (!safetyGate.allows(body)) return stopped(DraftStopReason.UNSAFE_CONTENT)
 
             val write = HeldDraftWrite(key, source.threadId, source.contactId, source.recipient, source.revision, body)
             writeAttempted = true

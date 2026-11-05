@@ -6,9 +6,12 @@ import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import inkpilot.agent.CustomerServiceDrafts
+import inkpilot.agent.BookingClaimGate
 import inkpilot.agent.DraftCancellation
 import inkpilot.agent.DraftDisposition
 import inkpilot.agent.DraftOutcome
+import inkpilot.agent.DraftRequest
+import inkpilot.agent.HeldDraftStore
 import inkpilot.agent.DraftStopReason
 import inkpilot.agent.LocalDraftModel
 import inkpilot.inference.LlamaDraftModel
@@ -63,41 +66,9 @@ object AgentRuntime {
                 settings.recordStatus("Import a local GGUF model first.")
                 return@synchronized 0
             }
-            var created = 0
-            var needsAttention = false
-            val native = LlamaDraftModel(weights)
-            for (request in repository.pendingRequests(limit = 3)) {
-                if (cancellation() || !repository.isDraftingEnabled()) break
-                val model = LocalDraftModel { prompt, stop ->
-                    native.generate(prompt.copy(instructions = prompt.instructions + "\nStudio guide:\n" + repository.soul()), stop)
-                }
-                settings.recordStatus("Drafting locally…")
-                val store = if (workerToken == null) repository else WorkerDraftStore(repository, workerToken)
-                val result = CustomerServiceDrafts(store, repository, model).draft(
-                    request, DraftCancellation { cancellation() || !repository.isDraftingEnabled() },
-                )
-                when (result) {
-                    is DraftOutcome.Held -> if (result.disposition == DraftDisposition.CREATED) created++
-                    is DraftOutcome.Failed -> {
-                        needsAttention = true
-                        repository.recordDraftAttempt(request.eventId, request.expectedRevision, "Model or source read failed")
-                        settings.recordStatus("Drafting failed. Check the model and try again.")
-                        continue
-                    }
-                    is DraftOutcome.PersistenceUnconfirmed -> {
-                        settings.recordStatus("Draft storage needs reconciliation. Nothing was sent.")
-                        requireConfirmedDraftPersistence(store, result.key)
-                    }
-                    is DraftOutcome.Stopped -> {
-                        settings.recordStatus("Draft stopped: ${result.reason.name.lowercase().replace('_', ' ')}.")
-                        if (result.reason == DraftStopReason.CANCELLED) break
-                        if (result.reason !in listOf(DraftStopReason.SOURCE_CHANGED, DraftStopReason.STAFF_PAUSED)) {
-                            needsAttention = true
-                            repository.recordDraftAttempt(request.eventId, request.expectedRevision, result.reason.name)
-                        }
-                    }
-                }
-            }
+            val batch = draftPendingRequests(repository, settings, LlamaDraftModel(weights), workerToken, cancellation)
+            val created = batch.created
+            val needsAttention = batch.needsAttention
             if (created > 0) {
                 settings.recordStatus(if (needsAttention) "Drafts are ready for review. Some messages could not be drafted; check the model and memory, then retry."
                     else "$created draft(s) ready for staff review.")
@@ -105,6 +76,64 @@ object AgentRuntime {
             }
             if (!cancellation() && repository.pendingRequests(limit = 1).isNotEmpty()) runPending(context)
             created
+        }
+    }
+
+    private data class DraftBatchState(val created: Int, val needsAttention: Boolean)
+
+    private fun draftPendingRequests(repository: StudioRepository, settings: AgentSettings, native: LlamaDraftModel,
+                                     workerToken: String?, cancellation: () -> Boolean): DraftBatchState {
+        var created = 0
+        var needsAttention = false
+        for (request in repository.pendingRequests(limit = 3)) {
+            if (cancellation() || !repository.isDraftingEnabled()) break
+            val model = LocalDraftModel { prompt, stop ->
+                native.generate(prompt.copy(instructions = prompt.instructions + "\nStudio guide:\n" + repository.soul()), stop)
+            }
+            settings.recordStatus("Drafting locally…")
+            val store = if (workerToken == null) repository else WorkerDraftStore(repository, workerToken)
+            val result = CustomerServiceDrafts(store, repository, model, safetyGate = BookingClaimGate).draft(
+                request, DraftCancellation { cancellation() || !repository.isDraftingEnabled() },
+            )
+            val disposition = recordDraftOutcome(result, store, repository, request, settings)
+            if (disposition.created) created++
+            if (disposition.needsAttention) needsAttention = true
+            if (disposition.cancelled) break
+        }
+        return DraftBatchState(created, needsAttention)
+    }
+
+    private data class RequestDisposition(
+        val created: Boolean = false,
+        val needsAttention: Boolean = false,
+        val cancelled: Boolean = false,
+    )
+
+    private fun recordDraftOutcome(result: DraftOutcome, store: HeldDraftStore, repository: StudioRepository,
+                                   request: DraftRequest, settings: AgentSettings): RequestDisposition = when (result) {
+        is DraftOutcome.Held -> RequestDisposition(created = result.disposition == DraftDisposition.CREATED)
+        is DraftOutcome.Failed -> {
+            repository.recordDraftAttempt(request.eventId, request.expectedRevision, "Model or source read failed")
+            settings.recordStatus("Drafting failed. Check the model and try again.")
+            RequestDisposition(needsAttention = true)
+        }
+        is DraftOutcome.PersistenceUnconfirmed -> {
+            settings.recordStatus("Draft storage needs reconciliation. Nothing was sent.")
+            requireConfirmedDraftPersistence(store, result.key)
+            RequestDisposition()
+        }
+        is DraftOutcome.Stopped -> {
+            settings.recordStatus(if (result.reason == DraftStopReason.UNSAFE_CONTENT)
+                "Draft blocked: unverified booking claim. Staff should reply directly."
+            else "Draft stopped: " + result.reason.name.lowercase().replace('_', ' ') + ".")
+            when {
+                result.reason == DraftStopReason.CANCELLED -> RequestDisposition(cancelled = true)
+                result.reason !in listOf(DraftStopReason.SOURCE_CHANGED, DraftStopReason.STAFF_PAUSED) -> {
+                    repository.recordDraftAttempt(request.eventId, request.expectedRevision, result.reason.name)
+                    RequestDisposition(needsAttention = true)
+                }
+                else -> RequestDisposition()
+            }
         }
     }
 

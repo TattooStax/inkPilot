@@ -60,6 +60,7 @@ internal class MessagePanel(
             open(StudioRoute.Compose(emptyList(), message.body, message.attachment?.attachments?.map { it.getUri() }.orEmpty()))
         }, importImage = importImage)
         val list = recycler().apply {
+            id = R.id.inkpilot_thread_message_list
             this.adapter = adapter
             layoutManager = androidx.recyclerview.widget.LinearLayoutManager(activity).apply { reverseLayout = true }
         }

@@ -20,6 +20,15 @@ internal class StudioNavigator(savedState: Bundle? = null) {
         selectedTab = tab
         stacks.getValue(tab).apply { clear(); add(StudioRoute.Tab(tab)) }
     }
+    fun acceptExternalRoute(route: StudioRoute) {
+        if (route is StudioRoute.Tab) { reset(route.tab); return }
+        when (route) {
+            is StudioRoute.Thread, is StudioRoute.Compose, is StudioRoute.Draft,
+            is StudioRoute.Settings, is StudioRoute.Auxiliary -> open(StudioRoute.Tab(StudioTab.SMS))
+            else -> Unit
+        }
+        open(route)
+    }
     fun pop(): Boolean {
         val stack = stacks.getValue(selectedTab)
         if (stack.size == 1) return false

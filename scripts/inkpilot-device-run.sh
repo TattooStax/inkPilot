@@ -2,6 +2,10 @@
 set -euo pipefail
 
 model_path="${1:?Usage: inkpilot-device-run.sh verified-model.gguf}"
+serial=emulator-5554
+[[ $(adb -s "$serial" get-state | tr -d '\r') == device ]]
+[[ $(adb -s "$serial" shell getprop ro.kernel.qemu | tr -d '\r') == 1 ]] || { echo 'Device proof requires a disposable emulator' >&2; exit 2; }
+export ANDROID_SERIAL="$serial"
 package=app.inkpilot.android.debug
 runner="$package.test/androidx.test.runner.AndroidJUnitRunner"
 smoke=org.fossify.messages.inkpilot.smoke.LocalLoopSmokeTest
@@ -72,7 +76,7 @@ adb shell cmd role get-role-holders --user 0 android.app.role.SMS | tr -d '\r' |
 for permission in READ_SMS SEND_SMS RECEIVE_SMS READ_CONTACTS READ_PHONE_STATE POST_NOTIFICATIONS; do
   adb shell pm grant "$package" "android.permission.$permission"
 done
-
+scripts/inkpilot-sms-role-preflight.sh emulator-5554 "$package"
 # First-launch preservation requires a pristine app/provider and runs first in
 # the independent model-free baseline job. Never include it in this broad suite.
 timeout 600 adb shell "am instrument -w -r -e package org.fossify.messages.inkpilot.data -e notClass org.fossify.messages.inkpilot.data.LegacyFirstLaunchTest $runner" \

@@ -53,7 +53,9 @@ def check_source(root: Path = ROOT) -> list[str]:
         "verify_app_identity.py", "verify_inkpilot_release.py --beta",
         ":agent-core:test", ":app:testFossDebugUnitTest", ":app:lintFossRelease",
         ":app:assembleFossRelease", "candidate_run_id", "actions/download-artifact@",
-        "inkPilot-foss-debug", "git diff --name-only", "git merge-base --is-ancestor",
+        "inkPilot-foss-debug", "inkPilot-foss-release-beta", "candidate_kind",
+        "inputs.candidate_kind == 'debug'", "inputs.candidate_kind == 'release'",
+        "git diff --name-only", "git merge-base --is-ancestor",
         "gh api", "check_candidate_run.py", "fetch-depth: 0",
         "--candidate-run-id", "--apksigner", "--aapt",
     )):
@@ -71,6 +73,28 @@ def check_source(root: Path = ROOT) -> list[str]:
         value = match.group(1)
         if not value.startswith("./") and not re.fullmatch(r"(?:[\w.-]+/)+[\w.-]+@[0-9a-f]{40}", value):
             errors.append("release action is not pinned by full commit")
+
+    beta_build = read(".github/workflows/inkpilot-beta-build.yml")
+    if (
+        "workflow_dispatch:" not in beta_build
+        or re.search(r"(?m)^\s{0,2}(push|pull_request|schedule|repository_dispatch):", beta_build)
+        or not all(contract in beta_build for contract in (
+            "environment: inkpilot-beta-signing", "secrets.INKPILOT_BETA_KEYSTORE_BASE64",
+            "secrets.INKPILOT_BETA_KEY_ALIAS", "secrets.INKPILOT_BETA_KEY_PASSWORD",
+            "secrets.INKPILOT_BETA_STORE_PASSWORD", "secrets.INKPILOT_BETA_CERT_SHA256",
+            "SIGNING_STORE_FILE", "base64 --decode", "test ! -e keystore.properties",
+            "docs/BETA-SIGNING-CERT.sha256", 'test "$pinned_cert"',
+            ":app:assembleFossRelease", ":app:lintFossRelease",
+            "check-detekt-debt.py", "verify_sms_role_qualification.py",
+            "inspect_signed_apk", '"app.inkpilot.android"',
+            "name: inkPilot-foss-release-beta", "app/build/outputs/apk/foss/release/*.apk",
+        ))
+    ):
+        errors.append("signed canonical beta build lacks manual provenance, scoped signing or artifact checks")
+    for match in re.finditer(r"(?m)^\s*-?\s*uses:\s*([^\s#]+)", beta_build):
+        value = match.group(1)
+        if not value.startswith("./") and not re.fullmatch(r"(?:[\w.-]+/)+[\w.-]+@[0-9a-f]{40}", value):
+            errors.append("signed beta build action is not pinned by full commit")
 
     metadata = root / "fastlane/metadata/android"
     if not (metadata / "en-US/title.txt").exists():
@@ -149,8 +173,10 @@ def check_beta(root: Path = ROOT, apk: Path | None = None,
         evidence = json.loads((root / "docs/RELEASE-EVIDENCE.json").read_text(encoding="utf-8"))
     except (OSError, ValueError):
         return errors + ["beta evidence manifest is unreadable"]
-    if evidence.get("candidate_kind") != "debug":
-        errors.append("internal beta requires the installed debug-signed candidate")
+    packages = {"debug": "app.inkpilot.android.debug", "release": "app.inkpilot.android"}
+    kind = evidence.get("candidate_kind")
+    if not isinstance(kind, str) or kind not in packages:
+        errors.append("internal beta requires an exact signed debug or canonical release candidate")
     if not re.fullmatch(r"[0-9a-f]{40}", str(evidence.get("candidate_source_sha", ""))):
         errors.append("candidate source revision is missing")
     run_id = str(evidence.get("candidate_run_id", ""))
@@ -162,6 +188,13 @@ def check_beta(root: Path = ROOT, apk: Path | None = None,
     if not isinstance(expected_cert, str) or not re.fullmatch(r"[0-9a-f]{64}", expected_cert):
         errors.append("reviewed APK signing certificate is missing")
         expected_cert = ""
+    if kind == "release":
+        try:
+            pinned_cert = (root / "docs/BETA-SIGNING-CERT.sha256").read_text(encoding="ascii")
+        except (OSError, UnicodeError):
+            pinned_cert = ""
+        if not re.fullmatch(r"[0-9a-f]{64}\n", pinned_cert) or pinned_cert[:-1] != expected_cert:
+            errors.append("canonical beta signing certificate differs from reviewed public pin")
     gates = evidence.get("gates", {})
     for name in REQUIRED:
         item = gates.get(name, {})
@@ -192,7 +225,8 @@ def check_beta(root: Path = ROOT, apk: Path | None = None,
                 hasher.update(block)
         if hasher.hexdigest() != recorded_hash:
             errors.append("installed beta APK differs from reviewed SHA-256")
-        errors.extend(inspect_signed_apk(apk, "app.inkpilot.android.debug", expected_cert, apksigner, aapt))
+        if isinstance(kind, str) and kind in packages:
+            errors.extend(inspect_signed_apk(apk, packages[kind], expected_cert, apksigner, aapt))
     manifest = root / "app/src/main/AndroidManifest.xml"
     try:
         application = ET.parse(manifest).getroot().find("application")
@@ -212,12 +246,12 @@ def check_release(root: Path = ROOT, apk: Path | None = None,
                   candidate_run_id: str | None = None) -> list[str]:
     """Public distribution stays blocked until its own signed artifact and proof path exist."""
     return check_beta(root, apk, apksigner, aapt, candidate_run_id) + [
-        "public release signing and physical candidate qualification are not configured"]
+        "public distribution approval and physical release qualification are not configured"]
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--beta", action="store_true", help="qualify the exact installed internal debug APK")
+    parser.add_argument("--beta", action="store_true", help="qualify the exact installed internal debug or canonical APK")
     parser.add_argument("--release", action="store_true", help="public distribution remains blocked")
     parser.add_argument("--source", action="store_true", help="check source and release metadata only (default)")
     parser.add_argument("--apk", type=Path, help="downloaded APK installed on the test phone")

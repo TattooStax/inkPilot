@@ -4,6 +4,8 @@ shopt -s nullglob
 
 # Disposable hosted emulator only; keep the first-launch fixture first.
 serial=emulator-5554
+[[ $(adb -s "$serial" get-state | tr -d '\r') == device ]]
+[[ $(adb -s "$serial" shell getprop ro.kernel.qemu | tr -d '\r') == 1 ]] || { echo 'Shell baseline requires a disposable emulator' >&2; exit 2; }
 package=app.inkpilot.android.debug
 apks=(app/build/outputs/apk/foss/debug/*.apk)
 test "${#apks[@]}" -eq 1
@@ -21,6 +23,7 @@ scripts/run-inkpilot-test-class.sh "$serial" org.fossify.messages.inkpilot.smoke
 scripts/run-inkpilot-test-class.sh "$serial" org.fossify.messages.inkpilot.studio.StudioImageLinksTest
 scripts/run-inkpilot-test-class.sh "$serial" org.fossify.messages.inkpilot.studio.StudioImageImportUiTest
 scripts/run-inkpilot-test-class.sh "$serial" org.fossify.messages.inkpilot.data.StudioArchiveTest
+scripts/run-inkpilot-test-class.sh "$serial" org.fossify.messages.inkpilot.data.StudioArchiveCleanupNoticeTest
 scripts/run-inkpilot-test-class.sh "$serial" org.fossify.messages.inkpilot.ui.StudioArchiveHandoffTest
 scripts/run-inkpilot-test-class.sh "$serial" org.fossify.messages.inkpilot.data.ScheduledVerdictTest
 scripts/run-inkpilot-test-class.sh "$serial" org.fossify.messages.inkpilot.data.ScheduledQueueTest
@@ -33,4 +36,5 @@ scripts/run-inkpilot-test-class.sh "$serial" org.fossify.messages.inkpilot.studi
 scripts/run-inkpilot-test-class.sh "$serial" org.fossify.messages.inkpilot.data.StudioProposalTest
 scripts/run-inkpilot-test-class.sh "$serial" org.fossify.messages.inkpilot.smoke.ModelQualificationTest
 scripts/run-inkpilot-test-class.sh "$serial" org.fossify.messages.inkpilot.smoke.OneShellAcceptanceTest
+scripts/run-inkpilot-test-class.sh "$serial" org.fossify.messages.inkpilot.phone.PhoneRoleQualificationTest
 scripts/run-inkpilot-test-class.sh "$serial" org.fossify.messages.transport.BridgeHistoryTest

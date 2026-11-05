@@ -20,10 +20,11 @@ if [[ ${#apks[@]} -ne 1 || ${#tests[@]} -ne 1 ]]; then
   exit 2
 fi
 [[ $(adb -s "$serial" get-state) == device ]]
+[[ $(adb -s "$serial" shell getprop ro.kernel.qemu | tr -d '\r') == 1 ]] || { echo 'Test runner requires a disposable emulator' >&2; exit 2; }
 adb -s "$serial" install -r "${apks[0]}"
 adb -s "$serial" install -r "${tests[0]}"
-# Keep only a redacted verdict. Arbitrary test assertion text may contain message
-# bodies, so the raw result exists only in a private temporary file until parsed.
+scripts/inkpilot-sms-role-preflight.sh "$serial" app.inkpilot.android.debug
+# Keep only a redacted verdict; raw assertions stay in a private temporary file.
 result=$(mktemp)
 trap 'rm -f "$result"' EXIT
 if timeout 600 adb -s "$serial" shell am instrument -w -e class "$class" \

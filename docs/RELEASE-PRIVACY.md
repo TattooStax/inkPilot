@@ -8,16 +8,35 @@ build run ID and source SHA in `RELEASE-EVIDENCE.json`. A reviewer must inspect
 redacted proof for every gate before marking it passed. Each gate has its own
 `docs/release-evidence/<gate>.md` file with an `APK SHA-256: <digest>` line.
 
-The manual internal beta qualification workflow accepts that build run ID,
-requires a successful same-repository `workflow_dispatch` run, and downloads
-its artifact. It rejects source changes after the candidate build except the
-evidence manifest and gate proof files. It validates the downloaded APK's
-signature, certificate, `app.inkpilot.android.debug` package and SHA-256 against
-the physical evidence. A separate unsigned minified release build provides
-lint/code-quality evidence; its bytes are **never** treated as the installed
-APK. No public publishing lane or signing credentials are configured in this
-qualification workflow. `--release` stays red until a separately signed public
-candidate and distribution process are implemented and physically tested.
+The manual `inkPilot signed canonical beta build` workflow can instead
+produce a minified `app.inkpilot.android` APK with a durable studio-controlled
+signing key. It runs only by dispatch, using the protected
+`inkpilot-beta-signing` GitHub environment. Configure five environment
+secrets there: `INKPILOT_BETA_KEYSTORE_BASE64` (base64 of the binary keystore),
+`INKPILOT_BETA_KEY_ALIAS`, `INKPILOT_BETA_KEY_PASSWORD`,
+`INKPILOT_BETA_STORE_PASSWORD`, and `INKPILOT_BETA_CERT_SHA256` (the expected
+lowercase certificate digest). Commit that public 64-character digest as
+the sole line of `docs/BETA-SIGNING-CERT.sha256` **before** dispatch; the
+builder requires the reviewed file and environment value to match the APK.
+The digest file is intentionally absent until a durable key is provisioned,
+so signed candidate builds fail closed. Store and back up the original
+keystore outside the repository; losing it prevents future in-place upgrades.
+The workflow writes it to a private runner temp file for the build, removes
+it afterward, verifies the package, certificate and SMS role, then uploads
+only the signed APK. Missing or changed secrets fail the build.
+
+The manual internal beta qualification workflow accepts the run ID and
+`candidate_kind` (`debug` or `release`), requires a successful same-repository
+`workflow_dispatch` run from the matching build workflow on the same
+branch as qualification, and downloads its exact artifact. It rejects source
+changes after the candidate build except the evidence manifest and gate proof
+files. It validates the downloaded APK's signature, certificate, package
+and SHA-256 against the physical evidence. The debug candidate remains
+available for compatible existing debug installs. A separate unsigned
+minified release build checks source quality; its bytes are **never** treated
+as the installed candidate. The qualification workflow has no public
+publishing lane or signing credentials. `--release` stays red until a
+separately qualified public distribution process exists.
 
 Evidence paths and statuses remain human attestations, not cryptographic proof
 that carrier testing, accessibility review or privacy inspection occurred.
@@ -32,7 +51,8 @@ backup/restore and SMS/Phone role rollback path. Shell Settings can save a
 plaintext, user-selected Studio ZIP containing database rows and retained
 reference originals with per-entry SHA-256. The manifest is written last and
 unreadable originals or an app lock stop the export; a provider may leave an
-incomplete document if deletion fails. This is an export-only format: it excludes
+incomplete document if deletion fails. A content-free cleanup notice persists
+until staff acknowledge it after unlocking, with no URI or customer data saved. This is an export-only format: it excludes
 native SMS/MMS, app preferences and model weights, and has no tested import.
 It does not clear the physical restore gate.
 
@@ -64,3 +84,14 @@ No customer phone number, message, photo, model prompt or call recording belongs
 in public evidence. Use synthetic fixtures and redacted screenshots/logs. AI
 cellular call audio is outside this text release. See `DEVICE-ACCEPTANCE.md` for
 the required physical test and `RELEASE-EVIDENCE.json` for remaining gates.
+
+## Static analysis debt
+
+The app's Detekt report currently has 731 unsuppressed findings (783 weighted),
+mostly `MagicNumber` and `MaxLineLength` in inherited and new UI/data code.
+`app/detekt-debt.jsonl` records their exact source fingerprints; the build runs
+Detekt and fails on any new or increased finding through
+`scripts/check-detekt-debt.py`. Resolved findings may disappear from the report.
+This is an interim debt ratchet, not a claim that Detekt has no findings. The
+in-shell adapter has a distinct class and filename so inherited suppressions
+cannot hide its findings. The high-complexity paths still require refactoring.

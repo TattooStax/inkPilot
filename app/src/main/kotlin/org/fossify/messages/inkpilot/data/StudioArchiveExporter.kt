@@ -29,16 +29,24 @@ internal class StudioArchiveExporter(private val context: Context, private val r
         }
     }
 
-    fun export(uri: Uri, unlocked: () -> Boolean): Summary = try {
-        requireUnlocked(unlocked)
-        val output = requireNotNull(context.contentResolver.openOutputStream(uri, "wt")) {
-            "The chosen document could not be opened."
+    fun export(uri: Uri, unlocked: () -> Boolean): Summary {
+        var complete = false
+        try {
+            requireUnlocked(unlocked)
+            val output = requireNotNull(context.contentResolver.openOutputStream(uri, "wt")) {
+                "The chosen document could not be opened."
+            }
+            val result = output.use { export(it, unlocked) }
+            complete = true
+            return result
+        } finally {
+            if (!complete) {
+                // A provider may refuse deletion. Persist a generic warning for the next unlock.
+                StudioArchiveCleanupNotice(context).recordIfDeletionFails {
+                    DocumentsContract.deleteDocument(context.contentResolver, uri)
+                }
+            }
         }
-        output.use { export(it, unlocked) }
-    } catch (error: Exception) {
-        // A partially written SAF document must never be presented as a successful archive.
-        runCatching { DocumentsContract.deleteDocument(context.contentResolver, uri) }
-        throw error
     }
 
     fun export(output: OutputStream, unlocked: () -> Boolean = { true }): Summary {
@@ -50,7 +58,7 @@ internal class StudioArchiveExporter(private val context: Context, private val r
         var schemaVersion = 0
         var originalCount = 0
         ZipOutputStream(BufferedOutputStream(output)).use { zip ->
-            zip.setLevel(1)
+            zip.setLevel(ZIP_COMPRESSION_LEVEL)
             val db = repository.database
             db.beginTransactionNonExclusive()
             try {
@@ -137,7 +145,7 @@ internal class StudioArchiveExporter(private val context: Context, private val r
         Cursor.FIELD_TYPE_STRING -> JSONObject().put("type", "text").put("value", cursor.getString(index))
         Cursor.FIELD_TYPE_BLOB -> JSONObject().put("type", "base64").put("value",
             Base64.encodeToString(cursor.getBlob(index).also {
-                require(it.size <= 64 * 1024 * 1024) { "Studio row is too large to export." }
+                require(it.size <= MAX_BLOB_BYTES) { "Studio row is too large to export." }
             }, Base64.NO_WRAP))
         else -> error("Unsupported database value.")
     }
@@ -154,7 +162,7 @@ internal class StudioArchiveExporter(private val context: Context, private val r
         var bytes = 0L
         zip.putNextEntry(ZipEntry(name))
         FileInputStream(file).use { input ->
-            val buffer = ByteArray(32 * 1024)
+            val buffer = ByteArray(COPY_BUFFER_BYTES)
             while (true) {
                 requireUnlocked(unlocked)
                 val size = input.read(buffer)
@@ -173,5 +181,12 @@ internal class StudioArchiveExporter(private val context: Context, private val r
         check(unlocked()) { "Studio export stopped because inkPilot is locked." }
     }
 
-    private fun MessageDigest.hex() = digest().joinToString("") { "%02x".format(it.toInt() and 0xff) }
+    private fun MessageDigest.hex() = digest().joinToString("") { "%02x".format(it.toInt() and BYTE_MASK) }
+
+    companion object {
+        private const val BYTE_MASK = 0xff
+        private const val ZIP_COMPRESSION_LEVEL = 1
+        private const val COPY_BUFFER_BYTES = 32 * 1024
+        private const val MAX_BLOB_BYTES = 64 * 1024 * 1024
+    }
 }

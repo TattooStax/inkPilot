@@ -14,6 +14,8 @@ import org.fossify.messages.extensions.restoreAllMessagesFromRecycleBinForConver
 import org.fossify.messages.extensions.updateConversationArchivedStatus
 import org.fossify.messages.models.Conversation
 
+private const val EXPORT_NOTICE_TEXT_SP = 14f
+
 /** The shell's small message utility surfaces; no inherited Activity is launched. */
 internal class AuxiliaryPanel(private val activity: Activity, private val work: StudioWork,
                               private val open: (StudioRoute) -> Unit, private val refresh: () -> Unit,
@@ -41,7 +43,8 @@ internal class AuxiliaryPanel(private val activity: Activity, private val work: 
         body.addView(StudioUi.button(activity, "Recycle bin") { open(StudioRoute.Auxiliary("recycle")) })
         body.addView(StudioUi.text(activity,
             "Studio export contains contacts, memory, appointments and all retained reference originals. " +
-                "The ZIP is plaintext. It excludes SMS/MMS and model files; restore is not available yet.", 14f))
+                "The ZIP is plaintext. It excludes SMS/MMS and model files; restore is not available yet.",
+            EXPORT_NOTICE_TEXT_SP))
         body.addView(StudioUi.button(activity, "Export Studio records and images") { exportStudio() })
         body.addView(StudioUi.button(activity, "Android app permissions") {
             activity.startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:${activity.packageName}")))

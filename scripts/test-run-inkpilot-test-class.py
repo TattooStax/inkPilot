@@ -15,7 +15,7 @@ class RunnerContract(unittest.TestCase):
         self.temp = tempfile.TemporaryDirectory(dir=os.environ.get('TMPDIR'))
         self.root = Path(self.temp.name)
         (self.root / 'scripts').mkdir()
-        for name in ('run-inkpilot-test-class.sh', 'inkpilot-device-result.py'):
+        for name in ('run-inkpilot-test-class.sh', 'inkpilot-sms-role-preflight.sh', 'inkpilot-device-result.py'):
             shutil.copy2(ROOT / 'scripts' / name, self.root / 'scripts' / name)
         self.app = self.root / 'app/build/outputs/apk/foss/debug/app.apk'
         self.tests = self.root / 'app/build/outputs/apk/androidTest/foss/debug/test.apk'
@@ -30,6 +30,12 @@ with open(os.environ['ADB_LOG'], 'a') as log:
     log.write(json.dumps(sys.argv[1:]) + '\\n')
 if os.environ.get('ADB_FAIL_COMMAND') in sys.argv[3:]: sys.exit(1)
 if sys.argv[3:] == ['get-state']: print('device')
+if sys.argv[3:] == ['shell', 'getprop', 'ro.kernel.qemu']:
+    print(os.environ.get('FAKE_QEMU', '1'))
+if sys.argv[3:] == ['shell', 'cmd', 'role', 'get-role-holders', '--user', '0', 'android.app.role.SMS']:
+    print('app.inkpilot.android.debug')
+if sys.argv[3:] == ['shell', 'appops', 'get', 'app.inkpilot.android.debug', 'WRITE_SMS']:
+    print('Uid mode: WRITE_SMS: allow')
 if 'instrument' in sys.argv:
     print(os.environ.get('INSTRUMENT_RESULT', 'OK (1 test)'))
     sys.exit(int(os.environ.get('ADB_EXIT', '0')))
@@ -70,11 +76,21 @@ if 'instrument' in sys.argv:
         self.assertEqual(0, result.returncode, result.stderr)
         self.assertEqual([
             ['-s', 'emulator-5554', 'get-state'],
+            ['-s', 'emulator-5554', 'shell', 'getprop', 'ro.kernel.qemu'],
             ['-s', 'emulator-5554', 'install', '-r', str(self.app.relative_to(self.root))],
             ['-s', 'emulator-5554', 'install', '-r', str(self.tests.relative_to(self.root))],
+            ['-s', 'emulator-5554', 'get-state'],
+            ['-s', 'emulator-5554', 'shell', 'getprop', 'ro.kernel.qemu'],
+            ['-s', 'emulator-5554', 'shell', 'cmd', 'role', 'get-role-holders', '--user', '0', 'android.app.role.SMS'],
+            ['-s', 'emulator-5554', 'shell', 'appops', 'get', 'app.inkpilot.android.debug', 'WRITE_SMS'],
             ['-s', 'emulator-5554', 'shell', 'am', 'instrument', '-w', '-e', 'class',
              'a.b.Test', 'app.inkpilot.android.debug.test/androidx.test.runner.AndroidJUnitRunner'],
         ], self.calls())
+
+    def test_spoofed_emulator_serial_never_installs_on_physical_device(self):
+        self.env['FAKE_QEMU'] = '0'
+        self.assertNotEqual(0, self.run_runner('emulator-5554', 'a.b.Test').returncode)
+        self.assertFalse(any('install' in call or 'instrument' in call for call in self.calls()))
 
     def test_transport_or_install_failure_stops_before_instrumentation(self):
         for command in ('get-state', 'install'):

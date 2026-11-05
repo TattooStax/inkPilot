@@ -34,6 +34,7 @@ import org.fossify.messages.inkpilot.smoke.SmokeViews
 import org.fossify.messages.inkpilot.ui.ConversationGateway
 import org.fossify.messages.inkpilot.ui.StudioHomeActivity
 import org.fossify.messages.inkpilot.ui.StudioRoute
+import org.fossify.messages.inkpilot.ui.StudioMessageRows
 import org.fossify.messages.transport.storeRolePosture
 import org.junit.After
 import org.junit.Assert.*
@@ -163,6 +164,20 @@ class LegacyFirstLaunchTest {
             instrumentation.runOnMainSync {
                 assertNotNull(home.findViewById<View>(R.id.inkpilot_home))
                 home.openRoute(StudioRoute.Thread(providerThread))
+            }
+            SmokeViews.assertText("Client reference images")
+            SmokeViews.await<Boolean>("native message loaded in the in-shell thread") {
+                var ready = false
+                instrumentation.runOnMainSync {
+                    val list = home.findViewById<RecyclerView>(R.id.inkpilot_thread_message_list)
+                    val position = (list?.adapter as? StudioMessageRows)?.messagePosition(
+                        MessageKey(MessageOrigin.SMS, providerId)) ?: -1
+                    if (position >= 0 && list.height > 0) {
+                        list.scrollToPosition(position)
+                        ready = true
+                    }
+                }
+                ready.takeIf { it }
             }
             SmokeViews.assertText("Synthetic native history")
             assertEquals("First shell launch must preserve the human scheduled message",

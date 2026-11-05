@@ -22,7 +22,8 @@ class ReleaseVerifierTest(unittest.TestCase):
         self.root = Path(self.temp.name)
         required = (
             "gradle.properties", "fastlane/Appfile", "fastlane/Fastfile",
-            ".github/workflows/release.yml", ".github/workflows/inkpilot-build.yml", "agent-core/README.md",
+            ".github/workflows/release.yml", ".github/workflows/inkpilot-build.yml",
+            ".github/workflows/inkpilot-beta-build.yml", "agent-core/README.md",
             "docs/ARCHITECTURE.md", "docs/DEVICE-ACCEPTANCE.md",
             "docs/RELEASE-EVIDENCE.json", "app/src/main/res/values/strings.xml",
             "app/src/main/AndroidManifest.xml",
@@ -53,6 +54,15 @@ class ReleaseVerifierTest(unittest.TestCase):
         self.assertIn("inherited or false store copy", errors)
         self.assertIn("release lacks identity, tests, provenance", errors)
         self.assertIn("manual build does not upload", errors)
+
+    def test_signed_builder_requires_manual_run_scoped_secrets_and_identity_check(self):
+        self.edit(".github/workflows/inkpilot-beta-build.yml", "  workflow_dispatch:", "  push:")
+        self.edit(".github/workflows/inkpilot-beta-build.yml",
+                  "secrets.INKPILOT_BETA_KEYSTORE_BASE64", "secrets.WRONG_KEY")
+        self.edit(".github/workflows/inkpilot-beta-build.yml",
+                  '"app.inkpilot.android"', '"app.inkpilot.android.debug"')
+        self.assertIn("signed canonical beta build lacks manual provenance",
+                      "\n".join(check_source(self.root)))
 
     def test_false_faq_and_unreviewed_translation_are_rejected(self):
         self.edit("app/src/main/res/values/strings.xml", "MMS uses carrier mobile data.",
@@ -106,8 +116,29 @@ class ReleaseVerifierTest(unittest.TestCase):
                 activity.set(android_exported, "false")
         tree.write(manifest)
         self.assertEqual([], check_beta(self.root, apk, signer, inspector, "123"))
-        self.assertIn("public release signing", check_release(self.root, apk, signer, inspector, "123")[-1])
+        self.assertIn("public distribution approval", check_release(self.root, apk, signer, inspector, "123")[-1])
         self.assertIn("candidate artifact run ID differs from reviewed evidence", check_beta(self.root, apk, signer, inspector, "999"))
+
+        # A new canonical package is side by side with the installed debug package.
+        evidence["candidate_kind"] = "release"
+        (self.root / "docs/RELEASE-EVIDENCE.json").write_text(json.dumps(evidence))
+        self.assertIn("canonical beta signing certificate differs from reviewed public pin",
+                      check_beta(self.root, apk, signer, inspector, "123"))
+        pin = self.root / "docs/BETA-SIGNING-CERT.sha256"
+        pin.write_text("c" * 64 + "\n")
+        self.assertIn("canonical beta signing certificate differs from reviewed public pin",
+                      check_beta(self.root, apk, signer, inspector, "123"))
+        pin.write_text("b" * 64 + "\n")
+        self.assertIn("APK package differs", "\n".join(check_beta(self.root, apk, signer, inspector, "123")))
+        inspector.write_text("#!/bin/sh\necho \"package: name='app.inkpilot.android'\"\n")
+        self.assertEqual([], check_beta(self.root, apk, signer, inspector, "123"))
+        evidence["candidate_kind"] = ["release"]
+        (self.root / "docs/RELEASE-EVIDENCE.json").write_text(json.dumps(evidence))
+        self.assertIn("internal beta requires an exact signed", "\n".join(
+            check_beta(self.root, apk, signer, inspector, "123")))
+        evidence["candidate_kind"] = "debug"
+        (self.root / "docs/RELEASE-EVIDENCE.json").write_text(json.dumps(evidence))
+        inspector.write_text("#!/bin/sh\necho \"package: name='app.inkpilot.android.debug'\"\n")
         signer.write_text('#!/bin/sh\necho "Signer #1 certificate SHA-256 digest: ' + 'c' * 64 + '"\n')
         self.assertIn("APK signing certificate differs from physical evidence",
             check_beta(self.root, apk, signer, inspector, "123"))

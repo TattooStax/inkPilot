@@ -8,17 +8,25 @@ import re
 import sys
 from pathlib import Path
 
-WORKFLOW_PATH = ".github/workflows/inkpilot-build.yml"
+WORKFLOW_PATHS = {
+    "debug": ".github/workflows/inkpilot-build.yml",
+    "release": ".github/workflows/inkpilot-beta-build.yml",
+}
 
 
-def validate_run(record: dict, evidence: dict, repository: str, run_id: str) -> list[str]:
+def validate_run(record: dict, evidence: dict, repository: str, run_id: str,
+                 candidate_kind: str, expected_branch: str) -> list[str]:
     errors: list[str] = []
+    if candidate_kind not in WORKFLOW_PATHS or candidate_kind != evidence.get("candidate_kind"):
+        errors.append("candidate kind differs from reviewed evidence")
     if not re.fullmatch(r"[0-9]+", run_id) or str(record.get("id")) != run_id:
         errors.append("candidate run ID differs from the API response")
     if record.get("conclusion") != "success" or record.get("event") != "workflow_dispatch":
         errors.append("candidate must be a successful manual build")
-    if record.get("path") != WORKFLOW_PATH:
+    if record.get("path") != WORKFLOW_PATHS.get(candidate_kind):
         errors.append("candidate came from an unexpected workflow path")
+    if not expected_branch or record.get("head_branch") != expected_branch:
+        errors.append("candidate build branch differs from qualification branch")
     source_repository = record.get("head_repository")
     if not isinstance(source_repository, dict) or source_repository.get("full_name") != repository:
         errors.append("candidate came from another repository")
@@ -36,11 +44,14 @@ def main() -> int:
     parser.add_argument("evidence_json", type=Path)
     parser.add_argument("repository")
     parser.add_argument("run_id")
+    parser.add_argument("candidate_kind", choices=tuple(WORKFLOW_PATHS))
+    parser.add_argument("expected_branch")
     args = parser.parse_args()
     try:
         record = json.loads(args.run_json.read_text(encoding="utf-8"))
         evidence = json.loads(args.evidence_json.read_text(encoding="utf-8"))
-        errors = validate_run(record, evidence, args.repository, args.run_id)
+        errors = validate_run(record, evidence, args.repository, args.run_id,
+                              args.candidate_kind, args.expected_branch)
     except (OSError, ValueError, AttributeError, TypeError) as error:
         print(f"Invalid candidate run response or evidence: {error}", file=sys.stderr)
         return 1

@@ -46,12 +46,18 @@ model, failed test, crash, or skipped required test fails the gate.
 
 `scripts/inkpilot-model-benchmark.sh` uses an existing, digest-qualified
 LFM3 text GGUF and the pinned native engine with the production 2,048/256
-token, 800-character and 120-second limits. It runs 120 synthetic studio
-cases per variant, records P50/P95 generation time and peak host RSS, and
+token, 800-character and 120-second limits. Its fixed corpus has 120 synthetic
+studio cases; a surviving variant must complete at least 100, with all 120
+planned here. A variant that already makes an unsafe claim can be stopped and
+reported as a disqualified partial sample. The harness records P50/P95
+generation time and peak host RSS, and
 flags booking, price, image, medical, cross-contact, recipient, tool and
 truncation failures. The raw synthetic replies stay outside the repository.
-The report contains hashes and case IDs for staff adjudication; a mechanical
-zero-flag result is never a beta pass by itself.
+The report contains hashes and case IDs for staff adjudication; mechanical
+scoring and independent automated review do not replace staff scoring. A
+mechanical zero-flag result is never a beta pass by itself. Current evidence
+is 120/120 QAD cases and 24/120 Q4_K_M cases (two per category, stopped after
+unsafe booking claims); neither variant is qualified.
 
 Run both available text quantizations separately. A missing or unqualified
 weight is `UNTESTED`. The 4 GB target remains unmeasured. On the intended
@@ -65,28 +71,54 @@ report generated for the exact model hash.
 
 ## Physical phone checklist
 
-Use the intended studio phone and a separate receiving phone. For internal
-beta, download the `inkPilot-foss-debug` artifact from a successful manual
-`inkPilot build` workflow run and install **those exact APK bytes**. Record its
+Use the intended studio phone and a separate receiving phone. For a fresh
+side-by-side canonical candidate, configure a protected
+`inkpilot-beta-signing` environment with required reviewers, restricted
+candidate branches and the five signing secrets listed in
+`RELEASE-PRIVACY.md`. Commit the public certificate digest file on that
+branch before dispatch. Dispatch `inkPilot signed canonical beta build`, then
+download its `inkPilot-foss-release-beta` artifact. It must be signed by the
+durable key and have package `app.inkpilot.android`. The existing manual
+`inkPilot build` workflow remains an option for a compatible debug install;
+its artifact has package `app.inkpilot.android.debug`. Install **the exact
+downloaded APK bytes** and record `candidate_kind` (`release` or `debug`),
 run ID, source SHA, APK SHA-256 and signing certificate in
 `RELEASE-EVIDENCE.json`, then retain redacted gate-specific proof tied to that
-hash. The independently built unsigned minified release APK is a code-quality
+hash. An independently built unsigned minified release APK is only a source
 check and cannot stand in for the installed candidate.
 
-**Before any install or role change, compare signing certificates read-only.**
-Run `adb shell pm path app.inkpilot.android.debug` on the connected phone. If
-that package is installed, use `adb pull` to copy its `base.apk` into a private
-local test directory; `apksigner verify --print-certs` on that copy and on the
-downloaded candidate must show the same signer certificate SHA-256 digest. If the
-installed APK cannot be read and compared, stop before installation.
-Also check whether `app.inkpilot.android` is installed and holds the SMS/Phone
-roles; the debug package is a separate app and cannot inherit its private data
-or roles. Do not install or change a role if the current signer differs, if
-important records lack a proven backup/restore, or if role rollback has not
-been rehearsed. Never uninstall or clear the existing app to force an upgrade.
-A stable internal signing key is needed for repeatable in-place beta upgrades;
-otherwise qualify migration and rollback on a disposable device first. Record
-the read-only comparison and the decision in redacted physical proof.
+**Before any install or role change, compare packages and signers read-only.**
+Run `adb shell pm path` for both `app.inkpilot.android.debug` and
+`app.inkpilot.android`. For an in-place upgrade, pull the installed
+`base.apk` into a private local test directory and compare its certificate
+SHA-256 with the exact downloaded candidate using `apksigner verify
+--print-certs`; a mismatch blocks that upgrade. A canonical candidate can
+install side by side only if its package is absent. Its separate app-private
+data does not migrate from the installed debug app. Android's native SMS/MMS
+provider is shared, and switching the default SMS role diverts incoming
+traffic. Record the original SMS and Dialer role holders, plan and rehearse
+rollback, and verify the native provider and old app after the test. Do not
+clear or uninstall the existing app to force an upgrade. A stable internal
+signing key enables later upgrades of the canonical app. Side-by-side carrier
+proof does not pass migration or backup/restore; qualify those separately
+before customer use. Record the read-only comparison and decision in redacted
+physical proof.
+
+Read-only preflight on 2026-11-05 found a OnePlus A6013 on Android 11 with
+`app.inkpilot.android.debug` installed and holding the SMS role; OnePlus Dialer
+held the Phone role. The installed APK certificate SHA-256 began `f4152e41`;
+the available local debug APK and its keystore began `91c34bcb`. That local
+APK cannot upgrade the installed app in place. The installed manifest has
+`allowBackup=false`; `run-as` works, but no verified cross-signer private-data
+and native-provider restore exists. No role, app, or customer data was changed.
+A successful push-build artifact from run `41942630288` at source `85440d0`
+was also inspected read-only: APK SHA-256 `0cf672ba8f0f6fc02b1c5eac6e888dc3bb5776255395cf6b846a79a2e94340e4`,
+signer SHA-256 `0a1d508fc6ffba41d81fdac8020aa0641f24e324468bb59bd1ea96239a59ef56`.
+It differs from the installed signer and is not a manual internal-beta candidate.
+The canonical `app.inkpilot.android` package was absent in the read-only
+preflight. A signed canonical candidate with stable key has not been built or
+verified. The exact future candidate needs its own signer/package comparison;
+no physical install or role change has occurred.
 
 - Install the APK, choose inkPilot as default SMS, grant permissions,
   import the tested model, add current guidance, and enable drafting.
@@ -124,8 +156,9 @@ app disables Android cloud backup. Shell Settings offers a user-initiated,
 plaintext Studio ZIP export with a versioned table/image manifest and SHA-256
 entries; it includes retained originals even without album membership. It does
 not include native SMS/MMS, app settings or model weights, and there is no
-supported import/restore yet. A lock during export stops it; discard any
-incomplete document if its provider cannot delete it. Do not treat this phone
+supported import/restore yet. A lock during export stops it; if a document
+provider cannot delete an incomplete file, a generic cleanup warning persists
+until staff acknowledge it after unlock. Remove the file from its chosen location. Do not treat this phone
 or the ZIP as a complete business archive or use the export to justify a
 destructive signer change.
 A tested provider plus Studio export/restore and role rollback remains a beta

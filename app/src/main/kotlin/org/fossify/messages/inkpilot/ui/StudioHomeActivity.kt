@@ -1,9 +1,7 @@
 package org.fossify.messages.inkpilot.ui
 
-import android.Manifest
 import android.app.role.RoleManager
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.provider.DocumentsContract
@@ -15,8 +13,8 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
@@ -24,6 +22,7 @@ import org.fossify.messages.R
 import org.fossify.messages.BuildConfig
 import org.fossify.commons.extensions.appLockManager
 import org.fossify.commons.extensions.appLaunched
+import org.fossify.messages.inkpilot.data.StudioArchiveCleanupNotice
 import org.fossify.messages.inkpilot.data.StudioArchiveExporter
 import org.fossify.messages.inkpilot.data.StudioRepository
 import org.fossify.messages.inkpilot.studio.StudioPanels
@@ -44,23 +43,26 @@ class StudioHomeActivity : AppCompatActivity() {
     private val tab get() = navigator.selectedTab
     private var smsObserver: SmsRefreshObserver? = null
     private var attachmentThread = 0L
+    private var cleanupDialog: AlertDialog? = null
+    private var closing = false
     private val appLock by lazy { StudioAppLock(this) }
-    private val studioArchiveDocument = registerForActivityResult(ActivityResultContracts.CreateDocument("application/zip")) { uri ->
-        when (StudioArchiveHandoff.handle(uri, appLockManager.isLocked(),
-            discard = { DocumentsContract.deleteDocument(contentResolver, it) },
+    private val studioArchiveDocument = registerForActivityResult(
+        ActivityResultContracts.CreateDocument("application/zip"),
+    ) { uri ->
+        StudioArchiveHandoff.handle(uri, appLockManager.isLocked(),
+            discard = { selected ->
+                StudioArchiveCleanupNotice(this).recordIfDeletionFails {
+                    DocumentsContract.deleteDocument(contentResolver, selected)
+                }
+            },
             start = { selected ->
                 work.load({ StudioArchiveExporter(applicationContext, repository).export(selected) {
                     !appLockManager.isLocked()
-                } }) { summary ->
-                    StudioUi.error(this, "Studio archive saved: ${summary.tables} tables and ${summary.originals} originals.")
+                } }, failed = { showExportCleanupWarning() }) { summary ->
+                    StudioUi.error(this,
+                        "Studio archive saved: ${summary.tables} tables and ${summary.originals} originals.")
                 }
-            })) {
-            StudioArchiveHandoff.Outcome.LOCKED_DISCARDED ->
-                StudioUi.error(this, "Unlock inkPilot and choose export again.")
-            StudioArchiveHandoff.Outcome.LOCKED_UNDELETED ->
-                StudioUi.error(this, "Unlock inkPilot and remove the incomplete document before retrying.")
-            else -> Unit
-        }
+            })
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -75,7 +77,7 @@ class StudioHomeActivity : AppCompatActivity() {
         navigator = StudioNavigator(savedInstanceState)
         panels = StudioCanvasState(savedInstanceState?.getBundle("studio.panels") ?: Bundle())
         if (savedInstanceState == null) {
-            intent.getBundleExtra(ExternalRouteParser.ROUTE)?.decodeRoute()?.let(::acceptExternalRoute)
+            intent.getBundleExtra(ExternalRouteParser.ROUTE)?.decodeRoute()?.let { navigator.acceptExternalRoute(it) }
                 ?: if (intent.getStringExtra("inkpilot_panel") == "drafts") navigator.open(StudioRoute.Auxiliary("drafts")) else Unit
         }
         repository = StudioRepository(applicationContext)
@@ -204,13 +206,6 @@ class StudioHomeActivity : AppCompatActivity() {
 
     internal fun openRoute(route: StudioRoute) { navigator.open(route); render() }
 
-    private fun acceptExternalRoute(route: StudioRoute) {
-        if (route is StudioRoute.Tab) { navigator.reset(route.tab); return }
-        if (route is StudioRoute.Thread || route is StudioRoute.Compose || route is StudioRoute.Draft ||
-            route is StudioRoute.Settings || route is StudioRoute.Auxiliary) navigator.open(StudioRoute.Tab(StudioTab.SMS))
-        navigator.open(route)
-    }
-
     private fun openAgent(value: String) {
         navigator.open(when (value) {
             "soul" -> StudioRoute.Soul
@@ -223,6 +218,32 @@ class StudioHomeActivity : AppCompatActivity() {
 
     private fun exportStudio() {
         if (!appLockManager.isLocked()) studioArchiveDocument.launch("InkPilot-Studio.zip")
+    }
+
+    private fun showExportCleanupWarning() {
+        if (closing || isFinishing || isDestroyed) return
+        if (appLockManager.isLocked()) return
+        if (!lifecycle.currentState.isAtLeast(androidx.lifecycle.Lifecycle.State.RESUMED)) return
+        if (cleanupDialog?.isShowing == true) return
+        val notice = StudioArchiveCleanupNotice(this)
+        val generation = notice.pendingGenerationIfUnlocked(true) ?: return
+        val dialog = AlertDialog.Builder(this)
+            .setTitle("Studio export needs cleanup")
+            .setMessage("An incomplete plaintext Studio export may remain in the location you chose. " +
+                "Remove the incomplete file before exporting again.")
+            .setPositiveButton("Got it") { _, _ ->
+                notice.acknowledgeIfUnlocked(!appLockManager.isLocked(), generation)
+            }.setCancelable(false).create()
+        cleanupDialog = dialog
+        dialog.setOnDismissListener {
+            cleanupDialog = null
+            if (closing || isFinishing || isDestroyed) return@setOnDismissListener
+            if (appLockManager.isLocked()) return@setOnDismissListener
+            if (notice.pendingGenerationIfUnlocked(true)?.let { it != generation } == true) {
+                showExportCleanupWarning()
+            }
+        }
+        dialog.show()
     }
 
     private fun pickAttachment(threadId: Long) {
@@ -261,26 +282,26 @@ class StudioHomeActivity : AppCompatActivity() {
                 role.createRequestRoleIntent(RoleManager.ROLE_SMS)
             } else Intent(Telephony.Sms.Intents.ACTION_CHANGE_DEFAULT).putExtra(Telephony.Sms.Intents.EXTRA_PACKAGE_NAME, packageName)
             startActivityForResult(intent, SMS_ROLE_REQUEST)
-        } else requestSmsPermissions()
-    }
-
-    private fun requestSmsPermissions() {
-        val permissions = mutableListOf(Manifest.permission.READ_SMS, Manifest.permission.SEND_SMS, Manifest.permission.READ_CONTACTS)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) permissions += Manifest.permission.POST_NOTIFICATIONS
-        val needed = permissions.filter { ContextCompat.checkSelfPermission(this, it) != PackageManager.PERMISSION_GRANTED }
-        if (needed.isNotEmpty()) requestPermissions(needed.toTypedArray(), SMS_ROLE_REQUEST) else refreshPanels()
+        } else SmsRolePermissions.request(this, SMS_ROLE_REQUEST, ::refreshPanels)
     }
 
     override fun onResume() {
         super.onResume()
-        if (appLock.onResume()) { refreshPanels(); smsObserver?.start() }
+        if (appLock.onResume()) {
+            refreshPanels()
+            smsObserver?.start()
+            window.decorView.post { showExportCleanupWarning() }
+        }
         else { canvas.removeAllViews(); smsObserver?.stop() }
     }
     override fun onPause() { smsObserver?.stop(); super.onPause() }
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
-        intent.getBundleExtra(ExternalRouteParser.ROUTE)?.decodeRoute()?.let { acceptExternalRoute(it); render() }
+        intent.getBundleExtra(ExternalRouteParser.ROUTE)?.decodeRoute()?.let { route ->
+            navigator.acceptExternalRoute(route)
+            render()
+        }
             ?: if (intent.getStringExtra("inkpilot_panel") == "drafts") openAgent("drafts") else Unit
     }
     override fun onSaveInstanceState(outState: Bundle) {
@@ -301,7 +322,7 @@ class StudioHomeActivity : AppCompatActivity() {
             val store = org.fossify.messages.messaging.ComposerStore(this)
             store.load(attachmentThread)?.let { store.save(it.copy(attachmentUris = (it.attachmentUris + uris).distinct())) }
             refreshPanels()
-        } else if (requestCode == SMS_ROLE_REQUEST) requestSmsPermissions()
+        } else if (requestCode == SMS_ROLE_REQUEST) SmsRolePermissions.request(this, SMS_ROLE_REQUEST, ::refreshPanels)
         else if (!agent.onActivityResult(requestCode, resultCode, data)) studio.onActivityResult(requestCode, resultCode, data)
     }
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
@@ -316,6 +337,8 @@ class StudioHomeActivity : AppCompatActivity() {
         render()
     }
     override fun onDestroy() {
+        closing = true
+        cleanupDialog?.dismiss()
         smsObserver?.stop()
         executor.execute { repository.close() }
         executor.shutdown()
