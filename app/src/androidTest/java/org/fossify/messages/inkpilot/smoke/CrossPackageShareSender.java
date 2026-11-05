@@ -41,10 +41,10 @@ public final class CrossPackageShareSender extends Activity {
                 .setClassName(target, "org.fossify.messages.activities.NewConversationActivity")
                 .setType("image/png")
                 .putExtra(Intent.EXTRA_TEXT, "Private client outline")
-                .putExtra(Intent.EXTRA_STREAM, uri)
-                .setClipData(ClipData.newRawUri("Reference", uri))
-                .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_ACTIVITY_NEW_TASK |
-                    Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                .putExtra(Intent.EXTRA_STREAM, uri);
+            share.setClipData(ClipData.newRawUri("Reference", uri));
+            share.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_ACTIVITY_NEW_TASK |
+                Intent.FLAG_ACTIVITY_CLEAR_TASK);
             startActivity(share);
             writeStage(stage, "forwarded");
         }
