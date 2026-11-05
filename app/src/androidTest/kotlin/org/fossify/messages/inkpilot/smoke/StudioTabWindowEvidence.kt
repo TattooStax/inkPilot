@@ -8,7 +8,7 @@ import org.json.JSONObject
 import java.io.File
 
 /** Window and tab metadata only; never record visible text or customer content. */
-internal fun recordStudioTabWindow(context: Context) {
+internal fun recordStudioTabWindow(context: Context, requested: String) {
     val automation = InstrumentationRegistry.getInstrumentation().uiAutomation
     fun safePackage(node: AccessibilityNodeInfo?): String = when (node?.packageName?.toString()) {
         context.packageName -> "inkpilot"
@@ -35,11 +35,22 @@ internal fun recordStudioTabWindow(context: Context) {
     }
     val active = automation.rootInActiveWindow
     val windows = runCatching { automation.windows }.getOrDefault(emptyList()).take(8)
+    val requestedId = when (requested) {
+        "SMS" -> "inkpilot_tab_sms"
+        "Phone" -> "inkpilot_tab_phone"
+        "Contacts" -> "inkpilot_tab_contacts"
+        "Studio" -> "inkpilot_tab_studio"
+        "Calendar" -> "inkpilot_tab_calendar"
+        else -> "unknown"
+    }
     val evidence = JSONObject().apply {
+        put("requested", requested.takeIf { requestedId != "unknown" } ?: "unknown")
         put("activePackage", safePackage(active))
         put("activeClass", safeClass(active))
+        put("activeRequestedTab", tab(active, requestedId))
         put("activeStudioTab", tab(active, "inkpilot_tab_studio"))
         put("activeContactsTab", tab(active, "inkpilot_tab_contacts"))
+        put("activeCalendarTab", tab(active, "inkpilot_tab_calendar"))
         put("windowCount", windows.size)
         put("windows", JSONArray().apply {
             windows.forEach { window -> put(JSONObject().apply {
@@ -49,6 +60,7 @@ internal fun recordStudioTabWindow(context: Context) {
                 put("focused", window.isFocused)
                 put("package", safePackage(window.root))
                 put("class", safeClass(window.root))
+                put("requestedTab", tab(window.root, requestedId))
                 put("studioTab", tab(window.root, "inkpilot_tab_studio"))
             }) }
         })

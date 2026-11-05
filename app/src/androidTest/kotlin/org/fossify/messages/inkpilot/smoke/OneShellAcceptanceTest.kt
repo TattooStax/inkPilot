@@ -111,31 +111,29 @@ class OneShellAcceptanceTest {
     @Test fun tabsRemainVisibleAtLargeTextAndLandscape() = atLargeText { scenario ->
         java.io.File(instrumentation.targetContext.filesDir, "device-test-evidence/studio-tab-window.json").delete()
         // Separate callsites preserve the original sequence and identify a redacted failing tab.
-        SmokeViews.clickDescription("SMS")
+        observedNavigation("SMS") { SmokeViews.clickDescription("SMS") }
         scenario.onActivity { assertLargeTab(it, "SMS", R.id.inkpilot_tab_sms) }
-        SmokeViews.clickDescription("Phone")
+        observedNavigation("Phone") { SmokeViews.clickDescription("Phone") }
         scenario.onActivity { assertLargeTab(it, "Phone", R.id.inkpilot_tab_phone) }
-        val active = SmokeViews.await("active window after Phone") {
-            instrumentation.uiAutomation.rootInActiveWindow
+        observedNavigation("Contacts") {
+            val active = SmokeViews.await("active window after Phone") {
+                instrumentation.uiAutomation.rootInActiveWindow
+            }
+            assertEquals("Phone canvas must leave the shell window active",
+                instrumentation.targetContext.packageName, active.packageName?.toString())
+            val contactsNode = active.findAccessibilityNodeInfosByViewId(
+                "${instrumentation.targetContext.packageName}:id/inkpilot_tab_contacts").firstOrNull()
+            assertNotNull("Contacts must remain in the active accessibility window", contactsNode)
+            assertEquals("Contacts", contactsNode!!.contentDescription?.toString())
+            assertTrue("Contacts remains an accessibility action", contactsNode.isClickable)
+            assertTrue("Contacts nav accessibility action",
+                contactsNode.performAction(AccessibilityNodeInfo.ACTION_CLICK))
+            instrumentation.waitForIdleSync()
         }
-        assertEquals("Phone canvas must leave the shell window active",
-            instrumentation.targetContext.packageName, active.packageName?.toString())
-        val contactsNode = active.findAccessibilityNodeInfosByViewId(
-            "${instrumentation.targetContext.packageName}:id/inkpilot_tab_contacts").firstOrNull()
-        assertNotNull("Contacts must remain in the active accessibility window", contactsNode)
-        assertEquals("Contacts", contactsNode!!.contentDescription?.toString())
-        assertTrue("Contacts remains an accessibility action", contactsNode.isClickable)
-        assertTrue("Contacts nav accessibility action",
-            contactsNode.performAction(AccessibilityNodeInfo.ACTION_CLICK))
-        instrumentation.waitForIdleSync()
         scenario.onActivity { assertLargeTab(it, "Contacts", R.id.inkpilot_tab_contacts) }
-        try { SmokeViews.clickDescription("Studio") }
-        catch (failure: AssertionError) {
-            recordStudioTabWindow(instrumentation.targetContext)
-            throw failure
-        }
+        observedNavigation("Studio") { SmokeViews.clickDescription("Studio") }
         scenario.onActivity { assertLargeTab(it, "Studio", R.id.inkpilot_tab_studio) }
-        SmokeViews.clickDescription("Calendar")
+        observedNavigation("Calendar") { SmokeViews.clickDescription("Calendar") }
         scenario.onActivity { assertLargeTab(it, "Calendar", R.id.inkpilot_tab_calendar) }
         scenario.onActivity { it.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE }
         SmokeViews.await<Boolean>("landscape shell") {
@@ -146,6 +144,14 @@ class OneShellAcceptanceTest {
             if (ready) true else null
         }
         scenario.onActivity { assertFooter(it) }
+    }
+
+    private fun observedNavigation(label: String, action: () -> Unit) {
+        try { action() }
+        catch (failure: AssertionError) {
+            runCatching { recordStudioTabWindow(instrumentation.targetContext, label) }
+            throw failure
+        }
     }
 
     private fun assertLargeTab(activity: StudioHomeActivity, label: String, id: Int) {

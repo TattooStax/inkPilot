@@ -82,7 +82,8 @@ run_class org.fossify.messages.inkpilot.data.StudioProposalTest
 run_class org.fossify.messages.inkpilot.smoke.ModelQualificationTest
 run_class org.fossify.messages.inkpilot.smoke.OneShellAcceptanceTest
 if adb -s "$serial" exec-out run-as "$package" cat files/device-test-evidence/studio-tab-window.json \
-    > app/build/test-class-evidence/studio-tab-window.json.partial 2>/dev/null; then
+    > app/build/test-class-evidence/studio-tab-window.json.partial 2>/dev/null &&
+    python3 -m json.tool app/build/test-class-evidence/studio-tab-window.json.partial >/dev/null 2>&1; then
   mv app/build/test-class-evidence/studio-tab-window.json.partial \
     app/build/test-class-evidence/studio-tab-window.json
 else
