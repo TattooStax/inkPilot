@@ -47,12 +47,12 @@ internal class PhonePanel(
         })
         body.addView(StudioUi.button(activity, "Call history", openHistory))
         body.addView(StudioUi.button(activity, "Contacts", openContacts))
-        if (held) {
-            body.addView(StudioUi.button(activity, "Call controls") {
-                if (hasActiveCall()) openCallControls(false)
-                else StudioUi.error(activity, "No active inkPilot call controls are available.")
-            })
-        }
+        // The canvas is cached across Phone role and call changes. Keep this action in
+        // the view, and check both conditions when staff taps it.
+        body.addView(StudioUi.button(activity, "Call controls") {
+            if (actions.held() && hasActiveCall()) openCallControls(false)
+            else StudioUi.error(activity, "No active inkPilot call controls are available.")
+        })
         return StudioUi.scroll(activity, body)
     }
 }

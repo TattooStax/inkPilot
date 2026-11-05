@@ -96,4 +96,24 @@ class ManualDialUiTest {
             assertEquals(listOf("Choose inkPilot as your Phone app before calling."), errors)
         } }
     }
+
+    @Test fun cachedPhoneCanvasCanReturnAfterRoleAndCallStart() {
+        ActivityScenario.launch(ManualCallActivity::class.java).use { scenario -> scenario.onActivity { activity ->
+            val fake = FakeDial() // The canvas was built before InkPilot received the Phone role.
+            var active = false
+            val openings = mutableListOf<Boolean>()
+            val panel = PhonePanel(activity, fake, openCallControls = { openings += it },
+                hasActiveCall = { active }).view()
+            activity.setContentView(panel)
+            button(panel, "Call controls")!!.performClick()
+            assertTrue(openings.isEmpty())
+            fake.role = true
+            active = true
+            button(panel, "Call controls")!!.performClick()
+            assertEquals(listOf(false), openings)
+            fake.role = false
+            button(panel, "Call controls")!!.performClick()
+            assertEquals(listOf(false), openings)
+        } }
+    }
 }

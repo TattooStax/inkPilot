@@ -12,8 +12,9 @@ internal class ManualCallScreen(private val activity: Activity, private val unlo
     private val rows = linkedMapOf<String, TextView>()
     private var position = 0
     private val wanted = mutableSetOf<String>()
+    var noCallLabel: String = "Call ended"
 
-    fun update(controller: ManualCallController?, locked: Boolean, noCallLabel: String = "Call ended") {
+    fun update(controller: ManualCallController?, locked: Boolean) {
         position = 0; wanted.clear()
         val calls = controller?.calls().orEmpty()
         if (calls.isEmpty()) {

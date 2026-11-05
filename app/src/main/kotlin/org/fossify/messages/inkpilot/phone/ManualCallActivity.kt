@@ -80,7 +80,8 @@ class ManualCallActivity : Activity() {
             SystemClock.elapsedRealtime() - requestedAt < WAIT_FOR_TELECOM_MS -> "Opening call controls…"
             else -> "Call controls unavailable. Check Android's active call controls."
         }
-        screen.update(service?.let(::TelecomCallController), locked, empty)
+        screen.noCallLabel = empty
+        screen.update(service?.let(::TelecomCallController), locked)
     }
 }
 

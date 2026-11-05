@@ -47,7 +47,8 @@ internal class AndroidDialActions(
         }.getOrNull() == true else false
         // Includes emergencies: Telecom must route to the preloaded system dialer.
         return runCatching {
-            activity.getSystemService(TelecomManager::class.java).placeCall(Uri.fromParts("tel", number, null), Bundle())
+            val telecom = activity.getSystemService(TelecomManager::class.java)
+            telecom.placeCall(Uri.fromParts("tel", number, null), Bundle())
             if (nonEmergency) ManualDialResult.LOCAL_CONTROLS else ManualDialResult.SYSTEM_HANDOFF
         }.getOrElse {
             StudioUi.error(activity, "Call could not start. Check SIM and Phone permissions.")

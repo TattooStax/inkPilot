@@ -20,8 +20,8 @@ This isolated candidate opens InkPilot's manual call controls after a
 staff-initiated, successfully submitted *nonemergency* Telecom request. The
 separate call Activity shows “Opening call controls…” while Telecom binds,
 then a truthful unavailable message if no tracked call appears within eight
-seconds. The Phone canvas keeps a Call controls action while InkPilot holds
-the Phone role; it checks the live service when tapped, so a cached canvas can
+seconds. The Phone canvas keeps a Call controls action even when the Phone
+role changes after view creation; it checks the live role and service when tapped, so a cached canvas can
 return to a call that started later and reports an unavailable state when no
 call is tracked. It does not claim an answered or connected call. Emergency calls
 continue through `TelecomManager.placeCall` and leave the preloaded system
