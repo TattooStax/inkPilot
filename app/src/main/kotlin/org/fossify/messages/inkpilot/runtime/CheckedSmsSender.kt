@@ -20,6 +20,7 @@ internal fun StudioRepository.heldDraftForSend(draftId: String) =
 internal class CheckedSmsSender(private val context: Context) {
     fun approveAndSend(draftId: String, editedBody: String, subscriptionId: Int): String {
         require(editedBody.isNotBlank() && editedBody.length <= 800) { "Replies must be between 1 and 800 characters." }
+        check(AgentSettings(context).enabled) { "Model drafts are unqualified. Reply directly in the conversation." }
         check(org.fossify.messages.helpers.SmsRole.isHeld(context)) { "Make inkPilot the default SMS app first." }
         for (permission in listOf(Manifest.permission.SEND_SMS, Manifest.permission.READ_PHONE_STATE)) {
             check(ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED) { "Allow SMS and phone permissions first." }

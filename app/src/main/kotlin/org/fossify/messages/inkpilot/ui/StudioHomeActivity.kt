@@ -26,6 +26,7 @@ import org.fossify.messages.inkpilot.data.StudioArchiveCleanupNotice
 import org.fossify.messages.inkpilot.data.StudioArchiveExporter
 import org.fossify.messages.inkpilot.data.StudioRepository
 import org.fossify.messages.inkpilot.data.saveStaffEdit
+import org.fossify.messages.inkpilot.runtime.AgentSettings
 import org.fossify.messages.inkpilot.studio.StudioPanels
 import java.util.concurrent.Executors
 
@@ -89,6 +90,7 @@ class StudioHomeActivity : AppCompatActivity() {
         agent = AgentPanel(this, work, ::refreshPanels, savedInstanceState?.getString("soul_draft"))
         studio = StudioPanels(this, executor, { StudioUi.error(this, it) }, repository)
         buildFrame()
+        work.load({ AgentSettings(applicationContext).enabled }) { } // Persist the safe policy before panel reads.
         appLaunched(BuildConfig.APPLICATION_ID)
         smsObserver = SmsRefreshObserver(this, composerRoutes::refreshFromProvider)
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {

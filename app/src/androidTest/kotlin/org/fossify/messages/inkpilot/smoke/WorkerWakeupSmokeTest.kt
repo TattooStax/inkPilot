@@ -7,24 +7,27 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import inkpilot.agent.DraftKey
 import org.fossify.messages.inkpilot.data.StudioRepository
+import org.fossify.messages.inkpilot.data.staffAttention
 import org.fossify.messages.inkpilot.runtime.AgentSettings
 import org.fossify.messages.inkpilot.ui.StudioHomeActivity
 import org.json.JSONObject
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.io.File
 
-/** Observes the receiver/WorkManager path; never schedules work or calls the draft runtime. */
+/** Observes ordinary native inbox intake while unqualified; never invokes the draft runtime. */
 @RunWith(AndroidJUnit4::class)
 class WorkerWakeupSmokeTest {
     @Test
-    fun incomingSmsAutomaticallyWakesLocalWorkerAndHoldsReply() {
+    fun incomingSmsStaysWithStaffWhileModelIsUnqualified() {
         val context = InstrumentationRegistry.getInstrumentation().targetContext
         val message = requireNotNull(InstrumentationRegistry.getArguments().getString("workerMessage"))
         val evidence = File(context.filesDir, "device-test-evidence").apply { mkdirs() }
-        assertTrue("The real enabled setting must survive prior app restarts", AgentSettings(context).enabled)
+        assertFalse("The qualification policy must survive app restarts", AgentSettings(context).enabled)
         val roles = context.getSystemService(RoleManager::class.java)
         assertTrue(roles.isRoleAvailable(RoleManager.ROLE_SMS))
         assertTrue("inkPilot must hold the real SMS role", roles.isRoleHeld(RoleManager.ROLE_SMS))
@@ -39,14 +42,10 @@ class WorkerWakeupSmokeTest {
                         .firstOrNull { arrival -> arrival.inboundText == message }
                 }
                 assertEquals("+12025550124", source.recipient)
-                val receipt = SmokeViews.await("automatic WorkManager local-model draft", 240_000) {
-                    repository.findHeldDraft(DraftKey(source.eventId))
-                }
-                assertEquals(source.contactId, receipt.contactId)
-                assertEquals(source.recipient, receipt.recipient)
-                assertEquals(source.revision, receipt.sourceRevision)
-                assertTrue(receipt.body.isNotBlank() && receipt.body.length <= 800)
-                assertEquals(1, repository.heldDrafts().count { draft -> draft.draftId == receipt.draftId && draft.canReview })
+                assertFalse(repository.isDraftingEnabled())
+                assertNull(repository.findHeldDraft(DraftKey(source.eventId)))
+                assertTrue("New SMS after the old ON bit was cleared stays in the ordinary inbox",
+                    repository.staffAttention().none { it.eventId == source.eventId })
                 context.contentResolver.query(
                     Telephony.Sms.Inbox.CONTENT_URI, arrayOf("thread_id"), "body = ?", arrayOf(message), null,
                 ).use { cursor ->
@@ -58,16 +57,17 @@ class WorkerWakeupSmokeTest {
                 context.contentResolver.query(
                     Telephony.Sms.CONTENT_URI, arrayOf("_id"), "type IN (2, 4, 5, 6)", null, null,
                 ).use { cursor ->
-                    assertEquals("Automatic wakeup must hold the reply without sending", 0, requireNotNull(cursor).count)
+                    assertEquals("Unqualified intake must not send", 0, requireNotNull(cursor).count)
                 }
                 File(evidence, "worker-wakeup.json").writeText(JSONObject().apply {
                     put("eventId", source.eventId)
-                    put("draftId", receipt.draftId)
-                    put("recipient", receipt.recipient)
-                    put("body", receipt.body)
+                    put("recipient", source.recipient)
+                    put("outcome", "BLOCKED_UNQUALIFIED")
+                    put("sourceRevision", source.revision)
                     put("elapsedMillis", System.currentTimeMillis() - started)
-                    put("trigger", "SMS receiver to WorkManager")
+                    put("trigger", "Native SMS receiver to ordinary inbox")
                     put("directRuntimeCall", false)
+                    put("modelInvoked", false)
                     put("automaticSend", false)
                     put("carrierDeliveryTested", false)
                 }.toString(2))

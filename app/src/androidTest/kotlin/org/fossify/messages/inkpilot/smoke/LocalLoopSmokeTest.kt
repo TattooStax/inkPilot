@@ -14,6 +14,7 @@ import org.fossify.messages.inkpilot.runtime.AgentSettings
 import org.fossify.messages.inkpilot.ui.StudioHomeActivity
 import org.json.JSONObject
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -44,7 +45,7 @@ class LocalLoopSmokeTest {
     }
 
     @Test
-    fun incomingSmsCreatesLocalHeldDraft() {
+    fun incomingSmsNeedsStaffWhileModelIsUnqualified() {
         assertSmsRoleHeld()
         assertTrue("The checksum-pinned GGUF must be installed", File(context.filesDir, "models/active.gguf").isFile)
         StudioRepository(context).use { repository ->
@@ -66,101 +67,61 @@ class LocalLoopSmokeTest {
             assertEquals("+12025550123", source.recipient)
             assertProviderArrival(source.threadId.toLong())
             repository.saveMemory(source.contactId, "Staff-approved note: consultations last 30 minutes.")
-            AgentSettings(context).enabled = true
+            // An older ON bit must still be closed when the installed model has not qualified.
+            repository.setDraftingEnabled(true)
             val current = requireNotNull(repository.readSource(source.eventId))
             assertTrue("Memory changes must invalidate older inference", current.revision > source.revision)
 
             val started = System.currentTimeMillis()
             val created = AgentRuntime.processPending(context)
             val elapsed = System.currentTimeMillis() - started
-            val receipt = repository.findHeldDraft(DraftKey(current.eventId))
-            if (receipt == null) {
-                assertEquals("Unsafe model text must not create a held draft", 0, created)
-                val attention = repository.staffAttention().single { it.eventId == current.eventId && it.current }
-                assertEquals("Only a policy block is an acceptable no-draft outcome", "UNSAFE_CONTENT", attention.reason)
-                assertEquals(current.revision, attention.sourceRevision)
-                assertEquals("Blocking a draft must not send SMS", 0, outgoingMessages())
-                File(evidence, "local-loop.json").writeText(JSONObject().apply {
-                    put("outcome", "BLOCKED_UNSAFE_CONTENT")
-                    put("eventId", current.eventId)
-                    put("sourceRevision", current.revision)
-                    put("recipient", current.recipient)
-                    put("observedWaitMillis", elapsed)
-                    put("model", "LiquidAI/LFM3-1.7B-QAD-Q4_0")
-                    put("carrierDeliveryTested", false)
-                }.toString(2))
-                ActivityScenario.launch(StudioHomeActivity::class.java).use {
-                    SmokeViews.clickDescription("Open agent controls")
-                    SmokeViews.clickText("Drafts & staff replies")
-                    try {
-                        SmokeViews.assertText("Staff reply needed")
-                        SmokeViews.assertText("Open conversation")
-                    } catch (failure: AssertionError) {
-                        SmokeViews.capture(File(evidence, "local-staff-attention.png"))
-                        throw AssertionError("Unsafe draft was blocked, but staff attention was not visible", failure)
-                    }
+            assertEquals("An unqualified model must never run", 0, created)
+            assertFalse(repository.isDraftingEnabled())
+            assertNull(repository.findHeldDraft(DraftKey(current.eventId)))
+            val attention = repository.staffAttention().single { it.eventId == current.eventId && it.current }
+            assertEquals("MODEL_UNQUALIFIED", attention.reason)
+            assertTrue(attention.sourceRevision > current.revision)
+            assertEquals("A blocked model must not send SMS", 0, outgoingMessages())
+            File(evidence, "local-loop.json").writeText(JSONObject().apply {
+                put("outcome", "BLOCKED_UNQUALIFIED")
+                put("eventId", current.eventId)
+                put("sourceRevision", attention.sourceRevision)
+                put("recipient", current.recipient)
+                put("observedWaitMillis", elapsed)
+                put("modelInstalled", "LiquidAI/LFM3-1.7B-QAD-Q4_0")
+                put("modelInvoked", false)
+                put("carrierDeliveryTested", false)
+            }.toString(2))
+            ActivityScenario.launch(StudioHomeActivity::class.java).use {
+                SmokeViews.clickDescription("Open agent controls")
+                SmokeViews.clickText("Drafts & staff replies")
+                try {
+                    SmokeViews.assertText("Staff reply needed")
+                    SmokeViews.assertText("Open conversation")
+                } catch (failure: AssertionError) {
                     SmokeViews.capture(File(evidence, "local-staff-attention.png"))
+                    throw AssertionError("Unqualified model blocked, but staff attention was not visible", failure)
                 }
-            } else {
-                assertEquals(1, created)
-                assertTrue(receipt.body.isNotBlank())
-                assertTrue(receipt.body.length <= 800)
-                assertEquals(source.recipient, receipt.recipient)
-                assertEquals(current.revision, receipt.sourceRevision)
-                assertEquals(1, repository.heldDrafts().count { it.draftId == receipt.draftId && it.canReview })
-                assertEquals("Generating a draft must not send SMS", 0, outgoingMessages())
-                File(evidence, "local-loop.json").writeText(JSONObject().apply {
-                    put("outcome", "HELD")
-                    put("eventId", current.eventId)
-                    put("draftId", receipt.draftId)
-                    put("body", receipt.body)
-                    put("recipient", receipt.recipient)
-                    put("sourceRevision", receipt.sourceRevision)
-                    put("observedWaitMillis", elapsed)
-                    put("model", "LiquidAI/LFM3-1.7B-QAD-Q4_0")
-                    put("carrierDeliveryTested", false)
-                }.toString(2))
-                ActivityScenario.launch(StudioHomeActivity::class.java).use {
-                    SmokeViews.clickDescription("Open agent controls")
-                    SmokeViews.clickText("Drafts & staff replies")
-                    SmokeViews.clickDescription("Review draft")
-                    try {
-                        SmokeViews.assertText(receipt.body)
-                        SmokeViews.assertText("Choose business SIM")
-                    } catch (failure: AssertionError) {
-                        SmokeViews.capture(File(evidence, "local-draft-review.png"))
-                        throw AssertionError("Durable held draft was saved, but its review was not visible", failure)
-                    }
-                    SmokeViews.capture(File(evidence, "local-draft-review.png"))
-                }
+                SmokeViews.capture(File(evidence, "local-staff-attention.png"))
             }
             assertEquals("Opening staff review must not send SMS", 0, outgoingMessages())
         }
     }
 
     @Test
-    fun heldDraftSurvivesProcessRestart() {
+    fun blockedUnqualifiedStateSurvivesProcessRestart() {
         val proof = JSONObject(File(evidence, "local-loop.json").readText())
         StudioRepository(context).use { repository ->
             val key = DraftKey(proof.getString("eventId"))
-            if (proof.getString("outcome") == "BLOCKED_UNSAFE_CONTENT") {
-                assertNull(repository.findHeldDraft(key))
-                val attention = repository.staffAttention().single { it.eventId == key.eventId && it.current }
-                assertEquals("UNSAFE_CONTENT", attention.reason)
-                assertEquals(proof.getLong("sourceRevision"), attention.sourceRevision)
-                assertEquals(0, AgentRuntime.processPending(context))
-                assertNull(repository.findHeldDraft(key))
-                assertEquals(attention, repository.staffAttention().single { it.eventId == key.eventId && it.current })
-            } else {
-                assertEquals("HELD", proof.getString("outcome"))
-                val receipt = requireNotNull(repository.findHeldDraft(key))
-                assertEquals(proof.getString("draftId"), receipt.draftId)
-                assertEquals(proof.getString("body"), receipt.body)
-                assertEquals(proof.getLong("sourceRevision"), receipt.sourceRevision)
-                assertEquals(0, AgentRuntime.processPending(context))
-                assertEquals(receipt, repository.findHeldDraft(key))
-                assertEquals(1, repository.heldDrafts().count { it.draftId == receipt.draftId })
-            }
+            assertEquals("BLOCKED_UNQUALIFIED", proof.getString("outcome"))
+            assertFalse(repository.isDraftingEnabled())
+            assertNull(repository.findHeldDraft(key))
+            val attention = repository.staffAttention().single { it.eventId == key.eventId && it.current }
+            assertEquals("MODEL_UNQUALIFIED", attention.reason)
+            assertEquals(proof.getLong("sourceRevision"), attention.sourceRevision)
+            assertEquals(0, AgentRuntime.processPending(context))
+            assertNull(repository.findHeldDraft(key))
+            assertEquals(attention, repository.staffAttention().single { it.eventId == key.eventId && it.current })
             assertEquals(0, outgoingMessages())
         }
     }
