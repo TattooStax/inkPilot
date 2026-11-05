@@ -43,7 +43,7 @@ class LeadIntakeReviewUiTest : StudioDatabaseTestBase() {
                 openStagedDialog(scenario)
                 clickTarget("Maya · Not reviewed · Can I book a consultation?")
                 SmokeViews.clickText("Next")
-                SmokeViews.clickText("Size")
+                clickTarget("Size")
                 SmokeViews.clickText("Save review")
                 SmokeViews.await("saved lead question") {
                     repository.leadIntakeTargets().single().reviewed
@@ -54,8 +54,8 @@ class LeadIntakeReviewUiTest : StudioDatabaseTestBase() {
                 openStagedDialog(scenario)
                 clickTarget("Maya · Review saved · Can I book a consultation?")
                 SmokeViews.clickText("Next")
-                SmokeViews.clickText("Size")
-                SmokeViews.clickText("Placement")
+                clickTarget("Size")
+                clickTarget("Placement")
                 SmokeViews.clickText("Save review")
                 SmokeViews.await("corrected lead question") {
                     repository.leadIntakeTargets().single().reviewed
@@ -92,13 +92,31 @@ class LeadIntakeReviewUiTest : StudioDatabaseTestBase() {
 
     private fun clickTarget(label: String) {
         try {
-            SmokeViews.clickText(label)
+            val instrumentation = InstrumentationRegistry.getInstrumentation()
+            val node = SmokeViews.await("visible dialog choice: $label") {
+                findVisibleText(instrumentation.uiAutomation.rootInActiveWindow, label)
+            }
+            var clickable: AccessibilityNodeInfo? = node
+            while (clickable != null && !clickable.isClickable) clickable = clickable.parent
+            assertTrue("Dialog choice has no clickable ancestor: $label", clickable != null)
+            assertTrue("Dialog choice click was rejected: $label",
+                clickable!!.performAction(AccessibilityNodeInfo.ACTION_CLICK))
+            instrumentation.waitForIdleSync()
         } catch (failure: AssertionError) {
             val targets = repository.leadIntakeTargets().map {
                 "${it.displayName}:${it.reviewed != null}:${it.hasStoredReview}"
             }
             throw AssertionError("Staged target unavailable. Sources=$targets; active=${activeLabels()}", failure)
         }
+    }
+
+    private fun findVisibleText(node: AccessibilityNodeInfo?, label: String): AccessibilityNodeInfo? {
+        if (node == null) return null
+        if (node.isVisibleToUser && node.text?.toString() == label) return node
+        for (index in 0 until node.childCount) {
+            findVisibleText(node.getChild(index), label)?.let { return it }
+        }
+        return null
     }
 
     private fun activeLabels(): List<String> = buildList {
