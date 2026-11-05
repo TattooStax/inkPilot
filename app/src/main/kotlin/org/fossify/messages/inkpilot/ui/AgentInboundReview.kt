@@ -42,7 +42,7 @@ internal class AgentInboundReview(private val activity: AppCompatActivity, priva
             val rows = page.entries
             if (rows.isEmpty()) { StudioUi.error(activity, "No more held replies."); return@load }
             val dialog = AlertDialog.Builder(activity).setTitle("Held direct replies")
-                .setItems(rows.map { "${it.recipient} · thread ${it.threadId}" }.toTypedArray()) { _, index ->
+                .setItems(rows.map { "${it.recipient} · thread ${it.threadId?.toString() ?: "unresolved"}" }.toTypedArray()) { _, index ->
                     val row = rows[index]
                     detail("Held reply: ${row.recipient}", row.body) {
                         work.load({ DirectReplyPendingStore(activity).complete(row.id) }) { replies(before) }

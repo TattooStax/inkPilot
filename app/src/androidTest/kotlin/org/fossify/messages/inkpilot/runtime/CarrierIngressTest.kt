@@ -14,6 +14,7 @@ import androidx.test.platform.app.InstrumentationRegistry
 import org.fossify.messages.receivers.MmsReceiver
 import org.fossify.messages.receivers.SmsReceiver
 import org.fossify.messages.receivers.SmsAdmission
+import org.fossify.messages.services.HeadlessReplyAdmission
 import org.fossify.messages.receivers.NotificationReplyIdentity
 import org.fossify.messages.extensions.getThreadId
 import org.fossify.messages.extensions.getMMS
@@ -287,6 +288,33 @@ class CarrierIngressTest {
             assertNotEquals(first, second)
             assertNotEquals(first, another)
         } finally { first.cancel(); second.cancel(); another.cancel() }
+    }
+
+    @Test fun unresolvedHeadlessThreadKeepsHumanTextInPagedStaffReview() {
+        val sender = "+12025550990"
+        val body = "Synthetic human respond-via-message text"
+        val saved = HeadlessReplyAdmission.preserve(
+            resolveThread = { throw IllegalStateException("Telephony thread lookup failed") },
+            resolveSubscription = { 7 },
+            persist = { thread, subscription ->
+                DirectReplyPendingStore(context).hold(thread, sender, body, subscription)
+            },
+        )
+        try {
+            val reopened = DirectReplyPendingStore(context).held().single { it.id == saved.id }
+            assertNull(reopened.threadId)
+            assertEquals(sender, reopened.recipient)
+            assertEquals(body, reopened.body)
+            assertEquals(7, reopened.subscriptionId)
+            var cursor: DirectReplyPendingStore.Cursor? = null
+            var visible = false
+            do {
+                val page = DirectReplyPendingStore(context).page(cursor)
+                visible = visible || page.entries.any { it.id == saved.id }
+                cursor = page.next
+            } while (!visible && cursor != null)
+            assertTrue(visible)
+        } finally { DirectReplyPendingStore(context).complete(saved.id) }
     }
 
     @Test fun heldDirectReplySurvivesStoreReopenWithoutAutomaticDispatch() {

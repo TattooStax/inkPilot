@@ -21,17 +21,31 @@ class HeadlessSmsSendService : Service() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         val uri = intent?.data
         val number = CarrierIngressPolicy.respondRecipient(uri?.scheme, uri?.encodedSchemeSpecificPart?.let { Uri.decode(it) })
-        val text = intent?.getStringExtra(Intent.EXTRA_TEXT)?.takeIf { it.isNotBlank() && it.length <= 16_000 }
+        val text = intent?.getStringExtra(Intent.EXTRA_TEXT)?.takeIf { it.isNotBlank() }
         if (intent?.action != "android.intent.action.RESPOND_VIA_MESSAGE" || number == null || text == null || !SmsRole.isHeld(this)) {
             stopSelf(startId)
             return START_NOT_STICKY
         }
-        val thread = getThreadId(number).takeIf { it > 0 } ?: run {
-            stopSelf(startId); return START_NOT_STICKY
+        val held = runCatching {
+            HeadlessReplyAdmission.preserve(
+                resolveThread = { getThreadId(number) },
+                resolveSubscription = { config.savedSIMIdAtNumber(number) },
+                persist = { thread, savedId ->
+                    DirectReplyPendingStore(this).hold(thread, number, text, savedId)
+                },
+            )
+        }.getOrElse {
+            runCatching { AgentSettings(this).recordStatus("Reply could not enter held review. Open SMS.") }
+            stopSelf(startId)
+            return START_NOT_STICKY
         }
-        val savedId = config.savedSIMIdAtNumber(number)
-        val held = runCatching { DirectReplyPendingStore(this).hold(thread, number, text, savedId) }
-            .getOrElse { stopSelf(startId); return START_NOT_STICKY }
+        if (held.threadId == null) {
+            runCatching { AgentSettings(this).recordStatus(
+                "Reply held: native thread is unavailable. Review held replies in Agent."
+            ) }
+            stopSelf(startId)
+            return START_NOT_STICKY
+        }
         ensureBackgroundThread {
             try {
                 val ids = subscriptionManagerCompat().activeSubscriptionInfoList.orEmpty()
