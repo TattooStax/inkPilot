@@ -50,14 +50,6 @@ class ComposerStore(context: Context) {
     }
     internal val prefs = context.getSharedPreferences("durable_composers", Context.MODE_PRIVATE)
     init { locked { recoverMmsConfirmations(); recoverSharedMediaAfterCrash() } }
-    private fun recoverSharedMediaAfterCrash() {
-        val requests = try {
-            prefs.all.keys.mapNotNull { it.toLongOrNull() }.mapNotNull(::load)
-        } catch (_: Exception) { return } // An unreadable draft must never permit copy deletion.
-        val referenced = requests.flatMap(OutgoingMessage::attachmentUris)
-            .mapNotNull(appContext::ownedSharedComposerName).toSet()
-        appContext.recoverSharedComposerImages(referenced)
-    }
     fun save(request: OutgoingMessage): Boolean = locked { saveUnclaimed(request) }
     fun load(threadId: Long): OutgoingMessage? = prefs.getString(threadId.toString(), null)?.let {
         val json = JSONObject(it)

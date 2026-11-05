@@ -74,7 +74,7 @@ class StudioHomeActivity : AppCompatActivity() {
         supportActionBar?.hide()
         WindowCompat.setDecorFitsSystemWindows(window, false)
         WindowCompat.getInsetsController(window, window.decorView).apply {
-            isAppearanceLightStatusBars = true
+            isAppearanceLightStatusBars = false
             isAppearanceLightNavigationBars = true
         }
         attachmentThread = savedInstanceState?.getLong("attachment.thread") ?: 0L

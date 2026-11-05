@@ -10,5 +10,7 @@
         <item name="colorOnPrimary">#F4EBDD</item>
         <item name="colorSecondary">#782D34</item>
         <item name="colorOnSecondary">#F4EBDD</item>
+        <item name="android:statusBarColor">#782D34</item>
+        <item name="android:windowLightStatusBar">false</item>
     </style>
 </resources>

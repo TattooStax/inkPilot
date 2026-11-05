@@ -5,7 +5,11 @@ import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase
 import inkpilot.agent.DraftSource
 
+private const val CLAIM_REVISION_COLUMN = 2
 private const val CLAIM_STATE_COLUMN = 3
+private const val CLAIM_THREAD_COLUMN = 4
+private const val CLAIM_CONTACT_COLUMN = 5
+private const val CLAIM_RECIPIENT_COLUMN = 6
 private const val CLAIM_STAFF_EDIT_COLUMN = 7
 
 private fun Cursor.matchesHeldClaim(expectedBody: String, editedBody: String): Boolean =
@@ -13,8 +17,10 @@ private fun Cursor.matchesHeldClaim(expectedBody: String, editedBody: String): B
         (isNull(CLAIM_STAFF_EDIT_COLUMN) || getString(CLAIM_STAFF_EDIT_COLUMN) == editedBody)
 
 private fun Cursor.matchesClaimSource(source: DraftSource): Boolean =
-    !source.staffPaused && source.revision == getLong(2) && source.threadId == getString(4) &&
-        source.contactId == getString(5) && source.recipient == getString(6)
+    !source.staffPaused && source.revision == getLong(CLAIM_REVISION_COLUMN) &&
+        source.threadId == getString(CLAIM_THREAD_COLUMN) &&
+        source.contactId == getString(CLAIM_CONTACT_COLUMN) &&
+        source.recipient == getString(CLAIM_RECIPIENT_COLUMN)
 
 internal fun SQLiteDatabase.claimStudioDraft(
     draftId: String, expectedBody: String, editedBody: String, subscriptionId: Int,
