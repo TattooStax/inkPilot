@@ -76,6 +76,7 @@ class StudioRepository(context: Context, databaseName: String = DATABASE_NAME) :
         require(region.length <= 8)
         db.transaction {
             requireNotNull(db.studioContact(contactId))
+            if (region.isEmpty()) db.recordAliasReassignmentAttention(normalized, contactId)
             db.execSQL("""UPDATE studio_contacts SET revision = revision + 1 WHERE number = ? OR id IN (
                 SELECT contact_id FROM contact_aliases WHERE address = ? AND region = ?
             )""", arrayOf(normalized, normalized, region.uppercase()))

@@ -34,6 +34,7 @@ internal fun SQLiteDatabase.recordStudioInbound(
             put("recipient", normalized); put("body", body); put("received_at", receivedAt)
             put("subscription_id", subscriptionId); put("created_revision", revision)
         })
+        recordCrossThreadAttention(contact.latestEventId, contact.revision, eventId, threadId, revision, isLatest)
         if (isLatest) {
             execSQL(
                 "UPDATE studio_contacts SET revision = ?, latest_event_id = ?, last_message_at = ? WHERE id = ?",

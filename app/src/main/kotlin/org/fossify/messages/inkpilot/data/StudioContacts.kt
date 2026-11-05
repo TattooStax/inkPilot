@@ -68,12 +68,18 @@ internal fun SQLiteDatabase.saveStudioMemory(id: String, text: String) {
 internal fun SQLiteDatabase.saveStudioContactEdit(id: String, text: String, paused: Boolean, source: String) {
     require(text.length <= 8_000) { "Memory is limited to 8,000 characters" }
     require(source.isNotBlank() && source.length <= 256) { "A source is required (up to 256 characters)" }
+    val reviewedSource = source.trim()
     transaction {
         val contact = requireNotNull(studioContact(id)) { "Contact not found" }
         val prior = studioMemoryEntry(id)
-        if (contact.memory != text || contact.paused != paused || prior?.source != source || prior?.reviewState != IdentityReviewState.REVIEWED) {
+        val changed = contact.memory != text || contact.paused != paused
+        val reviewChanged = prior?.source != reviewedSource || prior?.reviewState != IdentityReviewState.REVIEWED
+        if (changed || reviewChanged) {
             if (text.isBlank()) delete("memory_entries", "contact_id = ?", arrayOf(id))
-            else execSQL("INSERT OR REPLACE INTO memory_entries VALUES(?, ?, 'REVIEWED', ?)", arrayOf(id, source.trim(), text))
+            else execSQL(
+                "INSERT OR REPLACE INTO memory_entries VALUES(?, ?, 'REVIEWED', ?)",
+                arrayOf(id, reviewedSource, text),
+            )
             execSQL("UPDATE studio_contacts SET memory = ?, paused = ?, revision = revision + 1 WHERE id = ?", arrayOf<Any>(text, if (paused) 1 else 0, id))
         }
     }
