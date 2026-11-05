@@ -25,7 +25,7 @@ import java.io.File
 /** Handles updating databases and states when a MMS message is sent. */
 class MmsSentReceiver : SendStatusReceiver() {
 
-    override fun updateAndroidDatabase(context: Context, intent: Intent, receiverResultCode: Int) {
+    override fun updateAndroidDatabase(context: Context, intent: Intent, receiverResultCode: Int): Boolean {
         val uri = intent.getStringExtra(EXTRA_CONTENT_URI)?.let(Uri::parse)
         val originalResentMessageId = intent.getLongExtra(EXTRA_ORIGINAL_RESENT_MESSAGE_ID, -1L)
         val messageBox = if (receiverResultCode == Activity.RESULT_OK) {
@@ -44,11 +44,13 @@ class MmsSentReceiver : SendStatusReceiver() {
             put(Telephony.Mms.MESSAGE_BOX, messageBox)
         }
 
-        val providerUpdated = updateAndVerifyMmsRow(context, uri, values, messageBox)
+        val providerUpdated = if (mmsCallbackRowBound(intent.data, uri))
+            updateAndVerifyMmsRow(context, uri, values, messageBox) else false
         reconcileComposerMmsCallback(context, intent, receiverResultCode, providerUpdated)
+        context.recordScheduledCallback(intent, receiverResultCode == Activity.RESULT_OK, providerUpdated)
 
         // In case of resent message, delete original to prevent duplication
-        if (originalResentMessageId != -1L && receiverResultCode == Activity.RESULT_OK) {
+        if (originalResentMessageId != -1L && receiverResultCode == Activity.RESULT_OK && providerUpdated) {
             context.deleteMessage(originalResentMessageId, true)
         }
 
@@ -56,10 +58,12 @@ class MmsSentReceiver : SendStatusReceiver() {
         if (filePath != null) {
             File(filePath).delete()
         }
+        return providerUpdated
     }
 
-    override fun updateAppDatabase(context: Context, intent: Intent, receiverResultCode: Int) {
-        context.recordScheduledCallback(intent, receiverResultCode == Activity.RESULT_OK)
+    override fun updateAppDatabase(
+        context: Context, intent: Intent, receiverResultCode: Int, nativeRowVerified: Boolean,
+    ) {
         refreshMessages()
         refreshConversations()
     }
@@ -80,6 +84,10 @@ internal fun isMmsCallbackRow(uri: Uri?): Boolean {
     if (parts.lastOrNull()?.toLongOrNull()?.let { it > 0L } != true) return false
     return parts.size == 1 || (parts.size == 2 && parts[0] == "outbox")
 }
+
+/** mmslib overwrites Intent.data with the persisted row and repeats it in content_uri. */
+internal fun mmsCallbackRowBound(intentData: Uri?, claimedUri: Uri?): Boolean =
+    isMmsCallbackRow(intentData) && intentData == claimedUri
 
 /** Update the canonical row, then read back its terminal box before resolving a claim. */
 private fun updateAndVerifyMmsRow(context: Context, callbackUri: Uri?, values: ContentValues, box: Int): Boolean {

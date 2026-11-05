@@ -1,6 +1,6 @@
 package org.fossify.messages.messaging
 
-import android.annotation.SuppressLint
+import android.content.ContentUris
 import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
@@ -19,6 +19,7 @@ import org.fossify.messages.extensions.smsSender
 import org.fossify.messages.messaging.SmsException.Companion.ERROR_PERSISTING_MESSAGE
 import org.fossify.messages.models.Attachment
 import org.fossify.messages.receivers.MmsSentReceiver
+import org.fossify.messages.receivers.nativeStatusUpdateVerified
 
 class MessagingUtils(val context: Context) {
 
@@ -121,31 +122,19 @@ class MessagingUtils(val context: Context) {
         }
     }
 
-    fun updateSmsMessageSendingStatus(messageUri: Uri?, type: Int) {
-        val resolver = context.contentResolver
-        val values = ContentValues().apply {
-            put(Sms.Outbox.TYPE, type)
-        }
-
-        try {
-            if (messageUri != null) {
-                resolver.update(messageUri, values, null, null)
-            } else {
-                // mark latest sms as sent, need to check if this is still necessary (or reliable)
-                // as this was taken from android-smsmms. The messageUri shouldn't be null anyway
-                val cursor = resolver.query(Sms.Outbox.CONTENT_URI, null, null, null, null)
-                cursor?.use {
-                    if (cursor.moveToFirst()) {
-                        @SuppressLint("Range")
-                        val id = cursor.getString(cursor.getColumnIndex(Sms.Outbox._ID))
-                        val selection = "${Sms._ID} = ?"
-                        val selectionArgs = arrayOf(id.toString())
-                        resolver.update(Sms.Outbox.CONTENT_URI, values, selection, selectionArgs)
-                    }
-                }
-            }
+    /** A callback is confirmed only after its exact native row reflects the new type. */
+    fun updateSmsMessageSendingStatus(messageUri: Uri?, type: Int): Boolean {
+        val row = canonicalSmsCallbackRow(messageUri) ?: return false
+        val values = ContentValues().apply { put(Sms.TYPE, type) }
+        return try {
+            nativeStatusUpdateVerified(type,
+                update = { context.contentResolver.update(row, values, null, null) },
+                read = { context.contentResolver.query(row, arrayOf(Sms.TYPE), null, null, null)?.use {
+                    if (it.moveToFirst()) it.getInt(0) else null
+                } })
         } catch (e: Exception) {
             context.showErrorToast(e)
+            false
         }
     }
 
@@ -217,3 +206,11 @@ class MessagingUtils(val context: Context) {
 private fun java.io.InputStream.readMmsAttachment(
     attachment: Attachment, composerClaim: MmsComposerClaim?,
 ): ByteArray = if (composerClaim == null) readBytes() else readBoundedMmsImage(attachment.mimetype)
+
+/** Callback URIs must name a positive canonical SMS row, never a latest-outbox fallback. */
+internal fun canonicalSmsCallbackRow(uri: Uri?): Uri? {
+    if (uri?.scheme != "content" || uri.authority != Sms.CONTENT_URI.authority) return null
+    if (uri.pathSegments.size != 1) return null
+    val id = uri.lastPathSegment?.toLongOrNull()?.takeIf { it > 0 } ?: return null
+    return ContentUris.withAppendedId(Sms.CONTENT_URI, id)
+}

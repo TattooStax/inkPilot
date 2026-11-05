@@ -4,6 +4,21 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class ScheduledVerdictUnitTest {
+    @Test fun mmsCallbackWithoutVerifiedProviderRowRemainsUnknown() {
+        val calls = mutableListOf<String>()
+        for (carrierAccepted in listOf(true, false)) {
+            applyScheduledCallbackVerdict(false, carrierAccepted,
+                record = { calls.add("record:$it") },
+                unknown = { calls.add("unknown") })
+        }
+        assertEquals(listOf("unknown", "unknown"), calls)
+    }
+    @Test fun verifiedMmsCallbackRecordsCarrierResult() {
+        val outcomes = mutableListOf<Boolean>()
+        applyScheduledCallbackVerdict(true, true, outcomes::add, { fail("Verified row became unknown") })
+        applyScheduledCallbackVerdict(true, false, outcomes::add, { fail("Verified row became unknown") })
+        assertEquals(listOf(true, false), outcomes)
+    }
     @Test fun lateSuccessAfterFailureRemainsUnknown() {
         assertEquals("UNKNOWN", partVerdict(listOf(2), 2))
         assertEquals("UNKNOWN", partVerdict(listOf(2, 1), 2))

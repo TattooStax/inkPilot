@@ -30,6 +30,20 @@ class ScheduledVerdictTest {
             assertFalse(it.claim(key, 2))
         }
     }
+    @Test fun unverifiedMmsPartKeepsJournalUnknownAfterLaterSuccessfulParts() {
+        val key = MessageKey(MessageOrigin.SCHEDULED_MMS, System.nanoTime())
+        val unverified = Intent().setData(Uri.parse(key.alarmIdentity() + "/0"))
+        ScheduledCallback(key).attach(unverified, 0)
+        ScheduledVerdicts(context).use { journal ->
+            assertTrue(journal.claim(key, 2))
+            context.recordScheduledCallback(unverified, true, nativeRowVerified = false)
+            assertEquals("UNKNOWN", journal.state(key))
+            journal.record(key, 1, true)
+            journal.record(key, 0, true)
+            assertEquals("UNKNOWN", journal.state(key))
+            assertFalse(journal.claim(key, 2))
+        }
+    }
     @Test fun sameIdKindsAndIntCollisionsHaveIndependentClaims() {
         val id = System.nanoTime()
         val keys = listOf(MessageKey(MessageOrigin.SCHEDULED_SMS, id), MessageKey(MessageOrigin.SCHEDULED_MMS, id),
@@ -56,6 +70,7 @@ class ScheduledVerdictTest {
             assertEquals("DISPATCHING", it.state(key))
             val callback = Intent()
             ScheduledCallback(key).attach(callback, 1)
+            callback.data = Uri.parse(key.alarmIdentity() + "/1")
             context.recordScheduledCallback(callback, true)
             assertEquals("CONFIRMED", it.state(key))
             assertFalse(it.claim(key, 2))

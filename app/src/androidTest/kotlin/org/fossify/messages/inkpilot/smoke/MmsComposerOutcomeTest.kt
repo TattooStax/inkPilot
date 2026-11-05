@@ -60,6 +60,10 @@ class MmsComposerOutcomeTest {
         assertFalse(org.fossify.messages.receivers.isMmsCallbackRow(Uri.parse("content://mms/part/123")))
         assertFalse(org.fossify.messages.receivers.isMmsCallbackRow(Uri.parse("content://sms/outbox/123")))
         assertFalse(org.fossify.messages.receivers.isMmsCallbackRow(Uri.parse("content://mms/outbox/0")))
+        val row = Uri.parse("content://mms/outbox/123")
+        assertTrue(org.fossify.messages.receivers.mmsCallbackRowBound(row, row))
+        assertFalse(org.fossify.messages.receivers.mmsCallbackRowBound(row, Uri.parse("content://mms/outbox/124")))
+        assertFalse(org.fossify.messages.receivers.mmsCallbackRowBound(Uri.parse("content://sms/123"), row))
     }
     @Test fun onlyMatchingConfirmedAttemptCanUnlockAnUnknownMms() {
         val context = ApplicationProvider.getApplicationContext<android.content.Context>()

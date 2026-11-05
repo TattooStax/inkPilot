@@ -24,7 +24,7 @@ import org.fossify.messages.helpers.refreshMessages
 /** Handles updating databases and states when a SMS message is sent. */
 class SmsStatusSentReceiver : SendStatusReceiver() {
 
-    override fun updateAndroidDatabase(context: Context, intent: Intent, receiverResultCode: Int) {
+    override fun updateAndroidDatabase(context: Context, intent: Intent, receiverResultCode: Int): Boolean {
         val messageUri: Uri? = intent.data
         val messagingUtils = context.messagingUtils
 
@@ -33,31 +33,32 @@ class SmsStatusSentReceiver : SendStatusReceiver() {
         } else {
             Sms.MESSAGE_TYPE_FAILED
         }
-        messagingUtils.updateSmsMessageSendingStatus(messageUri, type)
+        val nativeRowVerified = messagingUtils.updateSmsMessageSendingStatus(messageUri, type)
         messagingUtils.maybeShowErrorToast(
             resultCode = receiverResultCode,
             errorCode = intent.getIntExtra(EXTRA_ERROR_CODE, NO_ERROR_CODE),
             noDefault = intent.getBooleanExtra(EXTRA_NO_DEFAULT, false)
         )
+        return nativeRowVerified
     }
 
-    override fun updateAppDatabase(context: Context, intent: Intent, receiverResultCode: Int) {
-        context.recordScheduledCallback(intent, receiverResultCode == Activity.RESULT_OK)
+    override fun updateAppDatabase(
+        context: Context, intent: Intent, receiverResultCode: Int, nativeRowVerified: Boolean,
+    ) {
+        context.recordScheduledCallback(intent, receiverResultCode == Activity.RESULT_OK, nativeRowVerified)
+        if (!nativeRowVerified) return
         val messageUri = intent.data
         if (messageUri != null) {
-            val messageId = messageUri.lastPathSegment?.toLong() ?: 0L
-            ensureBackgroundThread {
-                val type = if (receiverResultCode == Activity.RESULT_OK) {
-                    Sms.MESSAGE_TYPE_SENT
-                } else {
-                    showSendingFailedNotification(context, messageId)
-                    Sms.MESSAGE_TYPE_FAILED
-                }
-
-                context.messagesDB.updateType(messageId, type)
-                refreshMessages()
-                refreshConversations()
+            val messageId = messageUri.lastPathSegment?.toLongOrNull() ?: return
+            val type = if (receiverResultCode == Activity.RESULT_OK) {
+                Sms.MESSAGE_TYPE_SENT
+            } else {
+                showSendingFailedNotification(context, messageId)
+                Sms.MESSAGE_TYPE_FAILED
             }
+            context.messagesDB.updateType(messageId, type)
+            refreshMessages()
+            refreshConversations()
         }
     }
 

@@ -1,13 +1,12 @@
 package org.fossify.messages.receivers
 
-import android.annotation.SuppressLint
 import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.provider.Telephony.Sms
-import org.fossify.commons.helpers.ensureBackgroundThread
 import org.fossify.messages.extensions.messagesDB
+import org.fossify.messages.messaging.canonicalSmsCallbackRow
 import org.fossify.messages.extensions.messagingUtils
 import org.fossify.messages.helpers.refreshMessages
 
@@ -16,50 +15,21 @@ class SmsStatusDeliveredReceiver : SendStatusReceiver() {
 
     private var status: Int = Sms.Sent.STATUS_NONE
 
-    override fun updateAndroidDatabase(context: Context, intent: Intent, receiverResultCode: Int) {
+    override fun updateAndroidDatabase(context: Context, intent: Intent, receiverResultCode: Int): Boolean {
         val messageUri: Uri? = intent.data
-        val smsMessage = context.messagingUtils.getSmsMessageFromDeliveryReport(intent) ?: return
+        val smsMessage = context.messagingUtils.getSmsMessageFromDeliveryReport(intent) ?: return false
 
-        try {
-            val format = intent.getStringExtra("format")
-            status = smsMessage.status
-            // Simple matching up CDMA status with GSM status.
-            if ("3gpp2" == format) {
-                val errorClass = status shr 24 and 0x03
-                val statusCode = status shr 16 and 0x3f
-                status = when (errorClass) {
-                    0 -> {
-                        if (statusCode == 0x02 /*STATUS_DELIVERED*/) {
-                            Sms.STATUS_COMPLETE
-                        } else {
-                            Sms.STATUS_PENDING
-                        }
-                    }
-
-                    2 -> {
-                        // TODO: Need to check whether SC still trying to deliver the SMS to destination and will send the report again?
-                        Sms.STATUS_PENDING
-                    }
-
-                    3 -> {
-                        Sms.STATUS_FAILED
-                    }
-
-                    else -> {
-                        Sms.STATUS_PENDING
-                    }
-                }
-            }
-        } catch (e: NullPointerException) {
-            // Sometimes, SmsMessage.mWrappedSmsMessage is null causing NPE when we access
-            // the methods on it although the SmsMessage itself is not null.
-            return
+        status = try {
+            normalizedDeliveryStatus(smsMessage.status, intent.getStringExtra("format"))
+        } catch (_: NullPointerException) {
+            // Some platform SmsMessage wrappers can be null despite a non-null outer object.
+            return false
         }
 
-        updateSmsStatusAndDateSent(context, messageUri, System.currentTimeMillis())
+        return updateSmsStatusAndDateSent(context, messageUri, System.currentTimeMillis())
     }
 
-    private fun updateSmsStatusAndDateSent(context: Context, messageUri: Uri?, timeSentInMillis: Long = -1L) {
+    private fun updateSmsStatusAndDateSent(context: Context, messageUri: Uri?, timeSentInMillis: Long = -1L): Boolean {
         val resolver = context.contentResolver
         val values = ContentValues().apply {
             if (status != Sms.Sent.STATUS_NONE) {
@@ -68,33 +38,47 @@ class SmsStatusDeliveredReceiver : SendStatusReceiver() {
             put(Sms.Sent.DATE_SENT, timeSentInMillis)
         }
 
-        if (messageUri != null) {
-            resolver.update(messageUri, values, null, null)
-        } else {
-            // mark latest sms as delivered, need to check if this is still necessary (or reliable)
-            val cursor = resolver.query(Sms.Sent.CONTENT_URI, null, null, null, "date desc")
-            cursor?.use {
-                if (cursor.moveToFirst()) {
-                    @SuppressLint("Range")
-                    val id = cursor.getString(cursor.getColumnIndex(Sms.Sent._ID))
-                    val selection = "${Sms._ID} = ?"
-                    val selectionArgs = arrayOf(id.toString())
-                    resolver.update(Sms.Sent.CONTENT_URI, values, selection, selectionArgs)
-                }
-            }
-        }
+        val row = canonicalSmsCallbackRow(messageUri) ?: return false
+        if (status == Sms.Sent.STATUS_NONE) return false
+        return try {
+            nativeStatusUpdateVerified(status,
+                update = { resolver.update(row, values, null, null) },
+                read = { resolver.query(row, arrayOf(Sms.Sent.STATUS), null, null, null)?.use {
+                    if (it.moveToFirst()) it.getInt(0) else null
+                } })
+        } catch (_: Exception) { false }
     }
 
-    override fun updateAppDatabase(context: Context, intent: Intent, receiverResultCode: Int) {
+    override fun updateAppDatabase(
+        context: Context, intent: Intent, receiverResultCode: Int, nativeRowVerified: Boolean,
+    ) {
+        if (!nativeRowVerified) return
         val messageUri: Uri? = intent.data
         if (messageUri != null) {
-            val messageId = messageUri.lastPathSegment?.toLong() ?: 0L
-            ensureBackgroundThread {
-                if (status != Sms.Sent.STATUS_NONE) {
-                    context.messagesDB.updateStatus(messageId, status)
-                }
-                refreshMessages()
+            val messageId = messageUri.lastPathSegment?.toLongOrNull() ?: return
+            if (status != Sms.Sent.STATUS_NONE) {
+                context.messagesDB.updateStatus(messageId, status)
             }
+            refreshMessages()
         }
+    }
+}
+
+private const val CDMA_ERROR_CLASS_SHIFT = 24
+private const val CDMA_STATUS_CODE_SHIFT = 16
+private const val CDMA_ERROR_CLASS_MASK = 0x03
+private const val CDMA_STATUS_CODE_MASK = 0x3f
+private const val CDMA_STATUS_DELIVERED = 0x02
+private const val CDMA_PERMANENT_ERROR_CLASS = 3
+
+/** Match CDMA delivery report bits to the SMS provider's status vocabulary. */
+internal fun normalizedDeliveryStatus(rawStatus: Int, format: String?): Int {
+    if (format != "3gpp2") return rawStatus
+    val errorClass = rawStatus shr CDMA_ERROR_CLASS_SHIFT and CDMA_ERROR_CLASS_MASK
+    val statusCode = rawStatus shr CDMA_STATUS_CODE_SHIFT and CDMA_STATUS_CODE_MASK
+    return when (errorClass) {
+        0 -> if (statusCode == CDMA_STATUS_DELIVERED) Sms.STATUS_COMPLETE else Sms.STATUS_PENDING
+        CDMA_PERMANENT_ERROR_CLASS -> Sms.STATUS_FAILED
+        else -> Sms.STATUS_PENDING
     }
 }

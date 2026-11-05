@@ -58,9 +58,11 @@ class ScheduledVerdicts(context: Context) : SQLiteOpenHelper(context, "scheduled
         val db = writableDatabase
         db.beginTransaction()
         try {
-            val count = db.rawQuery("SELECT parts FROM claims WHERE identity = ?", arrayOf(key.alarmIdentity())).use {
+            val (count, priorState) = db.rawQuery(
+                "SELECT parts, state FROM claims WHERE identity = ?", arrayOf(key.alarmIdentity())
+            ).use {
                 if (!it.moveToFirst()) return
-                it.getInt(0)
+                it.getInt(0) to it.getString(1)
             }
             if (part !in 0 until count) return
             db.insertWithOnConflict("parts", null, ContentValues().apply {
@@ -69,7 +71,7 @@ class ScheduledVerdicts(context: Context) : SQLiteOpenHelper(context, "scheduled
             val outcomes = db.rawQuery("SELECT outcome FROM parts WHERE identity = ?", arrayOf(key.alarmIdentity())).use {
                 buildList { while (it.moveToNext()) add(it.getInt(0)) }
             }
-            val state = partVerdict(outcomes, count)
+            val state = if (priorState == "UNKNOWN") "UNKNOWN" else partVerdict(outcomes, count)
             db.execSQL("UPDATE claims SET state = ? WHERE identity = ?", arrayOf(state, key.alarmIdentity()))
             db.setTransactionSuccessful()
         } finally { db.endTransaction() }
@@ -95,14 +97,23 @@ data class ScheduledCallback(val key: MessageKey, val offset: Int = 0) {
     }
 }
 
-fun Context.recordScheduledCallback(intent: Intent, success: Boolean) {
+/** Unverified native MMS callbacks are unknown, even when the carrier callback says OK. */
+internal fun applyScheduledCallbackVerdict(
+    nativeRowVerified: Boolean, success: Boolean, record: (Boolean) -> Unit, unknown: () -> Unit,
+) {
+    if (nativeRowVerified) record(success) else unknown()
+}
+
+fun Context.recordScheduledCallback(intent: Intent, success: Boolean, nativeRowVerified: Boolean = true) {
     val identity = intent.getStringExtra("scheduled_identity") ?: return
     val key = Intent().setData(android.net.Uri.parse(identity)).scheduledKey() ?: return
     val part = intent.getIntExtra("scheduled_part", -1)
     val confirmed = ScheduledVerdicts(this).use {
-        it.record(key, part, success)
+        applyScheduledCallbackVerdict(nativeRowVerified, success,
+            record = { accepted -> it.record(key, part, accepted) },
+            unknown = { it.unknown(key) })
         it.state(key) == "CONFIRMED"
     }
     // Journal commit precedes cleanup, so a crash cannot make an unknown send disappear.
-    if (confirmed) messagesDB.delete(key)
+    if (nativeRowVerified && confirmed) messagesDB.delete(key)
 }

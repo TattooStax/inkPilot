@@ -7,18 +7,22 @@ import org.fossify.commons.helpers.ensureBackgroundThread
 
 abstract class SendStatusReceiver : BroadcastReceiver() {
     // Updates the status of the message in the internal database
-    abstract fun updateAndroidDatabase(context: Context, intent: Intent, receiverResultCode: Int)
+    abstract fun updateAndroidDatabase(context: Context, intent: Intent, receiverResultCode: Int): Boolean
 
     // allows the implementer to update the status of the message in their database
-    abstract fun updateAppDatabase(context: Context, intent: Intent, receiverResultCode: Int)
+    abstract fun updateAppDatabase(
+        context: Context, intent: Intent, receiverResultCode: Int, nativeRowVerified: Boolean,
+    )
 
     override fun onReceive(context: Context, intent: Intent) {
         val resultCode = resultCode
         val pending = goAsync()
         ensureBackgroundThread {
             try {
-                updateAppDatabase(context, intent, resultCode)
-                updateAndroidDatabase(context, intent, resultCode)
+                finishSendStatusCallback(
+                    updateNative = { updateAndroidDatabase(context, intent, resultCode) },
+                    updateApp = { verified -> updateAppDatabase(context, intent, resultCode, verified) },
+                )
             } finally { pending.finish() }
         }
     }
@@ -35,3 +39,13 @@ abstract class SendStatusReceiver : BroadcastReceiver() {
         const val NO_ERROR_CODE = -1
     }
 }
+
+/** The app cache and scheduled journal must observe the native callback result. */
+internal fun finishSendStatusCallback(updateNative: () -> Boolean, updateApp: (Boolean) -> Unit) {
+    val nativeRowVerified = updateNative()
+    updateApp(nativeRowVerified)
+}
+
+/** An update count alone cannot confirm a send if the provider readback disagrees. */
+internal fun nativeStatusUpdateVerified(expected: Int, update: () -> Int, read: () -> Int?): Boolean =
+    update() > 0 && read() == expected
