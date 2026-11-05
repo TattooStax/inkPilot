@@ -229,7 +229,7 @@
     "app/src/main/kotlin/org/fossify/messages/inkpilot/data/StudioRegeneration.kt": 38,
     "app/src/main/kotlin/org/fossify/messages/inkpilot/data/StudioRepository.kt": 163,
     "app/src/main/kotlin/org/fossify/messages/inkpilot/data/StudioRevisionSchema.kt": 33,
-    "app/src/main/kotlin/org/fossify/messages/inkpilot/data/StudioSendClaims.kt": 82,
+    "app/src/main/kotlin/org/fossify/messages/inkpilot/data/StudioSendClaims.kt": 88,
     "app/src/main/kotlin/org/fossify/messages/inkpilot/data/StudioSendParts.kt": 61,
     "app/src/main/kotlin/org/fossify/messages/inkpilot/data/StudioStaffAttention.kt": 144,
     "app/src/main/kotlin/org/fossify/messages/inkpilot/data/StudioStaffEditMigration.kt": 23,
