@@ -40,23 +40,9 @@ class HeadlessSmsSendService : Service() {
             return START_NOT_STICKY
         }
         val held = admission.held
-        if (!SmsRole.isHeld(this)) {
-            runCatching { AgentSettings(this).recordStatus(
-                "Reply held: inkPilot is not the default SMS app. Review held replies in Agent.") }
-            stopSelf(startId)
-            return START_NOT_STICKY
-        }
-        if (held.threadId == null) {
-            runCatching { AgentSettings(this).recordStatus(
-                "Reply held: native thread is unavailable. Review held replies in Agent."
-            ) }
-            stopSelf(startId)
-            return START_NOT_STICKY
-        }
-        if (admission.savedSim == HeadlessReplyAdmission.SavedSim.LookupFailed) {
-            runCatching { AgentSettings(this).recordStatus(
-                "Reply held: saved SIM lookup failed. Review held replies in Agent."
-            ) }
+        val holdReason = headlessHoldReason(SmsRole.isHeld(this), held.threadId, admission.savedSim)
+        if (holdReason != null) {
+            runCatching { AgentSettings(this).recordStatus(holdReason) }
             stopSelf(startId)
             return START_NOT_STICKY
         }
@@ -82,4 +68,13 @@ class HeadlessSmsSendService : Service() {
         }
         return START_NOT_STICKY
     }
+}
+
+private fun headlessHoldReason(roleHeld: Boolean, threadId: Long?,
+    savedSim: HeadlessReplyAdmission.SavedSim): String? = when {
+    !roleHeld -> "Reply held: inkPilot is not the default SMS app. Review held replies in Agent."
+    threadId == null -> "Reply held: native thread is unavailable. Review held replies in Agent."
+    savedSim == HeadlessReplyAdmission.SavedSim.LookupFailed ->
+        "Reply held: saved SIM lookup failed. Review held replies in Agent."
+    else -> null
 }
