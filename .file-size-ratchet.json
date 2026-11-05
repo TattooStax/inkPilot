@@ -46,7 +46,7 @@
     "app/proguard-rules.pro": 46,
     "app/src/androidTest/AndroidManifest.xml": 15,
     "app/src/androidTest/kotlin/org/fossify/messages/inkpilot/data/FrozenMessagesV11.kt": 31,
-    "app/src/androidTest/kotlin/org/fossify/messages/inkpilot/data/LegacyFirstLaunchTest.kt": 179,
+    "app/src/androidTest/kotlin/org/fossify/messages/inkpilot/data/LegacyFirstLaunchTest.kt": 207,
     "app/src/androidTest/kotlin/org/fossify/messages/inkpilot/data/MessageKeyTest.kt": 39,
     "app/src/androidTest/kotlin/org/fossify/messages/inkpilot/data/MessageMigrationTest.kt": 153,
     "app/src/androidTest/kotlin/org/fossify/messages/inkpilot/data/ScheduledIdentityLifecycleTest.kt": 68,

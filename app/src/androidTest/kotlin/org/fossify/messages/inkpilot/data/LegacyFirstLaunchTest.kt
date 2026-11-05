@@ -9,14 +9,15 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
-import android.os.SystemClock
 import android.provider.Telephony
+import android.view.View
+import androidx.recyclerview.widget.RecyclerView
 import androidx.core.content.ContextCompat
-import androidx.test.core.app.ActivityScenario
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import inkstax.sms.transport.rolePostureForDedicatedBusinessPhone
 import org.fossify.commons.extensions.getSharedPrefs
+import org.fossify.messages.R
 import org.fossify.messages.activities.MainActivity
 import org.fossify.messages.extensions.config
 import org.fossify.messages.extensions.conversationsDB
@@ -29,6 +30,10 @@ import org.fossify.messages.models.RecycleBinMessage
 import org.fossify.messages.messaging.MessageKey
 import org.fossify.messages.messaging.MessageOrigin
 import org.fossify.messages.messaging.key
+import org.fossify.messages.inkpilot.smoke.SmokeViews
+import org.fossify.messages.inkpilot.ui.ConversationGateway
+import org.fossify.messages.inkpilot.ui.StudioHomeActivity
+import org.fossify.messages.inkpilot.ui.StudioRoute
 import org.fossify.messages.transport.storeRolePosture
 import org.junit.After
 import org.junit.Assert.*
@@ -127,20 +132,40 @@ class LegacyFirstLaunchTest {
         val intent = Intent(context, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         @Suppress("DEPRECATION")
         assertTrue(context.packageManager.getActivityInfo(requireNotNull(intent.component), 0).exported)
-        ActivityScenario.launch<MainActivity>(intent).use {
-            // This row was never seeded into Room: its appearance is the completion
-            // signal for getNewConversations' first-run provider refresh, not just onResume.
-            val deadline = SystemClock.elapsedRealtime() + 20_000
-            while (context.messagesDB.getAll().none { it.id == providerId && !it.isScheduled } &&
-                SystemClock.elapsedRealtime() < deadline) {
-                SystemClock.sleep(50)
+        // The one-shell inbox reads Telephony directly; the compatibility alias
+        // no longer runs the inherited MainActivity's Room cache import.
+        val gateway = ConversationGateway(context)
+        assertTrue("Native conversation must be pageable", gateway.pageThreads(null, 40).items.any {
+            it.threadId == providerThread
+        })
+        assertTrue("Native SMS must be pageable with its provider identity",
+            gateway.pageMessages(providerThread, null, 40).items.any {
+                it.id == providerId && !it.isMMS && !it.isScheduled &&
+                    it.body == "Synthetic native history"
+            })
+        val instrumentation = InstrumentationRegistry.getInstrumentation()
+        val shellMonitor = instrumentation.addMonitor(StudioHomeActivity::class.java.name, null, false)
+        var shell: StudioHomeActivity? = null
+        try {
+            context.startActivity(intent)
+            shell = shellMonitor.waitForActivityWithTimeout(10_000) as StudioHomeActivity?
+            val home = requireNotNull(shell) { "Historical MainActivity alias must open the inkPilot shell" }
+            SmokeViews.await<Boolean>("native conversation in the one-shell inbox") {
+                var visible = false
+                instrumentation.runOnMainSync {
+                    val list = home.findViewById<RecyclerView>(R.id.inkpilot_message_list)
+                    visible = list != null && (0 until (list.adapter?.itemCount ?: 0)).any {
+                        list.adapter!!.getItemId(it) == providerThread
+                    }
+                }
+                visible.takeIf { it }
             }
-            assertTrue("Startup must import the native SMS projection",
-                context.messagesDB.getAll().any {
-                    it.id == providerId && !it.isMMS && !it.isScheduled &&
-                        it.body == "Synthetic native history"
-                })
-            assertEquals("First inherited launch must preserve the human scheduled message",
+            instrumentation.runOnMainSync {
+                assertNotNull(home.findViewById<View>(R.id.inkpilot_home))
+                home.openRoute(StudioRoute.Thread(providerThread))
+            }
+            SmokeViews.assertText("Synthetic native history")
+            assertEquals("First shell launch must preserve the human scheduled message",
                 scheduled, context.messagesDB.getAll().find { it.id == scheduledId })
             assertEquals(draft, context.draftsDB.getDraftById(temporaryThread))
             assertTrue("Archived local conversation must remain archived",
@@ -153,6 +178,9 @@ class LegacyFirstLaunchTest {
                 assertTrue(requireNotNull(cursor).moveToFirst())
                 assertEquals("Synthetic native history", cursor.getString(0))
             }
+        } finally {
+            instrumentation.runOnMainSync { shell?.finish() }
+            instrumentation.removeMonitor(shellMonitor)
         }
     }
 
