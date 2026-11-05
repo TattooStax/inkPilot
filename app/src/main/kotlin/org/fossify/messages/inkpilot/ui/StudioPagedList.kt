@@ -37,9 +37,9 @@ internal class StudioPagedList(context: Context) : RecyclerView(context) {
             restoreWhenReady()
         } else super.onRestoreInstanceState(state)
     }
-    override fun onSaveInstanceState(): Parcelable = Bundle().apply {
-        putParcelable("studio.list.parent", pending ?: super.onSaveInstanceState())
-        putInt("rows", maxOf(targetRows, loadedRows))
+    override fun onSaveInstanceState(): Parcelable {
+        // View.dispatchSaveInstanceState requires the superclass call even while a page is pending.
+        val parentState = super.onSaveInstanceState()
         var key = pendingKey
         var offset = pendingOffset
         if (pending == null) {
@@ -50,7 +50,11 @@ internal class StudioPagedList(context: Context) : RecyclerView(context) {
             if (child != null) offset = if (manager.reverseLayout) height - paddingBottom - manager.getDecoratedBottom(child)
                 else manager.getDecoratedTop(child) - paddingTop
         }
-        key?.let { putString("origin", it.origin.name); putLong("message", it.id); putInt("offset", offset) }
+        return Bundle().apply {
+            putParcelable("studio.list.parent", pending ?: parentState)
+            putInt("rows", maxOf(targetRows, loadedRows))
+            key?.let { putString("origin", it.origin.name); putLong("message", it.id); putInt("offset", offset) }
+        }
     }
     fun contentReady(rows: Int, more: Boolean) {
         loadedRows = rows

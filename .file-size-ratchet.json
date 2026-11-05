@@ -275,7 +275,7 @@
     "app/src/main/kotlin/org/fossify/messages/inkpilot/ui/StudioHomeActivity.kt": 348,
     "app/src/main/kotlin/org/fossify/messages/inkpilot/ui/StudioNavigation.kt": 72,
     "app/src/main/kotlin/org/fossify/messages/inkpilot/ui/StudioNavigator.kt": 56,
-    "app/src/main/kotlin/org/fossify/messages/inkpilot/ui/StudioPagedList.kt": 74,
+    "app/src/main/kotlin/org/fossify/messages/inkpilot/ui/StudioPagedList.kt": 78,
     "app/src/main/kotlin/org/fossify/messages/inkpilot/ui/StudioRoute.kt": 57,
     "app/src/main/kotlin/org/fossify/messages/inkpilot/ui/StudioScrollView.kt": 40,
     "app/src/main/kotlin/org/fossify/messages/inkpilot/ui/StudioThreadAdapter.kt": 76,
