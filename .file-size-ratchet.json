@@ -249,7 +249,7 @@
     "app/src/main/kotlin/org/fossify/messages/inkpilot/data/StudioCrossThreadAttention.kt": 46,
     "app/src/main/kotlin/org/fossify/messages/inkpilot/data/StudioDatabase.kt": 164,
     "app/src/main/kotlin/org/fossify/messages/inkpilot/data/StudioDraftAttempts.kt": 21,
-    "app/src/main/kotlin/org/fossify/messages/inkpilot/data/StudioDraftPolicySchema.kt": 34,
+    "app/src/main/kotlin/org/fossify/messages/inkpilot/data/StudioDraftPolicySchema.kt": 39,
     "app/src/main/kotlin/org/fossify/messages/inkpilot/data/StudioDrafts.kt": 109,
     "app/src/main/kotlin/org/fossify/messages/inkpilot/data/StudioEvidence.kt": 19,
     "app/src/main/kotlin/org/fossify/messages/inkpilot/data/StudioIdentitySchema.kt": 53,

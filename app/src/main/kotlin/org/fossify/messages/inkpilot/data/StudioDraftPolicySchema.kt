@@ -29,6 +29,11 @@ internal object StudioDraftPolicySchema {
 
     /** Sparse historical tables and their send receipts are left intact. All old rows default NULL. */
     fun allowStaffQuestions(db: SQLiteDatabase) {
-        db.execSQL("ALTER TABLE held_drafts ADD COLUMN $STAFF_COLUMN")
+        val present = db.rawQuery("PRAGMA table_info(held_drafts)", null).use { columns ->
+            var found = false
+            while (columns.moveToNext()) if (columns.getString(1) == "staff_question_policy") found = true
+            found
+        }
+        if (!present) db.execSQL("ALTER TABLE held_drafts ADD COLUMN $STAFF_COLUMN")
     }
 }
