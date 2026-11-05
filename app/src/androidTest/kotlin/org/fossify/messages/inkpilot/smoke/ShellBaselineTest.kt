@@ -25,6 +25,7 @@ import org.fossify.messages.extensions.messagesDB
 import org.fossify.messages.inkpilot.ui.StudioHomeActivity
 import org.fossify.messages.messaging.MessageKey
 import org.fossify.messages.messaging.MessageOrigin
+import org.fossify.messages.messaging.ComposerStore
 import org.junit.After
 import org.junit.Assert.*
 import org.junit.Before
@@ -39,10 +40,12 @@ class ShellBaselineTest {
     private val context get() = instrumentation.targetContext
     private var fixtureUri: Uri? = null
     private var fixtureThread = 0L
+    private var composerKeysBefore = emptySet<String>()
     private val fixtureBody = "Synthetic shell baseline 20261104"
 
     @Before
     fun requireCleanDisposableEmulatorWithSmsRole() {
+        composerKeysBefore = context.getSharedPreferences("durable_composers", android.content.Context.MODE_PRIVATE).all.keys.toSet()
         check(Build.HARDWARE in setOf("ranchu", "goldfish")) { "Disposable emulator only" }
         assertTrue("Caller must establish SMS role before launching the test",
             context.getSystemService(RoleManager::class.java).isRoleHeld(RoleManager.ROLE_SMS))
@@ -113,7 +116,7 @@ class ShellBaselineTest {
                 home.onActivity { activity ->
                     assertNotNull(activity.findViewById<View>(R.id.inkpilot_home))
                     assertNotNull(findHint(activity.window.decorView, "Recipients separated by |"))
-                    assertNotNull(findHint(activity.window.decorView, "Message"))
+                    assertTrue(requireNotNull(findHint(activity.window.decorView, "Message")).text.isEmpty())
                 }
             }
             assertEquals("Thread stays inside inkPilot", 0, oldThread.hits)
@@ -130,6 +133,8 @@ class ShellBaselineTest {
 
     @After
     fun removeOnlyOwnedSyntheticRows() {
+        val keys = context.getSharedPreferences("durable_composers", android.content.Context.MODE_PRIVATE).all.keys
+        (keys - composerKeysBefore).mapNotNull(String::toLongOrNull).forEach { ComposerStore(context).clear(it) }
         fixtureUri?.let {
             context.contentResolver.delete(it, null, null)
             context.messagesDB.delete(MessageKey(MessageOrigin.SMS, ContentUris.parseId(it)))
