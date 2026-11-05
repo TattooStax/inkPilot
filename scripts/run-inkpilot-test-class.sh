@@ -31,6 +31,9 @@ if timeout 600 adb -s "$serial" shell am instrument -w -e class "$class" \
   python3 scripts/inkpilot-device-result.py "$result" > /dev/null 2>&1; then
   printf 'PASS %s\n' "$class" | tee "$evidence/result.txt"
 else
-  printf 'FAIL %s (instrumentation failed; raw output withheld)\n' "$class" | tee "$evidence/result.txt" >&2
+  # Only a Kotlin test filename and line number may leave the temporary raw
+  # result. Assertion messages can contain customer text or phone numbers.
+  site=$(grep -Eo '[A-Za-z_][A-Za-z0-9_]*Test\.kt:[0-9]+' "$result" | head -n 1 || true)
+  printf 'FAIL %s (%s; raw output withheld)\n' "$class" "${site:-instrumentation failed}" | tee "$evidence/result.txt" >&2
   exit 1
 fi
