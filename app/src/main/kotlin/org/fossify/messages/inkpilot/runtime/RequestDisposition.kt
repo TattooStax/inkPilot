@@ -34,7 +34,8 @@ internal fun draftOneRequest(
     settings.recordStatus("Drafting locally…")
     val store = if (workerToken == null) repository else WorkerDraftStore(repository, workerToken)
     val result = CustomerServiceDrafts(store, repository, model, safetyGate = BookingClaimGate,
-        evidenceReader = DraftEvidenceReader { repository.readEvidence(it) }, replyRenderer = BoundedIntentReplyRenderer,
+        evidenceReader = DraftEvidenceReader { repository.readEvidence(it) },
+        replyRenderer = BoundedIntentReplyRenderer,
     ).draft(request, DraftCancellation { cancellation() || !repository.isDraftingEnabled() })
     return recordDraftOutcome(result, store, repository, request, settings)
 }

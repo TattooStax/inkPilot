@@ -80,8 +80,11 @@ internal class DraftPanel(
     }
 
     private fun renderDrafts(list: LinearLayout, drafts: List<ReviewDraft>) {
-        if (drafts.isNotEmpty()) list.addView(StudioUi.text(activity,
-            if (AgentRuntime.BOUNDED_INTENT_QUALIFIED) "Drafts to review" else "Earlier drafts and send history", SECTION_SIZE, true))
+        if (drafts.isNotEmpty()) {
+            val title = if (AgentRuntime.BOUNDED_INTENT_QUALIFIED) "Drafts to review"
+                else "Earlier drafts and send history"
+            list.addView(StudioUi.text(activity, title, SECTION_SIZE, true))
+        }
         drafts.forEach { renderDraft(list, it) }
     }
 
@@ -103,20 +106,22 @@ internal class DraftPanel(
             })
         }
         if (draft.status == "HELD") {
-            if (!canReview && AgentRuntime.BOUNDED_INTENT_QUALIFIED) list.addView(StudioUi.button(activity, "Regenerate with current memory") {
-                work.load({
-                    val source = repository.readSource(draft.eventId)
-                    source?.let {
-                        org.fossify.messages.inkpilot.runtime.AgentRuntime.regenerate(activity, it.eventId, it.revision)
+            if (!canReview && AgentRuntime.BOUNDED_INTENT_QUALIFIED) {
+                list.addView(StudioUi.button(activity, "Regenerate with current memory") {
+                    work.load({
+                        val source = repository.readSource(draft.eventId)
+                        source?.let {
+                            AgentRuntime.regenerate(activity, it.eventId, it.revision)
+                        }
+                    }) { outcome ->
+                        if (outcome == DraftRegenerationOutcome.ReviewScopeUnavailable) {
+                            StudioUi.error(activity,
+                                "Lead review is inactive for model drafting. Reply directly or dismiss this draft.")
+                        }
+                        refresh()
                     }
-                }) { outcome ->
-                    if (outcome == DraftRegenerationOutcome.ReviewScopeUnavailable) {
-                        StudioUi.error(activity,
-                            "Lead review is inactive for model drafting. Reply directly or dismiss this draft.")
-                    }
-                    refresh()
-                }
-            })
+                })
+            }
             if (canReview) list.addView(StudioUi.button(activity, "Review draft") {
                 open(StudioRoute.Draft(draft.draftId))
             }.apply { contentDescription = "Review draft" })

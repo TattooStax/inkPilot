@@ -22,7 +22,9 @@ object AgentRuntime {
     }
 
     fun regenerate(context: Context, eventId: String, expectedRevision: Long): org.fossify.messages.inkpilot.data.DraftRegenerationOutcome {
-        if (!AgentSettings(context).enabled) return org.fossify.messages.inkpilot.data.DraftRegenerationOutcome.ReviewScopeUnavailable
+        if (!AgentSettings(context).enabled) {
+            return org.fossify.messages.inkpilot.data.DraftRegenerationOutcome.ReviewScopeUnavailable
+        }
         val result = StudioRepository(context).use {
             it.regenerate(eventId, expectedRevision, allowStoredLeadReview = BOUNDED_INTENT_QUALIFIED)
         }
