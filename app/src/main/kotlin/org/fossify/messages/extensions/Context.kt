@@ -1,7 +1,6 @@
 package org.fossify.messages.extensions
 
 import org.fossify.messages.messaging.MessageKey
-import org.fossify.messages.messaging.MessageOrigin
 import org.fossify.messages.messaging.key
 import android.annotation.SuppressLint
 import android.app.Application
@@ -992,18 +991,6 @@ fun Context.updateConversationArchivedStatus(threadId: Long, archived: Boolean) 
         conversationsDB.moveToArchive(threadId)
     } else {
         conversationsDB.unarchive(threadId)
-    }
-}
-
-fun Context.deleteMessage(id: Long, isMMS: Boolean) {
-    val uri = if (isMMS) Mms.CONTENT_URI else Sms.CONTENT_URI
-    val selection = "${Sms._ID} = ?"
-    val selectionArgs = arrayOf(id.toString())
-    try {
-        contentResolver.delete(uri, selection, selectionArgs)
-        messagesDB.delete(MessageKey(if (isMMS) MessageOrigin.MMS else MessageOrigin.SMS, id))
-    } catch (e: Exception) {
-        showErrorToast(e)
     }
 }
 

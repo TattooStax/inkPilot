@@ -12,6 +12,7 @@ import org.fossify.messages.helpers.MESSAGE_ID
 import org.fossify.messages.helpers.THREAD_ID
 import org.fossify.messages.helpers.refreshConversations
 import org.fossify.messages.helpers.refreshMessages
+import org.fossify.messages.inkpilot.runtime.AgentSettings
 
 class DeleteSmsReceiver : BroadcastReceiver() {
 
@@ -19,12 +20,21 @@ class DeleteSmsReceiver : BroadcastReceiver() {
         val threadId = intent.getLongExtra(THREAD_ID, 0L)
         val messageId = intent.getLongExtra(MESSAGE_ID, 0L)
         val isMms = intent.getBooleanExtra(IS_MMS, false)
-        context.notificationManager.cancel(threadId.hashCode())
+        val pending = goAsync()
         ensureBackgroundThread {
-            context.deleteMessage(messageId, isMms)
-            context.updateLastConversationMessage(threadId)
-            refreshMessages()
-            refreshConversations()
+            try {
+                if (context.deleteMessage(messageId, isMms)) {
+                    context.notificationManager.cancel(threadId.hashCode())
+                    context.updateLastConversationMessage(threadId)
+                    refreshMessages()
+                    refreshConversations()
+                } else {
+                    runCatching { AgentSettings(context).recordStatus(
+                        "Message deletion was not confirmed. Open SMS to review it.") }
+                }
+            } finally {
+                pending.finish()
+            }
         }
     }
 }
