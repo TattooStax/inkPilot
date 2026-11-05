@@ -13,9 +13,12 @@ import java.util.UUID
 
 private const val MAX_STUDIO_DRAFT_LENGTH = 800
 private const val STAFF_EDIT_COLUMN = 14
+private const val RENDERER_POLICY_COLUMN = 15
 
 internal fun SQLiteDatabase.studioReceipt(key: DraftKey): HeldDraftReceipt? = rawQuery(
-    "SELECT draft_id, thread_id, contact_id, recipient, source_revision, body, renderer_policy FROM held_drafts WHERE event_id = ? AND kind = ? AND source_revision = (SELECT revision FROM studio_contacts WHERE id = held_drafts.contact_id)",
+    """SELECT draft_id, thread_id, contact_id, recipient, source_revision, body, renderer_policy
+        FROM held_drafts WHERE event_id = ? AND kind = ?
+        AND source_revision = (SELECT revision FROM studio_contacts WHERE id = held_drafts.contact_id)""",
     arrayOf(key.eventId, key.kind.name),
 ).use {
     if (!it.moveToFirst()) null else HeldDraftReceipt(
@@ -86,7 +89,7 @@ internal fun SQLiteDatabase.reviewStudioDrafts(heldOnly: Boolean = true, limit: 
                 cursor.getInt(9), cursor.getLong(10), cursor.getInt(11) != 0, cursor.getString(12),
                 if (cursor.isNull(13)) null else cursor.getString(13),
                 if (cursor.isNull(STAFF_EDIT_COLUMN)) null else cursor.getString(STAFF_EDIT_COLUMN),
-                DraftRendererPolicy.valueOf(cursor.getString(STAFF_EDIT_COLUMN + 1)),
+                DraftRendererPolicy.valueOf(cursor.getString(RENDERER_POLICY_COLUMN)),
             ))
         }
     }

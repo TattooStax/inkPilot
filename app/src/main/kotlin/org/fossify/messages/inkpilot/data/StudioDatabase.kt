@@ -15,7 +15,6 @@ private const val STUDIO_V4 = 4
 private const val STUDIO_V5 = 5
 private const val STUDIO_V6 = 6
 private const val STUDIO_V7 = 7
-private const val STUDIO_V8 = 8
 private const val STUDIO_V9 = 9
 
 /** Business records are never placed in the inherited, destructively rebuildable SMS cache. */
