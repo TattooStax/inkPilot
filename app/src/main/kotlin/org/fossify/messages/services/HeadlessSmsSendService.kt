@@ -56,6 +56,10 @@ class HeadlessSmsSendService : Service() {
         }
         ensureBackgroundThread {
             try {
+                if (checkSelfPermission(android.Manifest.permission.READ_PHONE_STATE) != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+                    AgentSettings(this).recordStatus("Reply held: phone state permission unavailable. Review held replies in Agent.")
+                    return@ensureBackgroundThread
+                }
                 val ids = subscriptionManagerCompat().activeSubscriptionInfoList.orEmpty()
                     .map { it.subscriptionId }.toSet()
                 val selected = admission.exactSubscription(ids)

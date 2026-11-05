@@ -73,7 +73,7 @@ class ThreadReviewRegressionTest {
                 val route = StudioRoute.Thread(42)
                 fun list(rows: List<Message>) = StudioPagedList(activity).apply {
                     layoutManager = LinearLayoutManager(activity).apply { reverseLayout = true }
-                    adapter = ThreadAdapter(activity).apply { append(rows) }
+                    adapter = StudioThreadAdapter(activity).apply { append(rows) }
                 }
                 val original = StudioCanvasState()
                 val rows = (100L downTo 1L).map { message(it) }
@@ -122,7 +122,7 @@ class ThreadReviewRegressionTest {
             scenario.onActivity { activity ->
                 val image = Attachment(9, 7, "content://mms/part/9", "image/png", 1, 1, "reference.png")
                 val row = message(7, true).copy(attachment = MessageAttachment(7, "caption", arrayListOf(image)))
-                val adapter = ThreadAdapter(activity).apply { append(listOf(row)) }
+                val adapter = StudioThreadAdapter(activity).apply { append(listOf(row)) }
                 val parent = android.widget.FrameLayout(activity)
                 val holder = adapter.onCreateViewHolder(parent, 0)
                 adapter.onBindViewHolder(holder, 0)

@@ -74,6 +74,9 @@ private fun Context.sendGuardedOutboundWork(
     if (destination.isEmpty()) {
         return synchronousFailure(credential, work, TransportOutcome.EMPTY_DESTINATION_ADDRESS)
     }
+    if (checkSelfPermission(android.Manifest.permission.READ_PHONE_STATE) != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+        return synchronousFailure(credential, work, TransportOutcome.ERROR_SENDING_MESSAGE)
+    }
     return try {
         val subscription = BridgeSubscriptionSelection.capture {
             BridgeSubscriptionSnapshot(

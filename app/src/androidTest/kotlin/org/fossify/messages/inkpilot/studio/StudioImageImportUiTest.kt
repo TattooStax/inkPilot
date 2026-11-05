@@ -17,7 +17,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import org.fossify.messages.inkpilot.data.StudioRepository
 import org.fossify.messages.inkpilot.ui.StudioHomeActivity
-import org.fossify.messages.inkpilot.ui.ThreadAdapter
+import org.fossify.messages.inkpilot.ui.StudioThreadAdapter
 import org.fossify.messages.messaging.MessageKey
 import org.fossify.messages.messaging.MessageOrigin
 import org.fossify.messages.models.Attachment
@@ -85,7 +85,7 @@ class StudioImageImportUiTest {
                 val message = Message(41, "Synthetic", 1, 0, arrayListOf(), 1, true, 73, true,
                     MessageAttachment(41, "", arrayListOf(attachment)), "", "", "", -1)
                 var invoked = false
-                val adapter = ThreadAdapter(activity) { key, threadId, original ->
+                val adapter = StudioThreadAdapter(activity) { key, threadId, original ->
                     assertEquals(MessageKey(MessageOrigin.MMS, 41), key); assertEquals(73L, threadId)
                     assertSame(attachment, original); invoked = true
                 }
@@ -94,7 +94,7 @@ class StudioImageImportUiTest {
                 adapter.onBindViewHolder(row, 0)
                 views(row.body).filterIsInstance<TextView>().single { it.text == "Save to Client References" }.performClick()
                 assertTrue(invoked)
-                val scheduled = ThreadAdapter(activity)
+                val scheduled = StudioThreadAdapter(activity)
                 scheduled.append(listOf(message.copy(isScheduled = true)))
                 val scheduledRow = scheduled.onCreateViewHolder(android.widget.LinearLayout(activity), 0)
                 scheduled.onBindViewHolder(scheduledRow, 0)

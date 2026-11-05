@@ -7,10 +7,10 @@ import androidx.recyclerview.widget.RecyclerView
 import org.fossify.messages.messaging.key
 import org.fossify.messages.models.Message
 
-internal class ThreadAdapter(private val activity: android.app.Activity,
+internal class StudioThreadAdapter(private val activity: android.app.Activity,
     private val forward: (Message) -> Unit = {},
     private val importImage: (org.fossify.messages.messaging.MessageKey, Long, org.fossify.messages.models.Attachment) -> Unit = { _, _, _ -> },
-) : RecyclerView.Adapter<ThreadAdapter.Row>(), StudioMessageRows {
+) : RecyclerView.Adapter<StudioThreadAdapter.Row>(), StudioMessageRows {
     private val rows = mutableListOf<Message>()
     init { setHasStableIds(true); stateRestorationPolicy = StateRestorationPolicy.PREVENT_WHEN_EMPTY }
     class Row(val body: LinearLayout) : RecyclerView.ViewHolder(body)
