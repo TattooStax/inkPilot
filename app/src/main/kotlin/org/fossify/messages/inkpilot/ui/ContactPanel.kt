@@ -40,7 +40,9 @@ internal class ContactPanel(
                 row.addView(StudioUi.text(activity, contact.number, 14f))
                 row.isClickable = true
                 row.isFocusable = true
-                row.setOnClickListener { work.load({ repository.memoryEntry(contact.id) }) { edit(contact, it) } }
+                row.setOnClickListener { work.load({ repository.memoryEntry(contact.id) }) {
+                    if (scroll.isAttachedToWindow) edit(contact, it)
+                } }
                 list.addView(row)
                 list.addView(StudioUi.rule(activity))
             }
