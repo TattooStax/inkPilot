@@ -76,7 +76,6 @@ internal fun SQLiteDatabase.reviewStudioDrafts(heldOnly: Boolean = true, limit: 
             SELECT d.draft_id, d.event_id, d.thread_id, d.contact_id, d.recipient, c.display_name,
                    e.body, d.body, d.source_revision, e.subscription_id, d.created_at,
                    (d.state = 'HELD' AND ${StudioDraftPolicySchema.REVIEWABLE} AND c.paused = 0 AND c.revision = d.source_revision AND c.latest_event_id = d.event_id
-                    AND NOT EXISTS (SELECT 1 FROM staff_attention a WHERE a.event_id=d.event_id AND a.resolution='STAFF_HANDLED')
                     AND (d.staff_question_policy = 'STAFF_QUESTION_V1' OR
                          (SELECT drafting_enabled FROM agent_settings WHERE id = 1) = 1)),
                    d.state, s.body, d.staff_edit_body, ${StudioDraftPolicySchema.EFFECTIVE_POLICY}
@@ -86,14 +85,19 @@ internal fun SQLiteDatabase.reviewStudioDrafts(heldOnly: Boolean = true, limit: 
         """.trimIndent(), args.toTypedArray(),
     ).use { cursor ->
         buildList {
-            while (cursor.moveToNext()) add(ReviewDraft(
+            while (cursor.moveToNext()) {
+                val policy = DraftRendererPolicy.valueOf(cursor.getString(RENDERER_POLICY_COLUMN))
+                val canReview = cursor.getInt(11) != 0 &&
+                    (policy != DraftRendererPolicy.STAFF_QUESTION_V1 || !staffHandledSource(cursor.getString(1)))
+                add(ReviewDraft(
                 cursor.getString(0), cursor.getString(1), cursor.getString(2).toLong(), cursor.getString(3),
                 cursor.getString(4), cursor.getString(5), cursor.getString(6), cursor.getString(7), cursor.getLong(8),
-                cursor.getInt(9), cursor.getLong(10), cursor.getInt(11) != 0, cursor.getString(12),
+                cursor.getInt(9), cursor.getLong(10), canReview, cursor.getString(12),
                 if (cursor.isNull(13)) null else cursor.getString(13),
                 if (cursor.isNull(STAFF_EDIT_COLUMN)) null else cursor.getString(STAFF_EDIT_COLUMN),
-                DraftRendererPolicy.valueOf(cursor.getString(RENDERER_POLICY_COLUMN)),
+                policy,
             ))
+            }
         }
     }
 }
