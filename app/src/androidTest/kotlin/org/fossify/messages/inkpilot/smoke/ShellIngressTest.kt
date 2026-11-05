@@ -20,6 +20,7 @@ import org.junit.Assert.*
 import org.junit.Assume.assumeTrue
 import org.junit.Test
 import org.junit.runner.RunWith
+import java.io.File
 
 @RunWith(AndroidJUnit4::class)
 class ShellIngressTest {
@@ -121,6 +122,7 @@ class ShellIngressTest {
 
     @Test fun historicalPendingIntentAndPreferencesResolveIntoShell() {
         assumeTrue(Build.HARDWARE in setOf("ranchu", "goldfish"))
+        File(context.filesDir, "device-test-evidence/explicit-settings-stage.json").delete()
         val instrumentation = InstrumentationRegistry.getInstrumentation()
         val shell = instrumentation.addMonitor(StudioHomeActivity::class.java.name, null, false)
         try {
@@ -139,7 +141,12 @@ class ShellIngressTest {
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK))
             val explicitSettings = shell.waitForActivityWithTimeout(10_000) as StudioHomeActivity?
             assertNotNull(explicitSettings)
-            assertEquals("Settings", awaitRenderedTitle(explicitSettings!!, "Settings"))
+            val settingsTitle = awaitRenderedTitle(explicitSettings!!, "Settings")
+            recordExplicitSettingsStage(context, first!!, explicitSettings, settingsTitle)
+            assertEquals(StudioRoute.Settings("messaging"),
+                explicitSettings.intent.getBundleExtra(ExternalRouteParser.ROUTE)?.decodeRoute())
+            assertFalse(explicitSettings.appLockManager.isLocked())
+            assertEquals("Settings", settingsTitle)
             instrumentation.runOnMainSync {
                 explicitSettings.finish()
             }
