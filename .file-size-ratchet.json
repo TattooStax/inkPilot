@@ -321,7 +321,7 @@
     "app/src/main/kotlin/org/fossify/messages/interfaces/MessagesDao.kt": 114,
     "app/src/main/kotlin/org/fossify/messages/messaging/ComposerDispatch.kt": 40,
     "app/src/main/kotlin/org/fossify/messages/messaging/ComposerShareRecovery.kt": 11,
-    "app/src/main/kotlin/org/fossify/messages/messaging/ComposerSharedMedia.kt": 122,
+    "app/src/main/kotlin/org/fossify/messages/messaging/ComposerSharedMedia.kt": 127,
     "app/src/main/kotlin/org/fossify/messages/messaging/ComposerSimSelection.kt": 24,
     "app/src/main/kotlin/org/fossify/messages/messaging/ComposerStore.kt": 80,
     "app/src/main/kotlin/org/fossify/messages/messaging/DispatchOutcome.kt": 17,

@@ -5,6 +5,7 @@ import android.net.Uri
 import androidx.core.content.FileProvider
 import java.io.File
 import java.io.FileOutputStream
+import java.io.InputStream
 import java.util.UUID
 
 private const val MAX_SHARED_IMAGES = 4
@@ -54,21 +55,25 @@ private fun Context.copySharedComposerImage(source: Uri, directory: File, captur
     val input = contentResolver.openInputStream(source) ?: error("Shared image unavailable")
     input.use { stream ->
         FileOutputStream(temporary).use { output ->
-            val buffer = ByteArray(COPY_BUFFER_BYTES)
-            var total = 0
-            while (true) {
-                val count = stream.read(buffer)
-                if (count < 0) break
-                total += count
-                require(total <= MAX_SHARED_IMAGE_BYTES) { "Shared image too large" }
-                output.write(buffer, 0, count)
-            }
+            stream.copySharedBytesTo(output)
             output.fd.sync()
         }
     }
     check(temporary.renameTo(file)) { "Shared image copy failed" }
     captured.add(file)
     return FileProvider.getUriForFile(this, "$packageName.provider", file)
+}
+
+private fun InputStream.copySharedBytesTo(output: FileOutputStream) {
+    val buffer = ByteArray(COPY_BUFFER_BYTES)
+    var total = 0
+    while (true) {
+        val count = read(buffer)
+        if (count < 0) break
+        total += count
+        require(total <= MAX_SHARED_IMAGE_BYTES) { "Shared image too large" }
+        output.write(buffer, 0, count)
+    }
 }
 
 /** Delete only this app's opaque composer copies; never follow an external URI or path. */
