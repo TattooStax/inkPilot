@@ -98,12 +98,25 @@ internal class ContactPanel(
         dialog = AlertDialog.Builder(activity).setTitle(contact.displayName.ifBlank { "Client" })
             .setView(StudioUi.scroll(activity, body)).setNegativeButton("Cancel", null)
             .setNeutralButton("Reference images") { _, _ -> openImages(contact.id) }
-            .setPositiveButton("Save") { _, _ ->
+            .setPositiveButton("Save", null).create()
+        dialog.setOnShowListener {
+            val save = dialog.getButton(AlertDialog.BUTTON_POSITIVE)
+            save.setOnClickListener {
                 val text = memory.text.toString()
                 val pause = paused.isChecked
                 val provenance = source.text.toString()
-                work.load({ repository.saveContactEdit(contact.id, text, pause, provenance) }) { refresh() }
-            }.create()
+                save.isEnabled = false
+                work.load({ repository.saveContactEdit(contact.id, text, pause, provenance) },
+                    failed = {
+                        // Keep the editor and its typed fields so staff can retry or copy them.
+                        save.isEnabled = true
+                        memory.error = "Could not save. Try again."
+                    }) {
+                    dialog.dismiss()
+                    refresh()
+                }
+            }
+        }
         dialog.show()
     }
 

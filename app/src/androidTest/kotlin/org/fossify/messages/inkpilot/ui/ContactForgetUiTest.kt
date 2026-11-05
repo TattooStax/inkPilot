@@ -13,6 +13,7 @@ import androidx.test.platform.app.InstrumentationRegistry
 import org.fossify.commons.extensions.appLockManager
 import org.fossify.commons.extensions.baseConfig
 import org.fossify.messages.inkpilot.data.StudioRepository
+import org.fossify.messages.inkpilot.smoke.SmokeViews
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull

@@ -186,6 +186,9 @@ class StudioHomeActivity : AppCompatActivity() {
     }
 
     internal fun openRoute(route: StudioRoute) { navigator.open(route); render() }
+    internal fun openRouteIfCurrent(expected: StudioRoute, destination: StudioRoute) {
+        if (navigator.current == expected) openRoute(destination)
+    }
     private fun openAgent(value: String) {
         navigator.open(when (value) {
             "soul" -> StudioRoute.Soul
