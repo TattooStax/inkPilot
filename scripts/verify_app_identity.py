@@ -91,6 +91,9 @@ def check_identity():
     }
     launchers = []
     found_compatibility = set()
+    home = application.find("activity[@" + ANDROID + "name='.inkpilot.ui.StudioHomeActivity']")
+    require(home is not None and home.get(ANDROID + "exported") == "false",
+            "direct launcher target must remain the private studio shell")
     for alias in aliases:
         name = alias.get(ANDROID + "name", "")
         if name in compatibility:
@@ -105,8 +108,8 @@ def check_identity():
             continue
         require(name == alias_prefix or name.startswith(alias_prefix + "."),
                 f"launcher alias does not follow the base application ID: {name}")
-        require(alias.get(ANDROID + "targetActivity") == ".activities.SplashActivity",
-                f"launcher alias no longer targets the inherited activity: {name}")
+        require(alias.get(ANDROID + "targetActivity") == ".inkpilot.ui.StudioHomeActivity",
+                f"launcher alias must open the studio shell directly: {name}")
         if alias.find("intent-filter/category[@" + ANDROID + "name='android.intent.category.LAUNCHER']") is not None:
             if alias.get(ANDROID + "enabled", "true") != "false":
                 launchers.append(alias)

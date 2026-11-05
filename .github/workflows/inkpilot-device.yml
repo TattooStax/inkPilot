@@ -14,6 +14,7 @@ on:
       - 'scripts/inkpilot-sms-role-preflight.sh'
       - 'scripts/test-inkpilot-sms-role-preflight.py'
       - 'scripts/inkpilot-shell-baseline.sh'
+      - 'scripts/inkpilot-launcher-cold-start.sh'
       - 'scripts/test-run-inkpilot-test-class.py'
       - '.github/workflows/inkpilot-device.yml'
   pull_request:

@@ -33,6 +33,8 @@ run_class() {
   esac
 }
 run_class org.fossify.messages.inkpilot.data.LegacyFirstLaunchTest
+bash scripts/inkpilot-launcher-cold-start.sh "$serial"
+run_class org.fossify.messages.inkpilot.smoke.LauncherAliasTest
 run_class org.fossify.messages.inkpilot.smoke.ShellBaselineTest
 # Model-free, disposable provider/UI regressions run after the clean-install baseline.
 run_class org.fossify.messages.inkpilot.smoke.InShellThreadTest
