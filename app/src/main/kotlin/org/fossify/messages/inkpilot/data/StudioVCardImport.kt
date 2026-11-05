@@ -10,14 +10,15 @@ sealed interface VCardImportResult {
     data object NeedsReview : VCardImportResult
 }
 
-fun StudioRepository.importVCardContact(number: String, displayName: String): VCardImportResult =
-    database.transaction {
-        val normalized = canonicalStudioNumber(number)
-        require(displayName.length <= MAX_VCARD_CONTACT_NAME_LENGTH)
-        if (hasVCardAddressCandidate(normalized))
-            VCardImportResult.NeedsReview
-        else VCardImportResult.Added(upsertStudioContact(normalized, displayName))
+fun StudioRepository.importVCardContact(number: String, displayName: String): VCardImportResult {
+    val normalized = canonicalStudioNumber(number)
+    require(displayName.length <= MAX_VCARD_CONTACT_NAME_LENGTH)
+    val db = database
+    return db.transaction {
+        if (db.hasVCardAddressCandidate(normalized)) VCardImportResult.NeedsReview
+        else VCardImportResult.Added(db.upsertStudioContact(normalized, displayName))
     }
+}
 
 /** A shared card has no trusted region, so defer if any Studio identity claims either NANP form. */
 private fun SQLiteDatabase.hasVCardAddressCandidate(number: String): Boolean {

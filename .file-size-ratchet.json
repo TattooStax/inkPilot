@@ -226,7 +226,7 @@
     "app/src/main/kotlin/org/fossify/messages/inkpilot/data/StudioSendClaims.kt": 67,
     "app/src/main/kotlin/org/fossify/messages/inkpilot/data/StudioSendParts.kt": 61,
     "app/src/main/kotlin/org/fossify/messages/inkpilot/data/StudioStaffAttention.kt": 144,
-    "app/src/main/kotlin/org/fossify/messages/inkpilot/data/StudioVCardImport.kt": 35,
+    "app/src/main/kotlin/org/fossify/messages/inkpilot/data/StudioVCardImport.kt": 36,
     "app/src/main/kotlin/org/fossify/messages/inkpilot/phone/CallNotificationActionReceiver.kt": 13,
     "app/src/main/kotlin/org/fossify/messages/inkpilot/phone/CallNotificationActions.kt": 87,
     "app/src/main/kotlin/org/fossify/messages/inkpilot/phone/CallNotificationPresentation.kt": 36,
