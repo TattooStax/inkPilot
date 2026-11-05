@@ -3,6 +3,7 @@ package org.fossify.messages.messaging
 import android.graphics.BitmapFactory
 
 private const val MAX_DECODE_PIXELS = 1_048_576L
+private const val MAX_SAMPLE_SIZE = 1 shl 30
 
 /** Bound decoded memory and require the image bytes to match their declared type. */
 internal fun ByteArray.isDecodableMmsImage(mimeType: String): Boolean {
@@ -14,7 +15,7 @@ internal fun ByteArray.isDecodableMmsImage(mimeType: String): Boolean {
     if (!validHeader) return false
     var sample = 1
     while (bounds.outWidth.toLong() / sample * (bounds.outHeight.toLong() / sample) > MAX_DECODE_PIXELS &&
-        sample < (1 shl 30)) sample *= 2
+        sample < MAX_SAMPLE_SIZE) sample *= 2
     val options = BitmapFactory.Options().apply { inSampleSize = sample }
     return runCatching {
         BitmapFactory.decodeByteArray(this, 0, size, options)?.let { bitmap ->

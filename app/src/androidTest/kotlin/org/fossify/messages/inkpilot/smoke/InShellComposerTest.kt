@@ -28,6 +28,8 @@ class InShellComposerTest {
             finally { bitmap.recycle() }
             output.toByteArray()
         }
+        val validSource = File(context.cacheDir, "attachments/${UUID.randomUUID()}.png").apply { writeBytes(valid) }
+        val validUri = FileProvider.getUriForFile(context, "${context.packageName}.provider", validSource)
         val uri = FileProvider.getUriForFile(context, "${context.packageName}.provider", source)
         val id = -(UUID.randomUUID().mostSignificantBits and Long.MAX_VALUE).coerceAtLeast(1L)
         try {
@@ -40,11 +42,17 @@ class InShellComposerTest {
                     assertEquals(DispatchOutcome.Rejected("Image cannot be decoded"), result)
                     assertNull(store.load(id))
                     assertFalse(store.isUnknown(id))
-                    source.writeBytes(valid)
-                    assertNull(activity.inShellMmsRejection(listOf(uri)))
+                    assertEquals(valid.toList(), activity.contentResolver.openInputStream(validUri)!!.use { it.readBytes().toList() })
+                    val bounds = android.graphics.BitmapFactory.Options().apply { inJustDecodeBounds = true }
+                    android.graphics.BitmapFactory.decodeByteArray(valid, 0, valid.size, bounds)
+                    assertEquals(2, bounds.outWidth)
+                    assertEquals(2, bounds.outHeight)
+                    assertEquals("image/png", bounds.outMimeType)
+                    assertTrue(valid.isDecodableMmsImage("image/png"))
+                    assertNull(activity.inShellMmsRejection(listOf(validUri)))
                     assertNull(store.load(id))
                 } }
-        } finally { ComposerStore(context).clear(id); source.delete() }
+        } finally { ComposerStore(context).clear(id); source.delete(); validSource.delete() }
     }
 
     @Test fun groupSmsIsVisibleRefusalBeforeSimOrComposerClaim() {
