@@ -1,10 +1,6 @@
 package org.fossify.messages.inkpilot.ui
 
 import android.app.Activity
-import android.content.ClipData
-import android.content.ClipboardManager
-import android.content.Context
-import androidx.appcompat.app.AlertDialog
 import android.content.Intent
 import android.text.Editable
 import android.text.InputFilter
@@ -17,9 +13,6 @@ import androidx.appcompat.widget.SwitchCompat
 import org.fossify.messages.R
 import org.fossify.messages.inkpilot.runtime.AgentRuntime
 import org.fossify.messages.inkpilot.runtime.AgentSettings
-import org.fossify.messages.inkpilot.runtime.DirectReplyPendingStore
-import org.fossify.messages.inkpilot.runtime.FilteredSmsJournal
-import org.fossify.commons.extensions.appLockManager
 
 internal class AgentPanel(
     private val activity: AppCompatActivity,
@@ -70,25 +63,7 @@ internal class AgentPanel(
             }
         }
         body.addView(StudioUi.button(activity, "Review undelivered SMS and held replies") {
-            work.load({
-                val filtered = FilteredSmsJournal(activity).use { it.latest() }
-                filtered to DirectReplyPendingStore(activity).held().take(50)
-            }) { (filtered, replies) ->
-                if (activity.appLockManager.isLocked()) return@load
-                val labels = filtered.map { "${it.reason}: ${it.sender}" } +
-                    replies.map { "Held reply: ${it.recipient}" }
-                val details = filtered.map { it.body } + replies.map { it.body }
-                if (labels.isEmpty()) StudioUi.error(activity, "No SMS need review.")
-                else AlertDialog.Builder(activity).setTitle("SMS needing staff review")
-                    .setItems(labels.toTypedArray()) { _, index ->
-                        if (!activity.appLockManager.isLocked()) AlertDialog.Builder(activity)
-                            .setTitle(labels[index]).setMessage(details[index])
-                            .setPositiveButton("Copy text") { _, _ ->
-                                (activity.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager)
-                                    .setPrimaryClip(ClipData.newPlainText("SMS needing review", details[index]))
-                            }.setNegativeButton("Close", null).show()
-                    }.setNegativeButton("Close", null).show()
-            }
+            AgentInboundReview(activity, work).open()
         })
         body.addView(StudioUi.button(activity, "Refresh status", refresh))
         return StudioUi.scroll(activity, body)

@@ -54,35 +54,49 @@ class SmsReceiver : BroadcastReceiver() {
 
                 val date = parts.last().timestampMillis.takeIf { it > 0 } ?: System.currentTimeMillis()
                 val subscriptionId = intent.getIntExtra("subscription", -1)
-                fun skip(reason: String) = FilteredSmsJournal(appContext).use {
-                    it.record(address, body, date, subscriptionId, reason)
-                }
-                if (isMessageFilteredOut(appContext, body)) { skip("keyword"); return@ensureBackgroundThread }
-                if (appContext.isNumberBlocked(address)) { skip("blocked"); return@ensureBackgroundThread }
-                if (appContext.baseConfig.blockUnknownNumbers) {
-                    val result = appContext.getMyContactsCursor(favoritesOnly = false, withPhoneNumbersOnly = true).use {
-                        SimpleContactsHelper(appContext).existsSync(address, it)
-                    }
-                    if (result == ContactLookupResult.NotFound) { skip("unknown_sender"); return@ensureBackgroundThread }
-                }
-
-                val threadId = appContext.getThreadId(address)
-
-                handleMessageSync(
-                    context = appContext,
-                    address = address,
-                    subject = subject,
-                    body = body,
-                    date = date,
-                    threadId = threadId,
-                    subscriptionId = subscriptionId,
-                    status = status
-                )
+                admitDecodedMessage(appContext, address, subject, body, date, subscriptionId, status)
             } finally {
                 pending.finish()
             }
         }
     }
+
+    /** Admission after PDU decoding; the broadcast and emulator tests share this path. */
+    internal fun admitDecodedMessage(
+        context: Context,
+        address: String,
+        subject: String,
+        body: String,
+        date: Long,
+        subscriptionId: Int,
+        status: Int,
+        classify: () -> String? = {
+            when {
+                isMessageFilteredOut(context, body) -> "keyword"
+                context.isNumberBlocked(address) -> "blocked"
+                context.baseConfig.blockUnknownNumbers -> {
+                    val result = context.getMyContactsCursor(
+                        favoritesOnly = false, withPhoneNumbersOnly = true
+                    ).use { SimpleContactsHelper(context).existsSync(address, it) }
+                    if (result == ContactLookupResult.NotFound) "unknown_sender" else null
+                }
+                else -> null
+            }
+        },
+        journal: (String) -> Unit = { reason ->
+            FilteredSmsJournal(context).use { it.record(address, body, date, subscriptionId, reason) }
+        },
+    ): SmsAdmission.Result = SmsAdmission.process(
+        classify = classify,
+        journal = journal,
+        normalNative = { handleMessageSync(context, address, subject, body, date,
+            threadId = context.getThreadId(address), subscriptionId = subscriptionId, status = status) },
+        quarantinedNative = { handleMessageSync(context, address, subject, body, date,
+            read = 1, threadId = context.getThreadId(address), subscriptionId = subscriptionId,
+            status = status, nativeOnly = true) },
+        onUncertain = { runCatching { org.fossify.messages.inkpilot.runtime.AgentSettings(context)
+            .recordStatus("SMS filter or private review storage failed. Check the native inbox or Agent review for this arrival.") } },
+    )
 
     internal fun handleMessageSync(
         context: Context,
@@ -95,11 +109,19 @@ class SmsReceiver : BroadcastReceiver() {
         type: Int = Telephony.Sms.MESSAGE_TYPE_INBOX,
         subscriptionId: Int,
         status: Int,
+        nativeOnly: Boolean = false,
         nativeInsert: (Context) -> Long = {
             it.insertNewSMS(address, subject, body, date, read, threadId, type, subscriptionId)
         },
     ) {
         if (threadId <= 0) {
+            // The provider may still accept the inbox row and allocate its own thread.
+            // Keep it native-only because this receiver cannot bind an agent source safely.
+            if (runCatching { nativeInsert(context) }.getOrDefault(0L) > 0L) {
+                refreshMessages()
+                refreshConversations()
+                return
+            }
             FilteredSmsJournal(context).use { it.record(address, body, date, subscriptionId, "provider_failed") }
             return
         }
@@ -111,6 +133,11 @@ class SmsReceiver : BroadcastReceiver() {
             return
         }
 
+        if (nativeOnly) {
+            refreshMessages()
+            refreshConversations()
+            return
+        }
         val photoUri = SimpleContactsHelper(context).getPhotoUriFromPhoneNumber(address)
         val bitmap = context.getNotificationBitmap(photoUri)
         context.getConversations(threadId).firstOrNull()?.let { conv ->
