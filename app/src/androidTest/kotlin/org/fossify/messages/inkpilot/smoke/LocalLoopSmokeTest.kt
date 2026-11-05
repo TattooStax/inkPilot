@@ -95,7 +95,7 @@ class LocalLoopSmokeTest {
                 SmokeViews.clickText("Drafts to review")
                 SmokeViews.clickDescription("Review draft")
                 SmokeViews.assertText(receipt.body)
-                SmokeViews.assertText("Choose SIM")
+                SmokeViews.assertText("Choose business SIM")
                 SmokeViews.capture(File(evidence, "local-draft-review.png"))
             }
             assertEquals("Opening staff review must not send SMS", 0, outgoingMessages())
