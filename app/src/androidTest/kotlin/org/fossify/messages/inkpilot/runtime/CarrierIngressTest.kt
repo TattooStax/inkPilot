@@ -301,7 +301,7 @@ class CarrierIngressTest {
             },
         )
         try {
-            val reopened = DirectReplyPendingStore(context).held().single { it.id == saved.id }
+            val reopened = DirectReplyPendingStore(context).held().single { it.id == saved.held.id }
             assertNull(reopened.threadId)
             assertEquals(sender, reopened.recipient)
             assertEquals(body, reopened.body)
@@ -310,11 +310,31 @@ class CarrierIngressTest {
             var visible = false
             do {
                 val page = DirectReplyPendingStore(context).page(cursor)
-                visible = visible || page.entries.any { it.id == saved.id }
+                visible = visible || page.entries.any { it.id == saved.held.id }
                 cursor = page.next
             } while (!visible && cursor != null)
             assertTrue(visible)
-        } finally { DirectReplyPendingStore(context).complete(saved.id) }
+        } finally { DirectReplyPendingStore(context).complete(saved.held.id) }
+    }
+
+    @Test fun validThreadWithSavedSimFailureRemainsHeldWithOneActiveSim() {
+        val sender = "+12025550991"
+        val body = "Synthetic respond-via-message saved SIM failure"
+        val admission = HeadlessReplyAdmission.preserve(
+            resolveThread = { 991L },
+            resolveSubscription = { throw IllegalStateException("saved SIM settings unreadable") },
+            persist = { thread, subscription ->
+                DirectReplyPendingStore(context).hold(thread, sender, body, subscription)
+            },
+        )
+        try {
+            val reopened = DirectReplyPendingStore(context).held().single { it.id == admission.held.id }
+            assertEquals(991L, reopened.threadId)
+            assertEquals(body, reopened.body)
+            assertNull(reopened.subscriptionId)
+            assertEquals(HeadlessReplyAdmission.SavedSim.LookupFailed, admission.savedSim)
+            assertNull(admission.exactSubscription(setOf(7)))
+        } finally { DirectReplyPendingStore(context).complete(admission.held.id) }
     }
 
     @Test fun heldDirectReplySurvivesStoreReopenWithoutAutomaticDispatch() {

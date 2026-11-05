@@ -26,7 +26,7 @@ class HeadlessSmsSendService : Service() {
             stopSelf(startId)
             return START_NOT_STICKY
         }
-        val held = runCatching {
+        val admission = runCatching {
             HeadlessReplyAdmission.preserve(
                 resolveThread = { getThreadId(number) },
                 resolveSubscription = { config.savedSIMIdAtNumber(number) },
@@ -39,9 +39,17 @@ class HeadlessSmsSendService : Service() {
             stopSelf(startId)
             return START_NOT_STICKY
         }
+        val held = admission.held
         if (held.threadId == null) {
             runCatching { AgentSettings(this).recordStatus(
                 "Reply held: native thread is unavailable. Review held replies in Agent."
+            ) }
+            stopSelf(startId)
+            return START_NOT_STICKY
+        }
+        if (admission.savedSim == HeadlessReplyAdmission.SavedSim.LookupFailed) {
+            runCatching { AgentSettings(this).recordStatus(
+                "Reply held: saved SIM lookup failed. Review held replies in Agent."
             ) }
             stopSelf(startId)
             return START_NOT_STICKY
@@ -50,7 +58,7 @@ class HeadlessSmsSendService : Service() {
             try {
                 val ids = subscriptionManagerCompat().activeSubscriptionInfoList.orEmpty()
                     .map { it.subscriptionId }.toSet()
-                val selected = CarrierIngressPolicy.exactSubscription(held.subscriptionId, ids)
+                val selected = admission.exactSubscription(ids)
                 if (selected == null) {
                     AgentSettings(this).recordStatus("Reply held: select an active SIM in SMS before sending.")
                 } else {
