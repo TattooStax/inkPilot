@@ -60,7 +60,7 @@ class StudioArchiveTest {
             val manifest = JSONObject(requireNotNull(entries["manifest.json"]).toString(Charsets.UTF_8))
             assertEquals("inkpilot-studio-export-v1", manifest.getString("format"))
             assertTrue(manifest.getBoolean("plaintext"))
-            assertEquals(8, manifest.getInt("studioSchemaVersion"))
+            assertEquals(9, manifest.getInt("studioSchemaVersion"))
             assertArrayEquals(bytes, entries["studio/images/" + originalName])
             val contacts = requireNotNull(entries["studio/tables/studio_contacts.jsonl"]).toString(Charsets.UTF_8)
             assertTrue(contacts.contains("Synthetic Archive Client"))

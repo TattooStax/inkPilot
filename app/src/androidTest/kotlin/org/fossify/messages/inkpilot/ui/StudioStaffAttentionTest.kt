@@ -145,7 +145,7 @@ class StudioStaffAttentionTest : StudioDatabaseTestBase() {
             it.version = 6
         }
         reopen()
-        assertEquals(8, repository.database.version)
+        assertEquals(9, repository.database.version)
         assertEquals(active.eventId, repository.staffAttention().single().eventId)
         assertTrue(repository.pendingRequests().isEmpty())
         repository.database.rawQuery("SELECT COUNT(*) FROM staff_attention", null).use {

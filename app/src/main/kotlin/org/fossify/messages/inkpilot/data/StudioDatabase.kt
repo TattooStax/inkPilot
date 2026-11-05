@@ -1,12 +1,13 @@
 package org.fossify.messages.inkpilot.data
 
 import android.content.Context
+import android.content.SharedPreferences
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteException
 import android.database.sqlite.SQLiteOpenHelper
 import org.fossify.messages.inkpilot.studio.StudioFeatureSchema
 
-private const val STUDIO_SCHEMA_VERSION = 8
+private const val STUDIO_SCHEMA_VERSION = 9
 private const val STUDIO_V1 = 1
 private const val STUDIO_V2 = 2
 private const val STUDIO_V3 = 3
@@ -14,9 +15,12 @@ private const val STUDIO_V4 = 4
 private const val STUDIO_V5 = 5
 private const val STUDIO_V6 = 6
 private const val STUDIO_V7 = 7
+private const val STUDIO_V8 = 8
 
 /** Business records are never placed in the inherited, destructively rebuildable SMS cache. */
-internal class StudioDatabase(context: Context, name: String) :
+internal class StudioDatabase(context: Context, name: String,
+                              private val legacyEdits: SharedPreferences? = if (name == StudioRepository.DATABASE_NAME)
+                                  context.applicationContext.getSharedPreferences("held_staff_edits", Context.MODE_PRIVATE) else null) :
     SQLiteOpenHelper(context, name, null, STUDIO_SCHEMA_VERSION) {
     init {
         setWriteAheadLoggingEnabled(true)
@@ -35,6 +39,7 @@ internal class StudioDatabase(context: Context, name: String) :
         db.execSQL(
             "CREATE INDEX IF NOT EXISTS inbound_thread_received ON inbound_events(thread_id, received_at, event_id)"
         )
+        legacyEdits?.let { StudioStaffEditMigration.importLegacy(db, it) }
     }
 
     override fun onCreate(db: SQLiteDatabase) {
@@ -83,6 +88,7 @@ internal class StudioDatabase(context: Context, name: String) :
                 recipient TEXT NOT NULL,
                 source_revision INTEGER NOT NULL,
                 body TEXT NOT NULL,
+                staff_edit_body TEXT,
                 state TEXT NOT NULL DEFAULT 'HELD',
                 created_at INTEGER NOT NULL,
                 UNIQUE(event_id, kind, source_revision)
@@ -120,7 +126,7 @@ internal class StudioDatabase(context: Context, name: String) :
     }
 
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
-        if (oldVersion !in STUDIO_V1..STUDIO_V7 || newVersion != STUDIO_SCHEMA_VERSION) {
+        if (oldVersion !in STUDIO_V1..STUDIO_V8 || newVersion != STUDIO_SCHEMA_VERSION) {
             throw SQLiteException("No studio migration from $oldVersion to $newVersion")
         }
         if (oldVersion <= STUDIO_V5) {
@@ -131,7 +137,8 @@ internal class StudioDatabase(context: Context, name: String) :
             StudioProposalSchema.create(db)
         }
         if (oldVersion <= STUDIO_V6) StudioStaffAttentionSchema.create(db)
-        StudioLeadIntakeSchema.create(db)
+        if (oldVersion <= STUDIO_V7) StudioLeadIntakeSchema.create(db)
+        StudioStaffEditSchema.upgrade(db)
     }
 
     companion object { private val openLock = Any() }

@@ -8,8 +8,9 @@ internal fun SQLiteDatabase.claimStudioDraft(
 ): SendClaim? {
     require(editedBody.isNotBlank() && editedBody.length <= 800 && subscriptionId >= 0) { "Invalid send proposal" }
     return transaction {
-        rawQuery("SELECT event_id, body, source_revision, state, thread_id, contact_id, recipient FROM held_drafts WHERE draft_id = ?", arrayOf(draftId)).use {
+        rawQuery("SELECT event_id, body, source_revision, state, thread_id, contact_id, recipient, staff_edit_body FROM held_drafts WHERE draft_id = ?", arrayOf(draftId)).use {
             if (!it.moveToFirst() || it.getString(3) != "HELD" || it.getString(1) != expectedBody) return@transaction null
+            if (!it.isNull(7) && it.getString(7) != editedBody) return@transaction null
             val source = studioSource(it.getString(0)) ?: return@transaction null
             if (source.staffPaused || source.revision != it.getLong(2) || source.threadId != it.getString(4) ||
                 source.contactId != it.getString(5) || source.recipient != it.getString(6)
@@ -22,7 +23,10 @@ internal fun SQLiteDatabase.claimStudioDraft(
             put("draft_id", draftId); put("body", editedBody); put("subscription_id", subscriptionId)
             put("claimed_at", System.currentTimeMillis())
         })
-        update("held_drafts", ContentValues().apply { put("state", "SENDING") }, "draft_id = ?", arrayOf(draftId))
+        update("held_drafts", ContentValues().apply {
+            put("state", "SENDING")
+            putNull("staff_edit_body")
+        }, "draft_id = ?", arrayOf(draftId))
         checkNotNull(studioSendClaim(draftId))
     }
 }

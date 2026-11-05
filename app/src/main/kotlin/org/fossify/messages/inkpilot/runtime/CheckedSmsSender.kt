@@ -28,12 +28,12 @@ internal class CheckedSmsSender(private val context: Context) {
         require(subscriptions.any { it.subscriptionId == subscriptionId }) { "Select an active business SIM." }
         @Suppress("DEPRECATION")
         val manager = SmsManager.getSmsManagerForSubscriptionId(subscriptionId)
-        val parts = manager.divideMessage(editedBody.trim())
+        val parts = manager.divideMessage(editedBody)
         require(parts.size in 1..32) { "This reply cannot be sent as SMS." }
         StudioRepository(context).use { repository ->
             val draft = repository.heldDraftForSend(draftId)
                 ?: error("This draft is no longer waiting for approval.")
-            val claim = repository.claimDraftForSend(draftId, draft.body, editedBody.trim(), subscriptionId)
+            val claim = repository.claimDraftForSend(draftId, draft.body, editedBody, subscriptionId)
                 ?: error("This conversation changed or was paused. Review it again before sending.")
             var invoked = false
             var insertedId: Long? = null

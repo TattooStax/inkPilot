@@ -235,7 +235,7 @@ class StudioHomeActivity : AppCompatActivity() {
         val root = StudioUi.column(this, 0)
         work.load({ repository.draftsForThread(threadId) }) { drafts ->
             prioritizeThreadDrafts(drafts, selectedDraftId).forEachIndexed { index, draft ->
-                root.addView(InlineDraftReview(this, work, ::refreshPanels).view(draft), index)
+                root.addView(InlineDraftReview(this, work, ::refreshPanels, repository::saveStaffEdit).view(draft), index)
             }
         }
         root.addView(ThreadComposer(this, work, ::pickAttachment, ::refreshPanels, ::openRoute,

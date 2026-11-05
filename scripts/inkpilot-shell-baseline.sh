@@ -63,6 +63,7 @@ run_class org.fossify.messages.inkpilot.studio.StudioAvailabilityTest
 run_class org.fossify.messages.inkpilot.studio.StudioCalendarUiTest
 run_class org.fossify.messages.inkpilot.studio.StudioReminderGateTest
 run_class org.fossify.messages.inkpilot.data.StudioProposalTest
+run_class org.fossify.messages.inkpilot.data.StudioStaffEditTest
 run_class org.fossify.messages.inkpilot.data.StudioLeadIntakeTest
 run_class org.fossify.messages.inkpilot.data.StudioLeadIntakeMigrationTest
 run_class org.fossify.messages.inkpilot.ui.LeadIntakeReviewUiTest

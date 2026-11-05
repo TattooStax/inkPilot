@@ -85,7 +85,7 @@ internal class DraftPanel(
         list.addView(StudioUi.text(activity, "Client: ${draft.inboundText}", NOTE_SIZE).apply {
             maxLines = MESSAGE_LINES
         })
-        list.addView(StudioUi.text(activity, draft.sendBody ?: draft.body, DRAFT_SIZE))
+        list.addView(StudioUi.text(activity, draft.sendBody ?: draft.staffEditBody ?: draft.body, DRAFT_SIZE))
         list.addView(StudioUi.text(activity, statusText(draft.status, draft.canReview), DETAIL_SIZE))
         if (draft.status != "HELD" || !draft.canReview) {
             list.addView(StudioUi.button(activity, "View conversation") {
