@@ -125,7 +125,7 @@
     "app/src/androidTest/kotlin/org/fossify/messages/inkpilot/studio/StudioImageImportUiTest.kt": 105,
     "app/src/androidTest/kotlin/org/fossify/messages/inkpilot/studio/StudioImageLinksTest.kt": 127,
     "app/src/androidTest/kotlin/org/fossify/messages/inkpilot/studio/StudioReminderGateTest.kt": 83,
-    "app/src/androidTest/kotlin/org/fossify/messages/inkpilot/ui/ContactEditRotationUiTest.kt": 96,
+    "app/src/androidTest/kotlin/org/fossify/messages/inkpilot/ui/ContactEditRotationUiTest.kt": 99,
     "app/src/androidTest/kotlin/org/fossify/messages/inkpilot/ui/ContactForgetUiTest.kt": 80,
     "app/src/androidTest/kotlin/org/fossify/messages/inkpilot/ui/ContactSaveFailureUiTest.kt": 92,
     "app/src/androidTest/kotlin/org/fossify/messages/inkpilot/ui/LockedComposerPickerTest.kt": 88,

@@ -45,6 +45,9 @@ class ContactEditRotationUiTest {
                         assertTrue((findText(activity.window.decorView, name)?.parent as? View)
                             ?.performClick() == true)
                     }
+                    SmokeViews.await("contact editor") {
+                        nodeOrNull(context, "inkpilot_contact_memory")
+                    }
                     val memory = "Draft consult details, not yet saved"
                     val source = "In-person consultation"
                     setText(node(context, "inkpilot_contact_memory"), memory)
