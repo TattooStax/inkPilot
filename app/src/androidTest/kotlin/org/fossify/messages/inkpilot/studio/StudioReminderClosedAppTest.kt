@@ -69,9 +69,11 @@ class StudioReminderClosedAppPrepareTest {
                 .get(15, TimeUnit.SECONDS)
             assertEquals(1, periodic.size)
             assertFalse(periodic.single().state.isFinished)
+            // Earlier synthetic databases may leave a finished row with the same
+            // numeric reminder id in WorkManager's app-wide journal.
             assertTrue(work.getWorkInfosForUniqueWork(
                 CalendarReminderScheduler.name(committed.id, committed.revision))
-                .get(15, TimeUnit.SECONDS).isEmpty())
+                .get(15, TimeUnit.SECONDS).none { !it.state.isFinished })
             assertTrue(preferences.edit().putLong("id", committed.id).putLong("staff", staff).commit())
         }
     }
@@ -91,6 +93,7 @@ class StudioReminderClosedAppVerifyTest {
             try {
                 // Do not call reconcile here. An OS-dispatched worker must already have done it.
                 val queued = work.getWorkInfosForUniqueWork(name).get(15, TimeUnit.SECONDS)
+                    .filter { !it.state.isFinished }
                 assertEquals(1, queued.size)
                 assertEquals(WorkInfo.State.ENQUEUED, queued.single().state)
                 val entry = StudioCalendarStore(repository).pendingReminder(id, 0)
@@ -101,7 +104,8 @@ class StudioReminderClosedAppVerifyTest {
                 val recovery = CalendarReminderRecovery(context)
                 recovery.requestNow()
                 recovery.requestNow()
-                assertEquals(1, work.getWorkInfosForUniqueWork(name).get(15, TimeUnit.SECONDS).size)
+                assertEquals(1, work.getWorkInfosForUniqueWork(name).get(15, TimeUnit.SECONDS)
+                    .count { !it.state.isFinished })
             } finally {
                 repository.database.delete("studio_calendar", "id=?", arrayOf(id.toString()))
                 repository.database.delete("studio_staff", "id=?", arrayOf(staff.toString()))

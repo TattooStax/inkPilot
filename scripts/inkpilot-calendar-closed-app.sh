@@ -8,6 +8,10 @@ if [[ $# -ne 1 || ! $1 =~ ^emulator-[0-9]+$ ]]; then
 fi
 serial=$1
 package=app.inkpilot.android.debug
+sdk=$(adb -s "$serial" shell getprop ro.build.version.sdk | tr -d '\r')
+namespace=()
+# WorkManager uses a JobScheduler namespace on Android 14 and newer.
+if (( sdk >= 34 )); then namespace=(-n androidx.work.systemjobscheduler); fi
 cd "$(dirname "${BASH_SOURCE[0]}")/.."
 [[ $(adb -s "$serial" shell getprop ro.kernel.qemu | tr -d '\r') == 1 ]] || {
   echo 'This test requires a disposable emulator.' >&2; exit 2;
@@ -76,7 +80,7 @@ PY
 
 # Force only the already persisted periodic JobScheduler job. This starts the
 # Worker process, but does not launch the app's UI or register new work in test code.
-adb -s "$serial" shell cmd jobscheduler run -f "$package" "$job_id" >/dev/null
+adb -s "$serial" shell cmd jobscheduler run -f "${namespace[@]}" "$package" "$job_id" >/dev/null
 requeued=0
 for _ in $(seq 1 30); do
   sleep 1
@@ -85,7 +89,7 @@ import sqlite3, sys
 db = sqlite3.connect(f'file:{sys.argv[1]}?mode=ro', uri=True)
 name = f'studio-reminder:{sys.argv[2]}:0'
 rows = db.execute('''SELECT WorkSpec.state FROM WorkName JOIN WorkSpec
-    ON WorkName.work_spec_id=WorkSpec.id WHERE WorkName.name=?''', (name,)).fetchall()
+    ON WorkName.work_spec_id=WorkSpec.id WHERE WorkName.name=? AND WorkSpec.state=0''', (name,)).fetchall()
 assert rows == [(0,)], rows  # One ENQUEUED job for the current revision.
 PY
   then requeued=1; break; fi

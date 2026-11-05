@@ -49,6 +49,7 @@ adb -s "$serial" shell am force-stop "$package"
 run_class org.fossify.messages.inkpilot.studio.StudioImageOrphanRecoveryTest
 run_class org.fossify.messages.inkpilot.data.StudioArchiveTest
 run_class org.fossify.messages.inkpilot.data.StudioDraftPolicyMigrationTest
+run_class org.fossify.messages.inkpilot.data.StudioDraftPolicyTest
 run_class org.fossify.messages.inkpilot.data.StudioArchiveCleanupNoticeTest
 run_class org.fossify.messages.inkpilot.ui.StudioStaffAttentionTest
 run_class org.fossify.messages.inkpilot.ui.StudioArchiveHandoffTest
