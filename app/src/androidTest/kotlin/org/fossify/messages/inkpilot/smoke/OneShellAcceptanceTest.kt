@@ -5,8 +5,10 @@ import android.content.pm.ActivityInfo
 import android.graphics.Rect
 import android.graphics.drawable.ColorDrawable
 import android.os.Build
+import android.os.SystemClock
 import android.view.View
 import android.view.ViewGroup
+import android.view.MotionEvent
 import android.view.accessibility.AccessibilityNodeInfo
 import android.widget.EditText
 import android.widget.ImageView
@@ -97,13 +99,16 @@ class OneShellAcceptanceTest {
             if (!stale && root?.packageName?.toString() == instrumentation.targetContext.packageName) true else null
         }
         scenario.onActivity { it.findViewById<View>(R.id.inkpilot_menu).performClick() }
-        val soul = SmokeViews.await("visible Soul button") {
-            instrumentation.uiAutomation.rootInActiveWindow?.findAccessibilityNodeInfosByText("Soul & studio memory")
-                ?.firstOrNull { it.text?.toString() == "Soul & studio memory" && it.isVisibleToUser && it.isClickable }
+        // The dialog is resized after show(). Wait for its accessibility window to settle
+        // before using screen coordinates; the first layout can report obsolete bounds.
+        instrumentation.uiAutomation.waitForIdle(300, 5_000)
+        val touch = SmokeViews.await("stable Soul touch target") {
+            val first = soulBounds() ?: return@await null
+            SystemClock.sleep(100)
+            first.takeIf { it == soulBounds() }
         }
-        val touch = Rect().also { soul.getBoundsInScreen(it) }
         assertTrue("Soul has a visible touch target", touch.width() > 0 && touch.height() > 0)
-        shell("input tap ${touch.centerX()} ${touch.centerY()}")
+        tapScreen(touch.centerX().toFloat(), touch.centerY().toFloat())
         SmokeViews.await<Boolean>("Assistant after physical Soul tap") {
             var opened = false
             scenario.onActivity { opened = it.findViewById<TextView>(R.id.inkpilot_title)?.text?.toString() == "Assistant" }
@@ -129,6 +134,25 @@ class OneShellAcceptanceTest {
         if (node.className?.toString() == "android.widget.ScrollView") return node
         for (index in 0 until node.childCount) findScroll(node.getChild(index))?.let { return it }
         return null
+    }
+
+    private fun soulBounds(): Rect? = instrumentation.uiAutomation.rootInActiveWindow
+        ?.findAccessibilityNodeInfosByText("Soul & studio memory")
+        ?.firstOrNull { it.text?.toString() == "Soul & studio memory" && it.isVisibleToUser && it.isClickable }
+        ?.let { Rect().also(it::getBoundsInScreen) }
+
+    /** One real screen touch, synchronously acknowledged by the input dispatcher. */
+    private fun tapScreen(x: Float, y: Float) {
+        val whenDown = SystemClock.uptimeMillis()
+        val down = MotionEvent.obtain(whenDown, whenDown, MotionEvent.ACTION_DOWN, x, y, 0)
+        val up = MotionEvent.obtain(whenDown, whenDown + 30, MotionEvent.ACTION_UP, x, y, 0)
+        try {
+            assertTrue("Soul touch down accepted", instrumentation.uiAutomation.injectInputEvent(down, true))
+            assertTrue("Soul touch up accepted", instrumentation.uiAutomation.injectInputEvent(up, true))
+        } finally {
+            down.recycle()
+            up.recycle()
+        }
     }
 
     @Test fun calendarReminderHintOpensCalendarCanvas() {
