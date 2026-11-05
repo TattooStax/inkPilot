@@ -51,7 +51,8 @@ fun Context.sendMessageCompat(
     subId: Int?,
     attachments: List<Attachment>,
     messageId: Long? = null,
-    mmsComposerClaim: MmsComposerClaim? = null
+    mmsComposerClaim: MmsComposerClaim? = null,
+    smsOnly: Boolean = false,
 ): DispatchOutcome {
     val settings = getSendMessageSettings()
     if (subId != null) {
@@ -67,10 +68,9 @@ fun Context.sendMessageCompat(
         addressCount = addresses.size,
         sendGroupAsMms = settings.group
     )
+    val refusal = outboundSendRejection(channel, smsOnly, addresses)
+    if (refusal != null) return DispatchOutcome.Rejected(refusal)
     val result: DispatchOutcome
-    if (channel == OutboundChannel.SMS && addresses.distinct().size != 1) {
-        return DispatchOutcome.Rejected(SMS_GROUP_REFUSAL)
-    }
     if (channel == OutboundChannel.MMS) {
         // Preflight all URIs before the first MMS handoff.
         for (attachment in attachments) {
@@ -105,6 +105,13 @@ fun Context.sendMessageCompat(
         shortcutHelper.reportSendMessageUsage(threadId)
     }
     return result
+}
+
+private fun outboundSendRejection(channel: OutboundChannel, smsOnly: Boolean, addresses: List<String>): String? = when {
+    smsOnly && channel != OutboundChannel.SMS ->
+        "This reply would become MMS. Open SMS to review it before sending."
+    channel == OutboundChannel.SMS && addresses.distinct().size != 1 -> SMS_GROUP_REFUSAL
+    else -> null
 }
 
 private fun Context.dispatchSms(text: String, addresses: List<String>, settings: Settings,

@@ -11,6 +11,7 @@ import org.fossify.messages.inkpilot.data.StudioStaffAttention
 import org.fossify.messages.inkpilot.data.markStaffAttentionHandled
 import org.fossify.messages.inkpilot.data.staffAttention
 import org.fossify.messages.inkpilot.runtime.AgentRuntime
+import org.fossify.messages.inkpilot.runtime.AgentSettings
 
 internal class DraftPanel(
     private val activity: AppCompatActivity,
@@ -32,7 +33,10 @@ internal class DraftPanel(
         val list = StudioUi.column(activity, 0).apply { id = R.id.inkpilot_draft_list }
         body.addView(list)
         list.addView(StudioUi.text(activity, "Loading staff replies and drafts…"))
-        work.load({ repository.staffAttention() to repository.drafts() }) { (attention, drafts) ->
+        work.load({
+            AgentSettings(activity.applicationContext).enabled // Reconcile an older enabled database before review.
+            repository.staffAttention() to repository.drafts()
+        }) { (attention, drafts) ->
             list.removeAllViews()
             renderAttention(list, attention)
             if (attention.isEmpty() && drafts.isEmpty()) {
@@ -68,6 +72,7 @@ internal class DraftPanel(
     private fun attentionText(task: StudioStaffAttention) = when (task.reason) {
         "UNSAFE_CONTENT" -> "Local draft blocked an unverified or unsupported reply. Staff should reply directly."
         "REVIEW_SCOPE_UNAVAILABLE" -> "Lead review is inactive for model drafting. Staff should reply directly."
+        "MODEL_UNQUALIFIED" -> "Automatic drafting is off until model qualification. Staff should reply directly."
         "OTHER_THREAD_RECEIVED" -> "Another conversation for this client became active. Review this thread."
         "IDENTITY_REASSIGNED" -> "This number changed clients. Verify this conversation before replying."
         "Model or source read failed" -> "Local draft failed. Staff should reply directly and check model setup."
@@ -75,7 +80,11 @@ internal class DraftPanel(
     }
 
     private fun renderDrafts(list: LinearLayout, drafts: List<ReviewDraft>) {
-        if (drafts.isNotEmpty()) list.addView(StudioUi.text(activity, "Drafts to review", SECTION_SIZE, true))
+        if (drafts.isNotEmpty()) {
+            val title = if (AgentRuntime.BOUNDED_INTENT_QUALIFIED) "Drafts to review"
+                else "Earlier drafts and send history"
+            list.addView(StudioUi.text(activity, title, SECTION_SIZE, true))
+        }
         drafts.forEach { renderDraft(list, it) }
     }
 
@@ -86,28 +95,34 @@ internal class DraftPanel(
             maxLines = MESSAGE_LINES
         })
         list.addView(StudioUi.text(activity, draft.sendBody ?: draft.staffEditBody ?: draft.body, DRAFT_SIZE))
-        list.addView(StudioUi.text(activity, statusText(draft.status, draft.canReview), DETAIL_SIZE))
-        if (draft.status != "HELD" || !draft.canReview) {
+        val canReview = draft.canReview && AgentRuntime.BOUNDED_INTENT_QUALIFIED
+        val status = if (!AgentRuntime.BOUNDED_INTENT_QUALIFIED && draft.status == "HELD")
+            "Unqualified model text for history. Reply directly in the conversation."
+        else statusText(draft.status, canReview)
+        list.addView(StudioUi.text(activity, status, DETAIL_SIZE))
+        if (draft.status != "HELD" || !canReview) {
             list.addView(StudioUi.button(activity, "View conversation") {
                 open(StudioRoute.Thread(draft.threadId))
             })
         }
         if (draft.status == "HELD") {
-            if (!draft.canReview) list.addView(StudioUi.button(activity, "Regenerate with current memory") {
-                work.load({
-                    val source = repository.readSource(draft.eventId)
-                    source?.let {
-                        org.fossify.messages.inkpilot.runtime.AgentRuntime.regenerate(activity, it.eventId, it.revision)
+            if (!canReview && AgentRuntime.BOUNDED_INTENT_QUALIFIED) {
+                list.addView(StudioUi.button(activity, "Regenerate with current memory") {
+                    work.load({
+                        val source = repository.readSource(draft.eventId)
+                        source?.let {
+                            AgentRuntime.regenerate(activity, it.eventId, it.revision)
+                        }
+                    }) { outcome ->
+                        if (outcome == DraftRegenerationOutcome.ReviewScopeUnavailable) {
+                            StudioUi.error(activity,
+                                "Lead review is inactive for model drafting. Reply directly or dismiss this draft.")
+                        }
+                        refresh()
                     }
-                }) { outcome ->
-                    if (outcome == DraftRegenerationOutcome.ReviewScopeUnavailable) {
-                        StudioUi.error(activity,
-                            "Lead review is inactive for model drafting. Reply directly or dismiss this draft.")
-                    }
-                    refresh()
-                }
-            })
-            if (draft.canReview) list.addView(StudioUi.button(activity, "Review draft") {
+                })
+            }
+            if (canReview) list.addView(StudioUi.button(activity, "Review draft") {
                 open(StudioRoute.Draft(draft.draftId))
             }.apply { contentDescription = "Review draft" })
             list.addView(StudioUi.button(activity, "Dismiss") {

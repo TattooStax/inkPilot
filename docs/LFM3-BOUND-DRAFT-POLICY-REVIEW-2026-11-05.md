@@ -4,6 +4,32 @@ This branch stages a closed vocabulary for staff-held lead questions. It does
 not qualify LFM3, enable a live draft route, authorize a tool, or send SMS.
 `AgentRuntime.BOUNDED_INTENT_QUALIFIED` remains `false`.
 
+## Unqualified production gate
+
+With the selector unqualified, the installed model cannot start generation via
+an SMS receiver, a queued draft worker, the direct runtime entry, or the
+retry/regeneration controls. The app reconciles an older saved ON database to
+OFF, bumps contact revisions so old held RAW bodies cannot be approved, and
+creates a durable staff task for each current unsent conversation on that ON→OFF
+transition. An install that was already OFF stays read-only on policy checks;
+its inbound messages remain in the ordinary SMS inbox without new model tasks. The model
+switch and retry control stay disabled and reflect the saved OFF state. A
+staff member replies directly in the SMS conversation. Checked approval of a
+preexisting held draft is blocked before any telephony call.
+
+The Android local-loop job now requires `BLOCKED_UNQUALIFIED` from a native SMS
+with checksum-pinned weights installed and radios disabled. It checks the
+staff task for the old ON state, absence of a held draft/send, a second SMS
+receiver arrival in the ordinary inbox without a new staff task, and
+the same state after process restart. A separate Android test seeds the older
+ON bit and a held RAW body, then checks worker/direct entry, revision
+invalidation, send rejection, durable attention, and reopen. Native send,
+batch inference, and reviewed-scope inference smokes remain source fixtures
+for a future qualified route; they are not current beta evidence. The
+isolated core inference, migration, and persistence tests remain in the
+model-free Android suite. A blocked verdict proves containment, not model
+usefulness or a functional agent beta.
+
 ## Evidence and limits
 
 - Pinned QAD Q4_0, SHA-256 `43a7d09a0e9cba91b63eb7052488b9564569bddfd65754d2e426465e572a7452`:

@@ -29,7 +29,7 @@ internal class AttachmentPanel(private val activity: StudioHomeActivity, private
                 ViewGroup.LayoutParams.MATCH_PARENT, StudioUi.dp(body, IMAGE_HEIGHT_DP)))
             Glide.with(activity).load(attachment.uri).into(image)
         } else if (isVCardAttachment(attachment.mimetype, attachment.filename)) {
-            body.addView(VCardPreviewPanel(activity, repository, work).view(attachment.uri))
+            body.addView(VCardPreviewPanel(activity, repository, work, attachment).view(attachment.uri))
         } else {
             body.addView(StudioUi.text(activity,
                 "Preview for this attachment type is unavailable. The file remains in the conversation."))

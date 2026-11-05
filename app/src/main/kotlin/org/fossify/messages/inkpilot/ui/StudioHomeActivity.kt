@@ -26,6 +26,8 @@ import org.fossify.messages.inkpilot.data.StudioArchiveCleanupNotice
 import org.fossify.messages.inkpilot.data.StudioArchiveExporter
 import org.fossify.messages.inkpilot.data.StudioRepository
 import org.fossify.messages.inkpilot.data.saveStaffEdit
+import org.fossify.messages.inkpilot.runtime.AgentSettings
+import org.fossify.messages.inkpilot.studio.StudioCalendarStore
 import org.fossify.messages.inkpilot.studio.StudioPanels
 import java.util.concurrent.Executors
 
@@ -43,11 +45,13 @@ class StudioHomeActivity : AppCompatActivity() {
     private lateinit var studio: StudioPanels
     private lateinit var navigator: StudioNavigator
     private lateinit var panels: StudioCanvasState
+    private lateinit var contactEdit: ContactEditState
     private val tab get() = navigator.selectedTab
     private var smsObserver: SmsRefreshObserver? = null
     internal val composerRoutes by lazy { ComposerRouteCoordinator(this, navigator, panels, ::render) }
     private var attachmentThread = 0L
     private var cleanupDialog: AlertDialog? = null
+    private var studioDrawer: android.app.Dialog? = null
     private var closing = false
     private val appLock by lazy { StudioAppLock(this) }
     private val studioArchiveDocument = registerForActivityResult(
@@ -80,6 +84,7 @@ class StudioHomeActivity : AppCompatActivity() {
         attachmentThread = savedInstanceState?.getLong("attachment.thread") ?: 0L
         navigator = StudioNavigator(savedInstanceState)
         panels = StudioCanvasState(savedInstanceState?.getBundle("studio.panels") ?: Bundle())
+        contactEdit = ContactEditState(savedInstanceState?.getBundle("contact.edit"))
         if (savedInstanceState == null) {
             intent.getBundleExtra(ExternalRouteParser.ROUTE)?.decodeRoute()?.let { navigator.acceptExternalRoute(it) }
                 ?: intent.getStringExtra("inkpilot_panel")?.let { navigator.acceptPanelHint(it, panels) }
@@ -87,8 +92,12 @@ class StudioHomeActivity : AppCompatActivity() {
         repository = StudioRepository(applicationContext)
         work = StudioWork(this, executor)
         agent = AgentPanel(this, work, ::refreshPanels, savedInstanceState?.getString("soul_draft"))
-        studio = StudioPanels(this, executor, { StudioUi.error(this, it) }, repository)
+        studio = StudioPanels(this, executor, { StudioUi.error(this, it) }, repository,
+            savedInstanceState?.getBundle("studio.image_import"), ::refreshPanels)
+        // A process can stop after a calendar row commits but before WorkManager accepts its reminder.
+        work.load({ StudioCalendarStore(repository).reconcileReminders() }) {}
         buildFrame()
+        work.load({ AgentSettings(applicationContext).enabled }) { } // Persist the safe policy before panel reads.
         appLaunched(BuildConfig.APPLICATION_ID)
         smsObserver = SmsRefreshObserver(this, composerRoutes::refreshFromProvider)
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
@@ -111,7 +120,9 @@ class StudioHomeActivity : AppCompatActivity() {
             insets
         }
         val header = LinearLayout(this).apply { gravity = Gravity.CENTER_VERTICAL }
-        header.addView(StudioUi.button(this, "☰") { showStudioDrawer(this, ::openAgent) }.apply {
+        header.addView(StudioUi.button(this, "☰") {
+            studioDrawer = showStudioDrawer(this, ::openAgent).apply { setOnDismissListener { studioDrawer = null } }
+        }.apply {
             id = R.id.inkpilot_menu
             contentDescription = "Open agent controls"
         }, LinearLayout.LayoutParams(StudioUi.dp(root, 64), StudioUi.dp(root, 56)))
@@ -145,7 +156,7 @@ class StudioHomeActivity : AppCompatActivity() {
                     is StudioRoute.Draft -> inlineDraft(route.draftId)
                     else -> auxiliaryCanvas(this, route, repository, work, auxiliary, studio, agent,
                         ::refreshPanels, ::openRoute)
-                        ?: dailyCanvas(this, tab, messages, repository, work, studio, ::refreshPanels,
+                        ?: dailyCanvas(this, tab, messages, repository, work, studio, contactEdit, ::refreshPanels,
                             ::openRoute, { number ->
                                 navigator.open(StudioRoute.Tab(StudioTab.PHONE))
                                 openRoute(StudioRoute.PhoneDial(number))
@@ -186,6 +197,9 @@ class StudioHomeActivity : AppCompatActivity() {
     }
 
     internal fun openRoute(route: StudioRoute) { navigator.open(route); render() }
+    internal fun openRouteIfCurrent(expected: StudioRoute, destination: StudioRoute) {
+        if (navigator.current == expected) openRoute(destination)
+    }
     private fun openAgent(value: String) {
         navigator.open(when (value) {
             "soul" -> StudioRoute.Soul
@@ -314,12 +328,16 @@ class StudioHomeActivity : AppCompatActivity() {
         outState.putLong("attachment.thread", attachmentThread)
         navigator.save(outState)
         outState.putBundle("studio.panels", panels.save())
+        studio.saveImportState()?.let { outState.putBundle("studio.image_import", it) }
+        contactEdit.save()?.let { outState.putBundle("contact.edit", it) }
         agent.soulDraft?.let { outState.putString("soul_draft", it) }
         super.onSaveInstanceState(outState)
     }
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == 7310 && resultCode == RESULT_OK && data != null) {
+        if (requestCode == 7310) {
+            // A picker return must not attach private content while the shell is locked.
+            if (resultCode != RESULT_OK || data == null || appLockManager.isLocked()) return
             val uri = data.data ?: data.clipData?.takeIf { it.itemCount > 0 }?.getItemAt(0)?.uri
             if (uri != null) {
                 try { contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION) }
@@ -329,7 +347,8 @@ class StudioHomeActivity : AppCompatActivity() {
                 refreshPanels()
             }
         } else if (requestCode == SMS_ROLE_REQUEST) SmsRolePermissions.request(this, SMS_ROLE_REQUEST, ::refreshPanels)
-        else if (!agent.onActivityResult(requestCode, resultCode, data)) studio.onActivityResult(requestCode, resultCode, data)
+        else if (!agent.onActivityResult(requestCode, resultCode, data))
+            studio.onActivityResult(requestCode, resultCode, data, appLockManager.isLocked())
     }
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
@@ -345,6 +364,7 @@ class StudioHomeActivity : AppCompatActivity() {
     override fun onDestroy() {
         closing = true
         cleanupDialog?.dismiss()
+        studioDrawer?.dismiss()
         smsObserver?.stop()
         executor.execute { repository.close() }
         executor.shutdown()

@@ -2,9 +2,13 @@ package org.fossify.messages.inkpilot.smoke
 
 import android.content.ComponentName
 import android.content.ClipData
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.app.PendingIntent
 import org.fossify.messages.messaging.ComposerStore
-import java.io.File
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicInteger
 import java.util.UUID
 import android.content.Intent
 import android.net.Uri
@@ -290,14 +294,26 @@ class ShellIngressTest {
                 home!!.finish()
             }
             home = null
-            assertTrue(File(sender.cacheDir, "task11-share.png").delete())
+            val cleaned = CountDownLatch(1)
+            val result = AtomicInteger(0)
+            sender.sendOrderedBroadcast(Intent().setClassName(sender.packageName,
+                CrossPackageShareCleanupReceiver::class.java.name)
+                .setAction(CrossPackageShareCleanupReceiver.ACTION), null,
+                object : BroadcastReceiver() {
+                    override fun onReceive(context: Context?, intent: Intent?) {
+                        result.set(resultCode)
+                        cleaned.countDown()
+                    }
+                }, null, 0, null, null)
+            assertTrue(cleaned.await(5, TimeUnit.SECONDS))
+            assertEquals(1, result.get())
+            assertNull(runCatching { sender.contentResolver.openInputStream(uri)?.use { it.read() } }.getOrNull())
             val retained = ComposerStore(context).load(composerId)
             assertEquals(listOf(local), retained?.attachmentUris)
             assertNotNull(context.contentResolver.openInputStream(local)?.use { it.read() })
         } finally {
             instrumentation.runOnMainSync { home?.finish() }
             if (composerId != 0L) ComposerStore(context).clear(composerId)
-            File(sender.cacheDir, "task11-share.png").delete()
         }
     }
 

@@ -87,7 +87,8 @@ class DirectReplyReceiver : BroadcastReceiver() {
                     "Direct reply held: its selected SIM is unavailable. Review held replies.")
                 return
             }
-        val outcome = context.sendMessageCompat(ready.body, listOf(source.recipient), subscriptionId, emptyList())
+        val outcome = context.sendMessageCompat(ready.body, listOf(source.recipient), subscriptionId,
+            emptyList(), smsOnly = true)
         if (outcome !is DispatchOutcome.Accepted) {
             AgentSettings(context).recordStatus("Direct reply not confirmed. Review held replies before retrying.")
             return
@@ -114,7 +115,6 @@ class DirectReplyReceiver : BroadcastReceiver() {
             )
         }
         context.markThreadMessagesRead(ready.threadId)
-        context.conversationsDB.markRead(ready.threadId)
     }
 
     companion object { const val SUBSCRIPTION_ID = "inkpilot.reply.subscription_id" }

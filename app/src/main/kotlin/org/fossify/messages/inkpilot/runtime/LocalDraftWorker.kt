@@ -13,6 +13,8 @@ open class LocalDraftWorker(context: Context, parameters: WorkerParameters) : Wo
     protected open fun processDrafts() {
         AgentRuntime.processPendingForWorker(applicationContext, cancellationToken) { isStopped }
     }
+    protected open fun qualifiedToDraft(): Boolean = AgentSettings(applicationContext).enabled &&
+        AgentRuntime.BOUNDED_INTENT_QUALIFIED
 
     override fun onStopped() {
         try {
@@ -23,7 +25,7 @@ open class LocalDraftWorker(context: Context, parameters: WorkerParameters) : Wo
     }
 
     override fun doWork(): Result = try {
-        processDrafts()
+        if (qualifiedToDraft()) processDrafts()
         Result.success()
     } catch (_: Exception) {
         AgentSettings(applicationContext).recordStatus("Drafting will retry. Nothing was sent.")

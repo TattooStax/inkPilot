@@ -7,6 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.LinearLayout
+import android.widget.ScrollView
 import org.fossify.messages.R
 
 internal fun navigation(activity: Activity, selected: StudioTab?,
@@ -40,7 +41,7 @@ internal fun navigation(activity: Activity, selected: StudioTab?,
     }
 }
 
-internal fun showStudioDrawer(activity: Activity, open: (String) -> Unit) {
+internal fun showStudioDrawer(activity: Activity, open: (String) -> Unit): Dialog {
     val dialog = Dialog(activity)
     val body = StudioUi.column(activity)
     body.setBackgroundColor(StudioUi.paper)
@@ -55,11 +56,15 @@ internal fun showStudioDrawer(activity: Activity, open: (String) -> Unit) {
         body.addView(StudioUi.button(activity, label) { dialog.dismiss(); open(key) })
     }
     body.addView(StudioUi.button(activity, "Close") { dialog.dismiss() })
-    dialog.setContentView(body)
+    dialog.setContentView(ScrollView(activity).apply {
+        isFillViewport = true
+        addView(body)
+    })
+    dialog.show()
     dialog.window?.apply {
         setBackgroundDrawableResource(android.R.color.transparent)
         setGravity(Gravity.START or Gravity.TOP)
         setLayout((activity.resources.displayMetrics.widthPixels * 0.84f).toInt(), ViewGroup.LayoutParams.MATCH_PARENT)
     }
-    dialog.show()
+    return dialog
 }

@@ -2,6 +2,8 @@ package org.fossify.messages.inkpilot.data
 
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import org.fossify.commons.models.PhoneNumber
+import org.fossify.commons.models.SimpleContact
 import org.fossify.messages.extensions.messagesDB
 import org.fossify.messages.messaging.*
 import org.fossify.messages.models.Message
@@ -67,6 +69,25 @@ class ScheduledQueueTest {
             val outcome = context.dispatchScheduled(row, fromAlarm = true, nowMillis = firstDue * 1000)
             assertTrue(outcome is DispatchOutcome.Rejected)
             assertEquals(edited, context.messagesDB.get(row.key()))
+            ScheduledVerdicts(context).use { assertEquals("QUEUED", it.state(row.key())) }
+        } finally { context.messagesDB.delete(row.key()) }
+    }
+
+    @Test fun removedSimRefusesBeforeScheduledClaimAndLeavesExactRow() {
+        val address = "+12025550189"
+        val person = SimpleContact(0, 0, "Client", "",
+            arrayListOf(PhoneNumber(address, 0, "", address)), arrayListOf(), arrayListOf())
+        val row = message().copy(participants = arrayListOf(person), subscriptionId = 7)
+        try {
+            assertEquals(ScheduledQueueResult.QUEUED, context.queueScheduled(row) { })
+            var queried = false
+            val outcome = context.dispatchScheduled(row, activeSimIds = {
+                queried = true
+                emptySet()
+            })
+            assertTrue(queried)
+            assertEquals(DispatchOutcome.Rejected("Select an active SIM and check SMS access."), outcome)
+            assertEquals(row, context.messagesDB.get(row.key()))
             ScheduledVerdicts(context).use { assertEquals("QUEUED", it.state(row.key())) }
         } finally { context.messagesDB.delete(row.key()) }
     }

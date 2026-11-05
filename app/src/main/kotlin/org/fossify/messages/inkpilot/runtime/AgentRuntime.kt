@@ -16,11 +16,15 @@ object AgentRuntime {
     fun importModel(context: Context, uri: Uri): String = ModelFiles.import(context.applicationContext, uri)
 
     fun retryPending(context: Context) {
+        if (!AgentSettings(context).enabled) return
         StudioRepository(context).use { it.clearDraftAttempts() }
         runPending(context)
     }
 
     fun regenerate(context: Context, eventId: String, expectedRevision: Long): org.fossify.messages.inkpilot.data.DraftRegenerationOutcome {
+        if (!AgentSettings(context).enabled) {
+            return org.fossify.messages.inkpilot.data.DraftRegenerationOutcome.ReviewScopeUnavailable
+        }
         val result = StudioRepository(context).use {
             it.regenerate(eventId, expectedRevision, allowStoredLeadReview = BOUNDED_INTENT_QUALIFIED)
         }
@@ -50,6 +54,7 @@ object AgentRuntime {
 
     internal fun processPendingForWorker(context: Context, workerToken: String?, cancellation: () -> Boolean): Int = synchronized(inferenceLock) {
         val settings = AgentSettings(context)
+        if (!settings.enabled || !BOUNDED_INTENT_QUALIFIED) return@synchronized 0
         StudioRepository(context).use { repository ->
             if (!repository.isDraftingEnabled()) return@synchronized 0
             if (!org.fossify.messages.helpers.SmsRole.isHeld(context)) {

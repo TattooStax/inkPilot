@@ -36,9 +36,13 @@ internal class AgentPanel(
                 type = "*/*"
             }, MODEL_FILE_REQUEST)
         }.apply { id = R.id.inkpilot_model_import })
-        body.addView(StudioUi.text(activity, "Import a compatible GGUF model. Replies are generated on this phone and held for staff review.", 14f))
-        body.addView(StudioUi.text(activity, "Model qualification is pending. A generated draft cannot send, book, or change memory on its own.", 14f))
-        body.addView(StudioUi.text(activity, "Status above shows queued, stopped, or failed drafting. Check Drafts before retrying; an uncertain send is never retried automatically.", 14f))
+        body.addView(StudioUi.text(activity,
+            "Only the pinned LiquidAI/LFM3-1.7B-QAD-Q4_0 GGUF with its exact SHA-256 is accepted " +
+                "for local evaluation. Drafting stays off.", MODEL_NOTE_SIZE))
+        body.addView(StudioUi.text(activity,
+            "Model qualification is pending. Automatic drafting is off; staff should reply directly in SMS.", MODEL_NOTE_SIZE))
+        body.addView(StudioUi.text(activity,
+            "Incoming SMS and staff attention stay available. Check Drafts for replies that need a person.", MODEL_NOTE_SIZE))
         val enabled = SwitchCompat(activity).apply {
             id = R.id.inkpilot_agent_enabled
             text = "Draft replies automatically"
@@ -55,8 +59,8 @@ internal class AgentPanel(
         body.addView(retry)
         work.load({ settings.enabled }) { value ->
             enabled.isChecked = value
-            enabled.isEnabled = settings.modelName != null || value
-            retry.isEnabled = value && settings.modelName != null
+            enabled.isEnabled = AgentRuntime.BOUNDED_INTENT_QUALIFIED && (settings.modelName != null || value)
+            retry.isEnabled = AgentRuntime.BOUNDED_INTENT_QUALIFIED && value && settings.modelName != null
             enabled.setOnCheckedChangeListener { _, checked ->
                 enabled.isEnabled = false
                 work.load({ settings.enabled = checked; AgentRuntime.runPending(activity.applicationContext) }) { refresh() }
@@ -116,5 +120,8 @@ internal class AgentPanel(
         return true
     }
 
-    companion object { private const val MODEL_FILE_REQUEST = 7302 }
+    companion object {
+        private const val MODEL_FILE_REQUEST = 7302
+        private const val MODEL_NOTE_SIZE = 14f
+    }
 }

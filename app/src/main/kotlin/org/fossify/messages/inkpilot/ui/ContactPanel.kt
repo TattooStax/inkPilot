@@ -1,8 +1,10 @@
 package org.fossify.messages.inkpilot.ui
 
 import android.content.Intent
+import android.text.Editable
 import android.text.InputFilter
 import android.text.InputType
+import android.text.TextWatcher
 import android.view.View
 import android.widget.EditText
 import androidx.appcompat.app.AlertDialog
@@ -20,6 +22,7 @@ internal class ContactPanel(
     private val refresh: () -> Unit,
     private val openImages: (String) -> Unit = {},
     private val openPhone: (String) -> Unit = {},
+    private val editState: ContactEditState = ContactEditState(),
 ) {
     fun view(): View {
         val body = StudioUi.column(activity)
@@ -41,12 +44,21 @@ internal class ContactPanel(
                 list.addView(row)
                 list.addView(StudioUi.rule(activity))
             }
+            if (scroll.isAttachedToWindow) editState.takeRestoration()?.let { draft ->
+                val contact = contacts.firstOrNull { it.id == draft.contactId }
+                if (contact == null) editState.clear()
+                else work.load({ repository.memoryEntry(contact.id) },
+                    failed = { editState.deferRestoration() }) { entry ->
+                    if (scroll.isAttachedToWindow) edit(contact, entry, draft)
+                    else editState.deferRestoration()
+                }
+            }
             scroll.contentReady()
         }
         return scroll
     }
 
-    private fun edit(contact: StudioContact, entry: MemoryEntry?) {
+    private fun edit(contact: StudioContact, entry: MemoryEntry?, draft: ContactEditDraft? = null) {
         lateinit var dialog: AlertDialog
         val body = StudioUi.column(activity)
         body.addView(StudioUi.text(activity, contact.number, 15f))
@@ -54,7 +66,7 @@ internal class ContactPanel(
         body.addView(StudioUi.text(activity, "Facts staff want the assistant to remember. Edit or clear them any time.", 14f))
         val memory = EditText(activity).apply {
             id = R.id.inkpilot_contact_memory
-            setText(contact.memory)
+            setText(draft?.memory ?: contact.memory)
             hint = "Preferences, projects, and useful notes"
             minLines = 5
             maxLines = 10
@@ -65,21 +77,36 @@ internal class ContactPanel(
         val paused = SwitchCompat(activity).apply {
             id = R.id.inkpilot_contact_paused
             text = "Pause drafts for this client"
-            isChecked = contact.paused
+            isChecked = draft?.paused ?: contact.paused
             setTextColor(StudioUi.ink)
         }
         val source = EditText(activity).apply {
+            id = R.id.inkpilot_contact_source
             hint = "Memory source (for example: consultation with client)"
-            setText(entry?.source ?: "Staff note")
+            setText(draft?.source ?: entry?.source ?: "Staff note")
             filters = arrayOf(InputFilter.LengthFilter(256))
         }
+        fun snapshot() = ContactEditDraft(contact.id, memory.text.toString(), paused.isChecked,
+            source.text.toString())
+        editState.begin(snapshot())
+        val watcher = object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) = Unit
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) = Unit
+            override fun afterTextChanged(s: Editable?) { editState.update(snapshot()) }
+        }
+        memory.addTextChangedListener(watcher)
+        source.addTextChangedListener(watcher)
+        paused.setOnCheckedChangeListener { _, _ -> editState.update(snapshot()) }
         if (entry != null) body.addView(StudioUi.text(activity, "Memory review: ${entry.reviewState}"))
         body.addView(source)
         body.addView(StudioUi.button(activity, "Review phone identity") { reviewIdentity(contact) })
         body.addView(StudioUi.button(activity, "Forget memory") {
             AlertDialog.Builder(activity).setMessage("Remove this client's stored memory?")
                 .setNegativeButton("Cancel", null).setPositiveButton("Forget") { _, _ ->
-                    work.load({ repository.forgetMemory(contact.id) }) { memory.setText(""); refresh() }
+                    // Retire the editor before enqueueing removal. Its stale Save action must
+                    // never run after the queued forget transaction and restore old memory.
+                    dialog.dismiss()
+                    work.load({ repository.forgetMemory(contact.id) }) { refresh() }
                 }.show()
         })
         body.addView(StudioUi.button(activity, "Export memory") {
@@ -95,12 +122,28 @@ internal class ContactPanel(
         dialog = AlertDialog.Builder(activity).setTitle(contact.displayName.ifBlank { "Client" })
             .setView(StudioUi.scroll(activity, body)).setNegativeButton("Cancel", null)
             .setNeutralButton("Reference images") { _, _ -> openImages(contact.id) }
-            .setPositiveButton("Save") { _, _ ->
+            .setPositiveButton("Save", null).create()
+        dialog.setOnDismissListener { if (!activity.isChangingConfigurations) editState.clear() }
+        dialog.setOnShowListener {
+            val save = dialog.getButton(AlertDialog.BUTTON_POSITIVE)
+            save.setOnClickListener {
                 val text = memory.text.toString()
                 val pause = paused.isChecked
                 val provenance = source.text.toString()
-                work.load({ repository.saveContactEdit(contact.id, text, pause, provenance) }) { refresh() }
-            }.create()
+                save.isEnabled = false
+                listOf(memory, paused, source).forEach { it.isEnabled = false }
+                work.load({ repository.saveContactEdit(contact.id, text, pause, provenance) },
+                    failed = {
+                        // Keep the editor and its typed fields so staff can retry or copy them.
+                        save.isEnabled = true
+                        listOf(memory, paused, source).forEach { it.isEnabled = true }
+                        memory.error = "Could not save. Try again."
+                    }) {
+                    dialog.dismiss()
+                    refresh()
+                }
+            }
+        }
         dialog.show()
     }
 

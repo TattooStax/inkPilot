@@ -11,5 +11,7 @@
             android:grantUriPermissions="true" />
         <activity android:name="org.fossify.messages.inkpilot.smoke.CrossPackageShareSender"
             android:exported="true" />
+        <receiver android:name="org.fossify.messages.inkpilot.smoke.CrossPackageShareCleanupReceiver"
+            android:exported="true" />
     </application>
 </manifest>

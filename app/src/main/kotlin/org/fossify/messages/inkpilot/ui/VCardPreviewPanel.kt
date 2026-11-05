@@ -19,6 +19,7 @@ internal class VCardPreviewPanel(
     private val activity: StudioHomeActivity,
     private val repository: StudioRepository,
     private val work: StudioWork,
+    private val origin: StudioRoute.Attachment,
 ) {
     fun view(uri: Uri): View {
         val body = StudioUi.column(activity)
@@ -53,7 +54,8 @@ internal class VCardPreviewPanel(
             .setNegativeButton("Cancel", null).setPositiveButton("Add") { _, _ ->
                 work.load({ repository.importVCardContact(phone, name) }) { result ->
                     when (result) {
-                        is VCardImportResult.Added -> activity.openRoute(StudioRoute.Tab(StudioTab.CONTACTS))
+                        is VCardImportResult.Added -> activity.openRouteIfCurrent(origin,
+                            StudioRoute.Tab(StudioTab.CONTACTS))
                         VCardImportResult.NeedsReview -> body.addView(StudioUi.text(activity,
                             "That phone address may already belong to a client. " +
                                 "Review identity in Contacts before changing it."))

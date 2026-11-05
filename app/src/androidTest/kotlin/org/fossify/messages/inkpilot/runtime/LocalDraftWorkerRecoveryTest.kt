@@ -22,6 +22,8 @@ class LocalDraftWorkerRecoveryTest : StudioDatabaseTestBase() {
                 override fun createWorker(appContext: Context, workerClassName: String, workerParameters: WorkerParameters): ListenableWorker =
                     object : LocalDraftWorker(appContext, workerParameters) {
                         override fun openRepository() = StudioRepository(context, databaseName)
+                        // Exercises worker cancellation/persistence with synthetic writes, never production inference.
+                        override fun qualifiedToDraft() = true
                         override fun processDrafts() = action(this)
                     }
             },

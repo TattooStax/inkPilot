@@ -7,14 +7,12 @@ import inkpilot.agent.DraftCancellation
 import inkpilot.agent.DraftDisposition
 import inkpilot.agent.DraftEvidenceReader
 import inkpilot.agent.DraftOutcome
-import inkpilot.agent.DraftReplyRenderer
 import inkpilot.agent.DraftRequest
 import inkpilot.agent.DraftStopReason
 import inkpilot.agent.HeldDraftStore
 import inkpilot.agent.LocalDraftModel
 import inkpilot.inference.LlamaDraftModel
 import org.fossify.messages.inkpilot.data.StudioRepository
-import org.fossify.messages.inkpilot.data.blockInactiveLeadScope
 import org.fossify.messages.inkpilot.data.readEvidence
 
 internal data class RequestDisposition(
@@ -28,22 +26,16 @@ internal fun draftOneRequest(
     repository: StudioRepository, settings: AgentSettings, native: LlamaDraftModel,
     workerToken: String?, request: DraftRequest, cancellation: () -> Boolean,
 ): RequestDisposition {
-    if (!AgentRuntime.BOUNDED_INTENT_QUALIFIED && repository.blockInactiveLeadScope(request)) {
-        settings.recordStatus("Lead review inactive for local drafts. Staff should reply directly.")
+    if (!AgentRuntime.BOUNDED_INTENT_QUALIFIED) {
+        settings.enabled // Reconcile older ON policy and leave a durable staff task.
         return RequestDisposition(needsAttention = true)
     }
-    val model = LocalDraftModel { prompt, stop ->
-        val instructions = if (AgentRuntime.BOUNDED_INTENT_QUALIFIED) prompt.instructions
-            else prompt.instructions + "\nStudio guide:\n" + repository.soul()
-        native.generate(prompt.copy(instructions = instructions), stop)
-    }
+    val model = LocalDraftModel { prompt, stop -> native.generate(prompt, stop) }
     settings.recordStatus("Drafting locally…")
     val store = if (workerToken == null) repository else WorkerDraftStore(repository, workerToken)
-    val evidence = if (AgentRuntime.BOUNDED_INTENT_QUALIFIED)
-        DraftEvidenceReader { repository.readEvidence(it) } else null
-    val renderer = if (AgentRuntime.BOUNDED_INTENT_QUALIFIED) BoundedIntentReplyRenderer else DraftReplyRenderer.RAW
     val result = CustomerServiceDrafts(store, repository, model, safetyGate = BookingClaimGate,
-        evidenceReader = evidence, replyRenderer = renderer,
+        evidenceReader = DraftEvidenceReader { repository.readEvidence(it) },
+        replyRenderer = BoundedIntentReplyRenderer,
     ).draft(request, DraftCancellation { cancellation() || !repository.isDraftingEnabled() })
     return recordDraftOutcome(result, store, repository, request, settings)
 }

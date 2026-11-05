@@ -7,13 +7,17 @@ import org.fossify.messages.inkpilot.runtime.AgentRuntime
 
 private const val CLIENT_CONTEXT_LINES = 2
 private const val CLIENT_CONTEXT_SP = 14f
+private const val DRAFT_HEADING_SP = 16f
 
 /** Staff approval lives in the thread; the model never calls a send API. */
 internal class InlineDraftReview(private val activity: AppCompatActivity, private val work: StudioWork,
     private val refresh: () -> Unit, private val saveEdit: (String, String) -> Boolean) {
     fun view(draft: ReviewDraft): android.view.View {
+        val canReview = draft.canReview && AgentRuntime.BOUNDED_INTENT_QUALIFIED
         val root = StudioUi.column(activity, 8)
-        root.addView(StudioUi.text(activity, "Held assistant reply · ${draft.recipient}", 16f, true))
+        val heading = if (AgentRuntime.BOUNDED_INTENT_QUALIFIED) "Held assistant reply"
+            else "Earlier unqualified model text"
+        root.addView(StudioUi.text(activity, "$heading · ${draft.recipient}", DRAFT_HEADING_SP, true))
         root.addView(StudioUi.text(activity, "Client: ${draft.inboundText}", CLIENT_CONTEXT_SP).apply {
             maxLines = CLIENT_CONTEXT_LINES
             ellipsize = android.text.TextUtils.TruncateAt.END
@@ -23,20 +27,24 @@ internal class InlineDraftReview(private val activity: AppCompatActivity, privat
             hint = "Edit held reply"
             setText(draft.sendBody ?: draft.staffEditBody ?: draft.body)
             filters = arrayOf(android.text.InputFilter.LengthFilter(MAX_STAFF_REPLY_LENGTH))
-            isEnabled = draft.canReview && draft.status == "HELD"
+            isEnabled = canReview && draft.status == "HELD"
             minLines = 2
             maxLines = 5
         }
-        root.addView(StudioUi.text(activity, "Reply to review", 14f).apply { labelFor = editor.id })
+        val label = if (AgentRuntime.BOUNDED_INTENT_QUALIFIED) "Reply to review"
+            else "Historical text for staff context"
+        root.addView(StudioUi.text(activity, label, CLIENT_CONTEXT_SP).apply { labelFor = editor.id })
         root.addView(editor)
         var sim = -1
         val select = StudioUi.button(activity, "Choose business SIM") {}
+        select.isEnabled = canReview
         select.setOnClickListener { chooseComposerSim(activity, work) { id, label -> sim = id; select.text = label } }
         root.addView(select)
-        val status = StudioUi.text(activity, if (draft.canReview) "Nothing sends until staff approves." else "Out of date or paused. Review current memory before regenerating.")
+        val status = StudioUi.text(activity, if (canReview) "Nothing sends until staff approves." else
+            "Model draft approval is unavailable. Reply directly in the conversation.")
         root.addView(status)
         val approve = StudioUi.button(activity, "Approve & send") {}
-        approve.isEnabled = draft.canReview && draft.status == "HELD"
+        approve.isEnabled = canReview && draft.status == "HELD"
         approve.setOnClickListener {
             if (sim < 0 || editor.text.isBlank()) { status.text = "Write a reply and explicitly choose the business SIM"; return@setOnClickListener }
             val approvedBody = editor.text.toString()
@@ -45,7 +53,7 @@ internal class InlineDraftReview(private val activity: AppCompatActivity, privat
             work.load({ AgentRuntime.approveAndSend(activity.applicationContext, draft.draftId, approvedBody, approvedSim) }) { status.text = it; refresh() }
         }
         root.addView(approve)
-        watchStaffEdit(editor, approve, status, draft, work, saveEdit)
+        if (canReview) watchStaffEdit(editor, approve, status, draft, work, saveEdit)
         return root
     }
 }

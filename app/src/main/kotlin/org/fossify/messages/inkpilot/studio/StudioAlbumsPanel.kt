@@ -8,7 +8,8 @@ import android.widget.LinearLayout
 import androidx.appcompat.app.AlertDialog
 
 internal class StudioAlbumsPanel(private val host: StudioPanelHost, private val store: StudioAlbumStore,
-    private val requestImport: (StudioAlbumsPanel) -> Unit = {},
+    private val requestImport: (StudioAlbumsPanel, String?, Long?) -> Unit = { _, _, _ -> },
+    private val onImageSaved: () -> Unit = {},
 ) {
     private val files = StudioImageFiles(host.activity.applicationContext, store)
     private var content = host.column()
@@ -19,10 +20,14 @@ internal class StudioAlbumsPanel(private val host: StudioPanelHost, private val 
     private var linkedThread: Long? = null
 
     fun linkedView(contactId: String?, threadId: Long?): View {
+        restoreImportScope(contactId, threadId)
+        return view()
+    }
+
+    internal fun restoreImportScope(contactId: String?, threadId: Long?) {
         require(contactId != null || threadId != null)
         linkedContact = contactId; linkedThread = threadId
         selected = null; showingImages = true
-        return view()
     }
 
     fun view(): View {
@@ -39,7 +44,7 @@ internal class StudioAlbumsPanel(private val host: StudioPanelHost, private val 
 
     private fun renderAlbums(version: Int) {
         content.addView(host.text("Albums", 22f))
-        content.addView(host.button("Create album") { editAlbum(null) })
+        content.addView(host.button("Create album") { openAlbumEditor(host, store, null) { render() } })
         content.addView(host.button("All images") { selected = null; showingImages = true; render() })
         host.load({ store.albums() }) { albums ->
             if (renderVersion != version) return@load
@@ -54,9 +59,11 @@ internal class StudioAlbumsPanel(private val host: StudioPanelHost, private val 
         val album = selected
         if (linkedContact == null && linkedThread == null) content.addView(host.button("‹ Albums") { showingImages = false; linkedContact = null; linkedThread = null; render() })
         content.addView(host.text(album?.name ?: if (linkedContact != null || linkedThread != null) "Client References" else "All images", 22f))
-        if (album != null) content.addView(host.button("Edit album") { editAlbum(album) })
+        if (album != null) content.addView(host.button("Edit album") {
+            openAlbumEditor(host, store, album) { updated -> selected = updated; render() }
+        })
         content.addView(host.button(if (linkedContact != null || linkedThread != null) "Import reference image" else "Import image") {
-            requestImport(this)
+            requestImport(this, linkedContact, linkedThread)
             host.activity.startActivityForResult(Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
                 type = "image/*"; addCategory(Intent.CATEGORY_OPENABLE)
                 addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
@@ -105,7 +112,7 @@ internal class StudioAlbumsPanel(private val host: StudioPanelHost, private val 
         if (linkedContact != null || linkedThread != null) {
             fun save(contactId: String) {
                 val link = StudioImageLink(contactId, null, linkedThread)
-                host.load({ files.importReferenceOriginal(uri, link) }) { render() }
+                host.load({ files.importReferenceOriginal(uri, link) }) { render(); onImageSaved() }
             }
             linkedContact?.let { save(it); return }
             host.load({ store.contacts() }) { contacts ->
@@ -118,7 +125,7 @@ internal class StudioAlbumsPanel(private val host: StudioPanelHost, private val 
         }
         chooseAlbum("Add image to album") { album ->
             host.load({ files.import(uri, album.id) }) {
-                selected = album; showingImages = true; render()
+                selected = album; showingImages = true; render(); onImageSaved()
             }
         }
     }
@@ -129,25 +136,6 @@ internal class StudioAlbumsPanel(private val host: StudioPanelHost, private val 
                 .setItems(albums.map { it.name }.toTypedArray()) { _, index -> action(albums[index]) }
                 .setNegativeButton("Cancel", null).show()
         }
-    }
-
-    private fun editAlbum(album: StudioAlbum?) {
-        val fields = host.column().apply { setPadding(host.dp(20), 0, host.dp(20), 0) }
-        val name = host.field("Album name", album?.name.orEmpty())
-        val artist = host.field("Artist (optional)", album?.artist.orEmpty())
-        fields.addView(name); fields.addView(artist)
-        val dialog = AlertDialog.Builder(host.activity).setTitle(if (album == null) "New album" else "Edit album")
-            .setView(fields).setPositiveButton("Save", null).setNegativeButton("Cancel", null).create()
-        dialog.setOnShowListener {
-            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
-                val newName = name.text.toString(); val newArtist = artist.text.toString()
-                host.load({ store.saveAlbum(album?.id, newName, newArtist) }) { id ->
-                    if (album != null) selected = StudioAlbum(id, newName.trim(), newArtist.trim())
-                    dialog.dismiss(); render()
-                }
-            }
-        }
-        dialog.show()
     }
 
     private fun preview(image: StudioImage, album: StudioAlbum?) {

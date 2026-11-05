@@ -2,6 +2,7 @@ package org.fossify.messages.inkpilot.studio
 
 import android.app.Activity
 import android.content.Intent
+import android.os.Bundle
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import java.util.concurrent.Executor
@@ -13,10 +14,17 @@ class StudioPanels(
     executor: Executor,
     onError: (String) -> Unit,
     private val repository: StudioRepository,
+    savedImport: Bundle? = null,
+    private val onImageSaved: () -> Unit = {},
 ) {
     private val host = StudioPanelHost(activity, executor, onError)
     private var importTarget: StudioAlbumsPanel? = null
-    private fun albumPanel() = StudioAlbumsPanel(host, StudioAlbumStore(repository)) { importTarget = it }
+    private var importScope: ImportScope? = ImportScope.restore(savedImport)
+    private fun albumPanel() = StudioAlbumsPanel(host, StudioAlbumStore(repository),
+        requestImport = { panel, contactId, threadId ->
+            importTarget = panel
+            importScope = ImportScope(contactId, threadId)
+        }, onImageSaved = onImageSaved)
     private val albums = albumPanel()
     private val calendar = StudioCalendarPanel(host, StudioCalendarStore(repository))
 
@@ -29,11 +37,39 @@ class StudioPanels(
 
     fun calendar(): View = calendar.view()
 
-    fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?): Boolean {
+    fun saveImportState(): Bundle? = importScope?.save()
+
+    fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?, locked: Boolean = false): Boolean {
         if (requestCode != IMPORT_IMAGE) return false
-        val target = importTarget; importTarget = null
-        if (resultCode == Activity.RESULT_OK) data?.data?.let { target?.acceptImage(it) }
+        if (locked) {
+            importTarget = null; importScope = null
+            return true
+        }
+        val scope = importScope
+        val target = importTarget ?: scope?.let { saved -> albumPanel().apply {
+            if (saved.contactId != null || saved.threadId != null)
+                restoreImportScope(saved.contactId, saved.threadId)
+        } }
+        importTarget = null; importScope = null
+        if (resultCode == Activity.RESULT_OK) {
+            val uri = data?.data
+            if (uri == null || target == null) host.onError("Image selection was interrupted. Choose the image again.")
+            else target.acceptImage(uri)
+        }
         return true
+    }
+
+    private data class ImportScope(val contactId: String?, val threadId: Long?) {
+        fun save() = Bundle().apply {
+            putBoolean("pending", true)
+            putString("contact", contactId)
+            threadId?.let { putLong("thread", it) }
+        }
+        companion object {
+            fun restore(saved: Bundle?): ImportScope? = saved?.takeIf { it.getBoolean("pending") }?.let {
+                ImportScope(it.getString("contact"), if (it.containsKey("thread")) it.getLong("thread") else null)
+            }
+        }
     }
 
     internal companion object { const val IMPORT_IMAGE = 7301 }

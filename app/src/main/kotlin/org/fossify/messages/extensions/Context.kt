@@ -1,7 +1,6 @@
 package org.fossify.messages.extensions
 
 import org.fossify.messages.messaging.MessageKey
-import org.fossify.messages.messaging.MessageOrigin
 import org.fossify.messages.messaging.key
 import android.annotation.SuppressLint
 import android.app.Application
@@ -572,33 +571,6 @@ fun Context.getMMS(messageUri: Uri): Message? {
     return getMMS(uri = messageUri).firstOrNull()
 }
 
-fun Context.getThreadSnippet(threadId: Long): String {
-    val sortOrder = "${Mms.DATE} DESC LIMIT 1"
-    val latestMms = getMMS(threadId, sortOrder).firstOrNull()
-    var snippet = latestMms?.body ?: ""
-
-    val uri = Sms.CONTENT_URI
-    val projection = arrayOf(
-        Sms.BODY
-    )
-
-    val selection = "${Sms.THREAD_ID} = ? AND ${Sms.DATE} > ?"
-    val selectionArgs = arrayOf(
-        threadId.toString(),
-        latestMms?.date?.toString() ?: "0"
-    )
-    try {
-        val cursor = contentResolver.query(uri, projection, selection, selectionArgs, sortOrder)
-        cursor?.use {
-            if (cursor.moveToFirst()) {
-                snippet = cursor.getStringValue(Sms.BODY)
-            }
-        }
-    } catch (_: Exception) {
-    }
-    return snippet
-}
-
 fun Context.getMessageRecipientAddress(messageId: Long): String {
     val uri = Sms.CONTENT_URI
     val projection = arrayOf(
@@ -995,18 +967,6 @@ fun Context.updateConversationArchivedStatus(threadId: Long, archived: Boolean) 
     }
 }
 
-fun Context.deleteMessage(id: Long, isMMS: Boolean) {
-    val uri = if (isMMS) Mms.CONTENT_URI else Sms.CONTENT_URI
-    val selection = "${Sms._ID} = ?"
-    val selectionArgs = arrayOf(id.toString())
-    try {
-        contentResolver.delete(uri, selection, selectionArgs)
-        messagesDB.delete(MessageKey(if (isMMS) MessageOrigin.MMS else MessageOrigin.SMS, id))
-    } catch (e: Exception) {
-        showErrorToast(e)
-    }
-}
-
 fun Context.markMessageRead(id: Long, isMMS: Boolean) {
     val uri = if (isMMS) Mms.CONTENT_URI else Sms.CONTENT_URI
     val contentValues = ContentValues().apply {
@@ -1017,29 +977,6 @@ fun Context.markMessageRead(id: Long, isMMS: Boolean) {
     val selectionArgs = arrayOf(id.toString())
     contentResolver.update(uri, contentValues, selection, selectionArgs)
     messagesDB.markRead(id, isMMS)
-}
-
-fun Context.markThreadMessagesRead(threadId: Long) {
-    val id = threadId.toString()
-
-    val smsValues = ContentValues().apply {
-        put(Sms.READ, 1)
-        put(Sms.SEEN, 1)
-    }
-    val smsSelection = "${Sms.THREAD_ID}=? AND ${Sms.TYPE}=? AND (${Sms.READ}=? OR ${Sms.SEEN}=?)"
-    val smsArgs = arrayOf(id, Sms.MESSAGE_TYPE_INBOX.toString(), "0", "0")
-    contentResolver.update(Sms.CONTENT_URI, smsValues, smsSelection, smsArgs)
-
-    val mmsValues = ContentValues().apply {
-        put(Mms.READ, 1)
-        put(Mms.SEEN, 1)
-    }
-    val mmsSelection = "${Mms.THREAD_ID}=? AND ${Mms.MESSAGE_BOX}=? AND (${Mms.READ}=? OR ${Mms.SEEN}=?)"
-    val mmsArgs = arrayOf(id, Mms.MESSAGE_BOX_INBOX.toString(), "0", "0")
-    contentResolver.update(Mms.CONTENT_URI, mmsValues, mmsSelection, mmsArgs)
-
-    messagesDB.markThreadRead(threadId)
-    conversationsDB.markRead(threadId)
 }
 
 fun Context.markThreadMessagesUnread(threadId: Long) {

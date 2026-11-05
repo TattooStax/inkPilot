@@ -42,6 +42,7 @@ run_class org.fossify.messages.inkpilot.smoke.InShellComposerTest
 run_class org.fossify.messages.inkpilot.smoke.ComposerClaimRecoveryTest
 run_class org.fossify.messages.inkpilot.studio.StudioImageLinksTest
 run_class org.fossify.messages.inkpilot.studio.StudioImageImportUiTest
+run_class org.fossify.messages.inkpilot.studio.StudioImagePickerRecoveryTest
 run_class org.fossify.messages.inkpilot.data.StudioArchiveTest
 run_class org.fossify.messages.inkpilot.data.StudioArchiveCleanupNoticeTest
 run_class org.fossify.messages.inkpilot.ui.StudioStaffAttentionTest
@@ -53,22 +54,29 @@ run_class org.fossify.messages.inkpilot.data.ScheduledQueueTest
 run_class org.fossify.messages.inkpilot.data.ScheduledIdentityLifecycleTest
 run_class org.fossify.messages.inkpilot.data.StudioCrossThreadAttentionTest
 run_class org.fossify.messages.inkpilot.data.StudioContactIdentityTest
+run_class org.fossify.messages.inkpilot.ui.ContactForgetUiTest
+run_class org.fossify.messages.inkpilot.ui.ContactSaveFailureUiTest
+run_class org.fossify.messages.inkpilot.ui.ContactEditRotationUiTest
+run_class org.fossify.messages.inkpilot.ui.LockedComposerPickerTest
 run_class org.fossify.messages.inkpilot.data.StudioVCardImportTest
 run_class org.fossify.messages.inkpilot.data.ThreadDraftLookupTest
 # Synthetic ingress, calendar, model-contract, and optional-bridge regressions.
 run_class org.fossify.messages.inkpilot.smoke.ShellIngressTest
 run_class org.fossify.messages.inkpilot.ui.NotificationEntryRouteTest
 run_class org.fossify.messages.inkpilot.ui.VCardShellUiTest
+run_class org.fossify.messages.inkpilot.ui.VCardImportRouteUiTest
 run_class org.fossify.messages.messaging.ComposerSharedMediaTest
 run_class org.fossify.messages.inkpilot.smoke.ComposerShareFailureIngressTest
 run_class org.fossify.messages.inkpilot.runtime.CarrierIngressTest
 run_class org.fossify.messages.inkpilot.runtime.DirectReplyPreservationTest
+run_class org.fossify.messages.inkpilot.runtime.HumanReplySmsOnlyTest
 run_class org.fossify.messages.inkpilot.runtime.SmsAdmissionLedgerTest
 run_class org.fossify.messages.inkpilot.runtime.SmsIntakeRecoveryTest
 run_class org.fossify.messages.inkpilot.smoke.MmsComposerOutcomeTest
 run_class org.fossify.messages.inkpilot.studio.StudioAvailabilityTest
 run_class org.fossify.messages.inkpilot.studio.StudioCalendarUiTest
 run_class org.fossify.messages.inkpilot.studio.StudioReminderGateTest
+run_class org.fossify.messages.inkpilot.studio.StudioReminderRecoveryTest
 run_class org.fossify.messages.inkpilot.data.StudioProposalTest
 run_class org.fossify.messages.inkpilot.data.StudioStaffEditTest
 run_class org.fossify.messages.inkpilot.data.StudioLeadIntakeTest

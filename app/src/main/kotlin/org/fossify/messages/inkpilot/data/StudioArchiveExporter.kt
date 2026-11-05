@@ -18,8 +18,8 @@ import java.util.zip.ZipOutputStream
 
 /**
  * Plaintext, export-only Studio snapshot. The manifest is written last so an interrupted ZIP
- * cannot be mistaken for a complete archive. Native SMS/MMS, app settings, and model weights
- * are outside this format; there is deliberately no restore action yet.
+ * cannot be mistaken for a complete archive. It includes Studio's copies of message and draft
+ * text; native SMS/MMS provider history and model weights are outside this format. There is no restore action yet.
  */
 internal class StudioArchiveExporter(private val context: Context, private val repository: StudioRepository) {
     data class Summary(val tables: Int, val originals: Int)
@@ -101,7 +101,7 @@ internal class StudioArchiveExporter(private val context: Context, private val r
             val manifest = JSONObject()
                 .put("format", "inkpilot-studio-export-v1")
                 .put("studioSchemaVersion", schemaVersion)
-                .put("scope", "Studio database rows and retained reference originals only")
+                .put("scope", StudioArchiveScope.DESCRIPTION)
                 .put("plaintext", true)
                 .put("tables", tableDescriptions)
                 .put("entries", entries)

@@ -23,8 +23,8 @@ collect() {
   adb exec-out screencap -p > "$evidence/last-screen.png" 2>/dev/null || true
   adb shell uiautomator dump /sdcard/inkpilot-test-ui.xml >/dev/null 2>&1 || true
   adb pull /sdcard/inkpilot-test-ui.xml "$evidence/last-ui.xml" >/dev/null 2>&1 || true
-  for artifact in local-loop.json intake-failure.json worker-wakeup.json native-send.json batch-failure.json \
-    local-draft-review.png local-staff-attention.png tab-sms.png tab-phone.png tab-contacts.png tab-studio.png tab-calendar.png; do
+  for artifact in local-loop.json intake-failure.json worker-wakeup.json \
+    local-staff-attention.png tab-sms.png tab-phone.png tab-contacts.png tab-studio.png tab-calendar.png; do
     if adb shell run-as "$package" test -f "files/device-test-evidence/$artifact" && \
       adb exec-out run-as "$package" cat "files/device-test-evidence/$artifact" > "$evidence/$artifact.partial" 2>/dev/null; then
       mv "$evidence/$artifact.partial" "$evidence/$artifact"
@@ -92,25 +92,23 @@ adb shell -T "run-as $package sh -c 'cat > files/models/active.gguf'" < "$model_
 adb shell run-as "$package" sha256sum files/models/active.gguf | tee "$evidence/model-sha256.txt"
 grep -q '^43a7d09a0e9cba91b63eb7052488b9564569bddfd65754d2e426465e572a7452 ' "$evidence/model-sha256.txt"
 
-# Inference must work after model installation with network connections disabled.
+# A pinned installed model must not bypass the qualification gate while offline.
 adb shell svc wifi disable
 adb shell svc data disable
 adb shell settings put global stay_on_while_plugged_in 3
-observe_sms local-loop "$smoke#incomingSmsCreatesLocalHeldDraft" local-loop-ready "$fixture_number" "$fixture_message"
+observe_sms local-loop "$smoke#incomingSmsNeedsStaffWhileModelIsUnqualified" local-loop-ready "$fixture_number" "$fixture_message"
 adb exec-out run-as "$package" cat files/device-test-evidence/local-loop.json > "$evidence/local-loop.json"
-if python3 - "$evidence/local-loop.json" <<'PYCODE'
+python3 - "$evidence/local-loop.json" <<'PYCODE'
 import json,sys
-raise SystemExit(0 if json.load(open(sys.argv[1]))['outcome'] == 'BLOCKED_UNSAFE_CONTENT' else 1)
+proof = json.load(open(sys.argv[1]))
+assert proof['outcome'] == 'BLOCKED_UNQUALIFIED'
+assert proof['modelInvoked'] is False
 PYCODE
-then
-  adb exec-out run-as "$package" cat files/device-test-evidence/local-staff-attention.png > "$evidence/local-staff-attention.png"
-else
-  adb exec-out run-as "$package" cat files/device-test-evidence/local-draft-review.png > "$evidence/local-draft-review.png"
-fi
+adb exec-out run-as "$package" cat files/device-test-evidence/local-staff-attention.png > "$evidence/local-staff-attention.png"
 
 # A second instrumentation process proves on-disk replay after process termination.
 adb shell am force-stop "$package"
-run_tests restart class "$smoke#heldDraftSurvivesProcessRestart"
+run_tests restart class "$smoke#blockedUnqualifiedStateSurvivesProcessRestart"
 run_tests navigation class org.fossify.messages.inkpilot.smoke.HomeNavigationSmokeTest
 for tab in sms phone contacts studio calendar; do
   adb exec-out run-as "$package" cat "files/device-test-evidence/tab-$tab.png" > "$evidence/tab-$tab.png"
@@ -128,11 +126,5 @@ printf '%s\n' "$launcher_component" > "$evidence/launcher-component.txt"
 adb shell am start -W -a android.intent.action.MAIN -c android.intent.category.LAUNCHER -n "$launcher_component"
 observe_sms worker-wakeup org.fossify.messages.inkpilot.smoke.WorkerWakeupSmokeTest worker-ready +12025550124 "$worker_message"
 adb exec-out run-as "$package" cat files/device-test-evidence/worker-wakeup.json > "$evidence/worker-wakeup.json"
-run_tests native-send class org.fossify.messages.inkpilot.smoke.NativeSendSmokeTest
-adb exec-out run-as "$package" cat files/device-test-evidence/native-send.json > "$evidence/native-send.json"
-run_tests batch-failure class org.fossify.messages.inkpilot.smoke.BatchFailureSmokeTest
-adb exec-out run-as "$package" cat files/device-test-evidence/batch-failure.json > "$evidence/batch-failure.json"
-run_tests reviewed-scope class org.fossify.messages.inkpilot.smoke.ReviewedScopeRuntimeSmokeTest#productionWorkerBlocksScopedEventAndExplicitRegeneration
-adb exec-out run-as "$package" cat files/device-test-evidence/reviewed-scope.json > "$evidence/reviewed-scope.json"
-adb shell am force-stop "$package"
-run_tests reviewed-scope-restart class org.fossify.messages.inkpilot.smoke.ReviewedScopeRuntimeSmokeTest#blockedScopeSurvivesProcessRestart
+# Native send, batch inference, and reviewed-scope model smokes remain source fixtures
+# for a separately qualified route. Running them here would require enabling RAW QAD.
