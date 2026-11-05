@@ -20,26 +20,52 @@ import org.junit.runner.RunWith
 class InShellThreadTest {
     @Test fun repeatedRotationWaitsForAllPreviouslyLoadedPages() {
         val instrumentation = InstrumentationRegistry.getInstrumentation()
-        instrumentation.runOnMainSync {
-            val route = StudioRoute.Thread(42)
-            val initial = StudioCanvasState()
-            val list = initial.view(route) { StudioPagedList(instrumentation.targetContext) } as StudioPagedList
-            list.contentReady(80, true)
-            var requests = 0
-            val restoredPanels = StudioCanvasState(initial.save())
-            val restored = restoredPanels.view(route) {
-                StudioPagedList(instrumentation.targetContext).apply { loadMore = { requests++ } }
-            } as StudioPagedList
-            assertEquals(1, requests)
-            restored.contentReady(40, true)
-            assertEquals(2, requests)
-            val rotatedAgain = StudioCanvasState(restoredPanels.save())
-            val pending = rotatedAgain.view(route) {
-                StudioPagedList(instrumentation.targetContext).apply { loadMore = { requests++ } }
-            } as StudioPagedList
-            assertEquals(3, requests)
-            pending.contentReady(80, true)
-            assertEquals(3, requests)
+        var stage = 0
+        var requests = 0
+        try {
+            instrumentation.runOnMainSync {
+                stage = 1
+                val route = StudioRoute.Thread(42)
+                val initial = StudioCanvasState()
+                val list = initial.view(route) { StudioPagedList(instrumentation.targetContext) } as StudioPagedList
+                list.contentReady(80, true)
+                stage = 2
+                val restoredPanels = StudioCanvasState(initial.save())
+                stage = 3
+                val restored = restoredPanels.view(route) {
+                    StudioPagedList(instrumentation.targetContext).apply { loadMore = { requests++ } }
+                } as StudioPagedList
+                stage = 4
+                assertEquals(1, requests)
+                restored.contentReady(40, true)
+                stage = 5
+                assertEquals(2, requests)
+                val rotatedAgain = StudioCanvasState(restoredPanels.save())
+                stage = 6
+                val pending = rotatedAgain.view(route) {
+                    StudioPagedList(instrumentation.targetContext).apply { loadMore = { requests++ } }
+                } as StudioPagedList
+                stage = 7
+                assertEquals(3, requests)
+                pending.contentReady(80, true)
+                stage = 8
+                assertEquals(3, requests)
+            }
+        } catch (failure: Throwable) {
+            val causes = generateSequence(failure) { it.cause }.toList()
+            val kind = when {
+                causes.any { it is AssertionError } -> 1
+                causes.any { it is android.os.BadParcelableException } -> 2
+                causes.any { it is ClassCastException } -> 3
+                causes.any { it is NullPointerException } -> 4
+                causes.any { it is IllegalStateException } -> 5
+                causes.any { it is IllegalArgumentException } -> 6
+                else -> 9
+            }
+            instrumentation.targetContext.openFileOutput("in-shell-rotation.csv", android.content.Context.MODE_PRIVATE).use {
+                it.write("$stage,$requests,$kind".toByteArray(Charsets.US_ASCII))
+            }
+            throw failure
         }
     }
 

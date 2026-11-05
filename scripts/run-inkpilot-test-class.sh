@@ -47,6 +47,19 @@ if re.fullmatch(r'-?\d+(,-?\d+){16}', raw):
             out.write(raw + '\n')
 PY_DIAG
   fi
+  if [[ "$class" == org.fossify.messages.inkpilot.smoke.InShellThreadTest ]]; then
+    rotation=$(adb -s "$serial" shell run-as app.inkpilot.android.debug cat files/in-shell-rotation.csv 2>/dev/null | tr -d '\r' || true)
+    python3 - "$rotation" "$evidence/rotation.csv" <<'PY_ROTATION'
+import re, sys
+raw = sys.argv[1]
+if re.fullmatch(r'\d+,\d+,\d+', raw):
+    stage, requests, kind = (int(part) for part in raw.split(','))
+    if 0 <= stage <= 8 and 0 <= requests <= 20 and kind in (1, 2, 3, 4, 5, 6, 9):
+        with open(sys.argv[2], 'w', encoding='ascii') as out:
+            out.write('stage,requests,exception_kind\n')
+            out.write(raw + '\n')
+PY_ROTATION
+  fi
   # Only a Kotlin test filename and line number may leave the temporary raw
   # result. Assertion messages can contain customer text or phone numbers.
   site=$(grep -Eo '[A-Za-z_][A-Za-z0-9_]*Test\.kt:[0-9]+' "$result" | head -n 1 || true)
