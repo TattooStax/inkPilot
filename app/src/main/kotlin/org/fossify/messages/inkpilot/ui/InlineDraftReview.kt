@@ -14,7 +14,8 @@ internal class InlineDraftReview(private val activity: AppCompatActivity, privat
     fun view(draft: ReviewDraft): android.view.View {
         val canReview = draft.canReview && AgentRuntime.BOUNDED_INTENT_QUALIFIED
         val root = StudioUi.column(activity, 8)
-        root.addView(StudioUi.text(activity, "Held assistant reply · ${draft.recipient}", 16f, true))
+        val heading = if (AgentRuntime.BOUNDED_INTENT_QUALIFIED) "Held assistant reply" else "Earlier unqualified model text"
+        root.addView(StudioUi.text(activity, "$heading · ${draft.recipient}", 16f, true))
         root.addView(StudioUi.text(activity, "Client: ${draft.inboundText}", CLIENT_CONTEXT_SP).apply {
             maxLines = CLIENT_CONTEXT_LINES
             ellipsize = android.text.TextUtils.TruncateAt.END
@@ -28,10 +29,12 @@ internal class InlineDraftReview(private val activity: AppCompatActivity, privat
             minLines = 2
             maxLines = 5
         }
-        root.addView(StudioUi.text(activity, "Reply to review", 14f).apply { labelFor = editor.id })
+        val label = if (AgentRuntime.BOUNDED_INTENT_QUALIFIED) "Reply to review" else "Historical text for staff context"
+        root.addView(StudioUi.text(activity, label, 14f).apply { labelFor = editor.id })
         root.addView(editor)
         var sim = -1
         val select = StudioUi.button(activity, "Choose business SIM") {}
+        select.isEnabled = canReview
         select.setOnClickListener { chooseComposerSim(activity, work) { id, label -> sim = id; select.text = label } }
         root.addView(select)
         val status = StudioUi.text(activity, if (canReview) "Nothing sends until staff approves." else

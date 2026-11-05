@@ -54,13 +54,20 @@ class FocusedReviewRouteTest {
                 .putExtra(ExternalRouteParser.ROUTE, route.encode())).use {
                 SmokeViews.assertText(body)
                 SmokeViews.assertText("Choose business SIM")
+                SmokeViews.assertText("Historical text for staff context")
+                SmokeViews.assertText("Model draft approval is unavailable. Reply directly in the conversation.")
                 it.onActivity { activity ->
                     fun descendants(view: View): List<View> = listOf(view) + if (view is ViewGroup)
                         (0 until view.childCount).flatMap { index -> descendants(view.getChildAt(index)) } else emptyList()
-                    val labels = descendants(activity.findViewById(org.fossify.messages.R.id.inkpilot_canvas))
-                        .filterIsInstance<TextView>().map { view -> view.text.toString() }
+                    val controls = descendants(activity.findViewById(org.fossify.messages.R.id.inkpilot_canvas))
+                        .filterIsInstance<TextView>()
+                    val labels = controls.map { view -> view.text.toString() }
                     assertFalse("Focused review must not render the regular composer",
                         "Attach image (up to 1 MiB)" in labels)
+                    assertFalse("Old model text cannot choose a SIM",
+                        controls.single { it.text.toString() == "Choose business SIM" }.isEnabled)
+                    assertFalse("Old model text cannot be approved",
+                        controls.single { it.text.toString() == "Approve & send" }.isEnabled)
                 }
             }
         } finally {
