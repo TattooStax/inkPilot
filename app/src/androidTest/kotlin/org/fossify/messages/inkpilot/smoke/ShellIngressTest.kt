@@ -251,6 +251,7 @@ class ShellIngressTest {
 
     @Test fun coldShareForwardsReadableUriAndPrivateBodyIntoOneComposer() {
         assumeTrue(Build.HARDWARE in setOf("ranchu", "goldfish"))
+        java.io.File(context.filesDir, "device-test-evidence/cold-share-stage.json").delete()
         val instrumentation = InstrumentationRegistry.getInstrumentation()
         val sender = instrumentation.context
         assertNotEquals(context.packageName, sender.packageName)
@@ -269,6 +270,7 @@ class ShellIngressTest {
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             })
             home = awaitSharedHome(uri)
+            if (home == null) recordColdShareFailure(context, uri)
             assertNotNull(home)
             val forwarded = home!!.intent
             val route = forwarded.getBundleExtra(ExternalRouteParser.ROUTE)!!.decodeRoute() as StudioRoute.Compose

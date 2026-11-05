@@ -32,14 +32,17 @@ class CrossPackageShareSender : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val source = File(cacheDir, "task11-share.png")
+        val stage = File(cacheDir, "task11-share-stage")
         if (intent.action == CLEANUP) {
-            source.delete()
+            source.delete() // The hosted runner reads the bounded stage marker after this test.
         } else {
+            stage.delete()
             Bitmap.createBitmap(8, 8, Bitmap.Config.ARGB_8888).let { bitmap ->
                 source.outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }
                 bitmap.recycle()
             }
             val uri = Uri.parse(requireNotNull(intent.getStringExtra("shareUri")))
+            stage.writeText("prepared")
             startActivity(Intent().setClassName(requireNotNull(intent.getStringExtra("targetPackage")),
                 "org.fossify.messages.activities.NewConversationActivity").apply {
                 action = Intent.ACTION_SEND
@@ -49,6 +52,7 @@ class CrossPackageShareSender : Activity() {
                 clipData = ClipData.newRawUri("Reference", uri)
                 addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
             })
+            stage.writeText("forwarded")
         }
         finish()
     }

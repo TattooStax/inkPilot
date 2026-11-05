@@ -56,6 +56,17 @@ run_class org.fossify.messages.inkpilot.data.StudioContactIdentityTest
 run_class org.fossify.messages.inkpilot.data.ThreadDraftLookupTest
 # Synthetic ingress, calendar, model-contract, and optional-bridge regressions.
 run_class org.fossify.messages.inkpilot.smoke.ShellIngressTest
+if adb -s "$serial" exec-out run-as "$package" cat files/device-test-evidence/cold-share-stage.json \
+    > app/build/test-class-evidence/cold-share-stage.json.partial 2>/dev/null; then
+  mv app/build/test-class-evidence/cold-share-stage.json.partial \
+    app/build/test-class-evidence/cold-share-stage.json
+else
+  rm -f app/build/test-class-evidence/cold-share-stage.json.partial
+fi
+sender_stage=$(adb -s "$serial" exec-out run-as "$package.test" cat cache/task11-share-stage 2>/dev/null | tr -d '\r' || true)
+case "$sender_stage" in prepared|forwarded) ;; *) sender_stage=missing ;; esac
+printf '{"senderStage":"%s"}\n' "$sender_stage" > app/build/test-class-evidence/cold-share-sender-stage.json
+adb -s "$serial" exec-out run-as "$package.test" rm -f cache/task11-share-stage >/dev/null 2>&1 || true
 run_class org.fossify.messages.inkpilot.ui.NotificationEntryRouteTest
 run_class org.fossify.messages.inkpilot.runtime.CarrierIngressTest
 run_class org.fossify.messages.inkpilot.runtime.SmsAdmissionLedgerTest
