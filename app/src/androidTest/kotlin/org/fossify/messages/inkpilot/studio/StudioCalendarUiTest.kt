@@ -2,12 +2,16 @@ package org.fossify.messages.inkpilot.studio
 
 import android.content.Context
 import android.os.Build
+import android.view.View
+import android.view.ViewGroup
+import android.widget.TextView
 import androidx.test.core.app.ActivityScenario
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import java.time.LocalDate
 import java.time.ZoneId
+import java.util.ArrayDeque
 import java.util.UUID
 import java.util.concurrent.Executor
 import org.fossify.messages.inkpilot.data.StudioRepository
@@ -19,6 +23,51 @@ import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
 class StudioCalendarUiTest {
+    @Test fun calendarActionsWaitForStoredZoneWithDelayedExecutor() {
+        assumeTrue(Build.FINGERPRINT.contains("generic") || Build.MODEL.contains("sdk"))
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        val name = "synthetic-calendar-zone-ui-${UUID.randomUUID()}.db"
+        val repository = StudioRepository(context, name)
+        try {
+            val store = StudioCalendarStore(repository) { _, _, _ -> }
+            val savedZone = if (ZoneId.systemDefault().id == "America/Chicago") "UTC" else "America/Chicago"
+            store.setStudioZone(savedZone)
+            ActivityScenario.launch(StudioHomeActivity::class.java).use { scenario ->
+                scenario.onActivity { activity ->
+                    val pending = ArrayDeque<Runnable>()
+                    val panel = StudioCalendarPanel(
+                        StudioPanelHost(activity, Executor { pending.addLast(it) }) { fail(it) }, store,
+                    )
+                    val screen = panel.view()
+                    activity.setContentView(screen)
+                    val before = labels(screen)
+                    assertTrue(before.contains("Loading studio time zone…"))
+                    assertTrue(before.contains("Retry calendar"))
+                    assertFalse(before.contains("Add appointment or task"))
+                    assertFalse(before.contains("Staff hours and time off"))
+                    assertFalse(before.any { it.startsWith("Studio time zone ·") })
+
+                    pending.removeFirst().run()
+                    val after = labels(screen)
+                    assertFalse(after.contains("Loading studio time zone…"))
+                    assertTrue(after.contains("Add appointment or task"))
+                    assertTrue(after.contains("Staff hours and time off"))
+                    assertTrue(after.contains("Studio time zone · $savedZone"))
+                }
+            }
+        } finally { repository.close(); context.deleteDatabase(name) }
+    }
+
+    private fun labels(root: View): List<String> = buildList {
+        fun collect(view: View) {
+            if (view is TextView) add(view.text.toString())
+            if (view is ViewGroup) {
+                for (index in 0 until view.childCount) collect(view.getChildAt(index))
+            }
+        }
+        collect(root)
+    }
+
     @Test fun renderedActionListsCanEditAndCompleteAndOpenHours() {
         assumeTrue(Build.FINGERPRINT.contains("generic") || Build.MODEL.contains("sdk"))
         val context = ApplicationProvider.getApplicationContext<Context>()

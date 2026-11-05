@@ -14,23 +14,42 @@ internal class StudioCalendarPanel(private val host: StudioPanelHost, private va
     private var day = LocalDate.now(zone)
     private var content = host.column()
     private var renderGeneration = 0L
+    private var zoneLoadGeneration = 0L
+    private var zoneReady = false
+    private var zoneSaving = false
     private val dateFormat = DateTimeFormatter.ofPattern("EEE, MMM d")
     private val timeFormat = DateTimeFormatter.ofPattern("h:mm a")
 
     fun view(): View {
         content = host.column()
+        zoneReady = false
         render()
-        host.load({ store.studioZone() }) { current ->
-            if (current != zone) { zone = current; day = LocalDate.now(zone); render() }
-        }
+        loadZone()
         host.load({ store.reconcileReminders() }) {}
         return host.body(content)
+    }
+
+    private fun loadZone() {
+        if (zoneSaving) return
+        val generation = ++zoneLoadGeneration
+        host.load({ store.studioZone() }) { current ->
+            if (generation != zoneLoadGeneration) return@load
+            if (current != zone) day = LocalDate.now(current)
+            zone = current
+            zoneReady = true
+            render()
+        }
     }
 
     private fun render() {
         val generation = ++renderGeneration
         content.removeAllViews()
         content.addView(host.text("Calendar", 22f))
+        if (!zoneReady) {
+            content.addView(host.text(if (zoneSaving) "Saving studio time zone…" else "Loading studio time zone…"))
+            if (!zoneSaving) content.addView(host.button("Retry calendar") { loadZone() })
+            return
+        }
         val dates = LinearLayout(host.activity)
         dates.addView(host.button("‹") { day = day.minusDays(1); render() })
         dates.addView(host.button(day.format(dateFormat)) {
@@ -70,9 +89,24 @@ internal class StudioCalendarPanel(private val host: StudioPanelHost, private va
         val dialog = AlertDialog.Builder(host.activity).setTitle("Studio time zone")
             .setView(field).setPositiveButton("Save", null).setNegativeButton("Cancel", null).create()
         dialog.setOnShowListener { dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
-            val candidate = field.text.toString().trim()
-            host.load({ store.setStudioZone(candidate); store.studioZone() }) { selected ->
-                zone = selected; day = LocalDate.now(zone); dialog.dismiss(); render()
+            val candidate = runCatching { ZoneId.of(field.text.toString().trim()).id }.getOrElse {
+                host.onError("Enter a valid IANA time zone."); return@setOnClickListener
+            }
+            dialog.getButton(AlertDialog.BUTTON_POSITIVE).isEnabled = false
+            ++zoneLoadGeneration
+            zoneReady = false
+            zoneSaving = true
+            render()
+            host.load({ runCatching { store.setStudioZone(candidate); store.studioZone() } }) { result ->
+                zoneSaving = false
+                result.onSuccess { selected ->
+                    zone = selected; day = LocalDate.now(zone); zoneReady = true
+                    dialog.dismiss(); render()
+                }.onFailure { error ->
+                    dialog.getButton(AlertDialog.BUTTON_POSITIVE).isEnabled = true
+                    loadZone()
+                    host.onError(error.message ?: "The studio time zone could not be saved.")
+                }
             }
         } }
         dialog.show()
