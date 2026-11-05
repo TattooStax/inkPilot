@@ -10,6 +10,7 @@ import android.telecom.TelecomManager
 internal object PhoneRoleSetup {
     fun held(context: Context) = context.getSystemService(TelecomManager::class.java).defaultDialerPackage == context.packageName
     fun request(activity: Activity) {
+        if (!PhoneCallAlerts.ensure(activity)) return
         val telecom = activity.getSystemService(TelecomManager::class.java)
         activity.getSharedPreferences("phone_role", 0).edit().putString("previous", telecom.defaultDialerPackage).apply()
         val intent = if (Build.VERSION.SDK_INT >= 29) {

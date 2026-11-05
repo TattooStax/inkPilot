@@ -1,7 +1,6 @@
 package org.fossify.messages.inkpilot.phone
 
 import android.app.Notification
-import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Intent
@@ -16,7 +15,6 @@ class StudioInCallService : InCallService() {
         var current: StudioInCallService? = null
             private set
         private const val NOTICE = 720
-        private const val CHANNEL = "manual_calls"
     }
     private val tracked = linkedSetOf<Call>()
     val activeCalls: List<Call> get() = tracked.toList()
@@ -46,12 +44,12 @@ class StudioInCallService : InCallService() {
         val manager = getSystemService(NotificationManager::class.java)
         if (tracked.isEmpty()) { manager.cancel(NOTICE); return }
         // Identity is deliberately absent even from unlocked notifications; no stale lock-screen text.
-        manager.createNotificationChannel(NotificationChannel(CHANNEL, "Phone calls", NotificationManager.IMPORTANCE_HIGH))
+        PhoneCallAlerts.createChannel(manager)
         val intent = Intent(this, ManualCallActivity::class.java)
             .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP)
         val pending = PendingIntent.getActivity(this, NOTICE, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
         val incoming = tracked.any { it.state == Call.STATE_RINGING }
-        val notification = Notification.Builder(this, CHANNEL)
+        val notification = Notification.Builder(this, PhoneCallAlerts.CHANNEL)
             .setSmallIcon(R.drawable.inkpilot_nav_phone)
             .setContentTitle(if (incoming) "Incoming phone call" else "Phone call")
             .setContentText("Tap for manual call controls")

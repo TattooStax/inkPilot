@@ -18,6 +18,10 @@ internal class PhonePanel(
         body.addView(StudioUi.text(activity, "SIM calls are controlled by you. No AI answering or call audio capture.", 14f))
         val held = actions.held()
         body.addView(StudioUi.text(activity, if (held) "inkPilot is your Phone app" else "Your existing Phone app handles calls"))
+        PhoneCallAlerts.blocker(activity)?.let { block ->
+            body.addView(StudioUi.text(activity, block.guidance))
+            body.addView(StudioUi.button(activity, block.action) { PhoneCallAlerts.address(activity) })
+        }
         body.addView(StudioUi.button(activity, if (held) "Restore previous Phone app" else "Choose inkPilot as Phone app") {
             runCatching { if (held) actions.restore() else actions.request() }
                 .onFailure { StudioUi.error(activity, "Open Android Default apps settings to choose a Phone app.") }

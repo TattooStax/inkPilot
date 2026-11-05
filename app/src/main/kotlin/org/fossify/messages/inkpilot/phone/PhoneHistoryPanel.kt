@@ -27,6 +27,10 @@ internal class PhoneHistoryPanel(
         body.addView(StudioUi.text(activity, "Call history", HISTORY_TITLE_SP, true))
         if (!PhoneRoleSetup.held(activity)) {
             body.addView(StudioUi.text(activity, "Choose inkPilot as your Phone app to see recent calls here."))
+            PhoneCallAlerts.blocker(activity)?.let { block ->
+                body.addView(StudioUi.text(activity, block.guidance))
+                body.addView(StudioUi.button(activity, block.action) { PhoneCallAlerts.address(activity) })
+            }
             body.addView(StudioUi.button(activity, "Choose inkPilot as Phone app") { PhoneRoleSetup.request(activity) })
         } else if (ContextCompat.checkSelfPermission(activity, Manifest.permission.READ_CALL_LOG) !=
             PackageManager.PERMISSION_GRANTED) {
