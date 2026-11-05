@@ -163,8 +163,9 @@ file before adding to one that is near its baseline or the cap.
    a manual hardware gate and is never inferred from carrier acceptance.
 4. **Studio workflow:** five-tab shell, contact editing, albums,
    artist calendar and simple memory administration, built in small
-   independently verified changes. Basic CRUD is implemented; hours,
-   time off, reminders, appointment editing and image record links remain.
+   independently verified changes. Hours, time off, reminders,
+   appointment editing and image record links are implemented in source;
+   the complete lead-to-appointment device path remains unqualified.
 5. **Optional integrations:** OpenFang adapter after the standalone
    loop passes; voice only after proving an audio-access path.
 

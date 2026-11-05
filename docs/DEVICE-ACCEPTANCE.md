@@ -118,7 +118,15 @@ It differs from the installed signer and is not a manual internal-beta candidate
 The canonical `app.inkpilot.android` package was absent in the read-only
 preflight. A signed canonical candidate with stable key has not been built or
 verified. The exact future candidate needs its own signer/package comparison;
-no physical install or role change has occurred.
+no physical install or role change had occurred at that preflight.
+
+A later controlled test installed a disposable preview package alongside the
+existing debug app, briefly selected it as the default SMS app, and sent one
+synthetic SMS from its in-shell composer. Android's native sent-message provider
+recorded one matching outgoing row; recipient delivery was not confirmed. The
+previous InkPilot debug app was restored as SMS role holder, OnePlus Dialer
+remained the Phone role holder, and the disposable preview was uninstalled.
+This exploratory test is not an exact signed-candidate or carrier-matrix pass.
 
 - Install the APK, choose inkPilot as default SMS, grant permissions,
   import the tested model, add current guidance, and enable drafting.

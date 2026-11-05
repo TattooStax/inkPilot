@@ -45,8 +45,9 @@ Ambiguous attempts are retained and never retried automatically.
 After installing weights, drafting and studio records work without an
 internet connection. Carrier service is still needed for SMS/calls, and
 MMS may require mobile data. Ordinary human calling is implemented;
-AI cellular voice and vision are not implemented. Native SMS/MMS screens
-are inherited; agent intake currently handles SMS text only.
+AI cellular voice and vision are not implemented. The five-tab shell has
+in-app SMS/MMS threads and a composer; each entry route still needs device
+acceptance. Agent intake currently handles SMS text only.
 
 ## Boundaries and remaining work
 
@@ -55,10 +56,11 @@ permissions, UI, and carrier I/O stay in `:app`; `:local-inference` owns
 JNI/model execution. `:transport` preserves the inherited SMS bridge.
 OpenFang is a future optional adapter, never a startup/runtime dependency.
 
-Calendar reminders, working-hours/time-off rules, rescheduling UI,
-image-to-contact/project links, automatic memory suggestions, and the
-OpenFang adapter remain unimplemented. Model quality, battery/thermal
-behavior, real SIM delivery, and MMS need physical-device acceptance.
+Calendar hours, time off, reminders, appointment editing and linked
+image records have source implementations; their full staff workflow still
+needs device acceptance. Automatic memory suggestions and the OpenFang
+adapter remain future work. Model quality, battery/thermal behavior,
+real SIM delivery, MMS and complete backup/restore remain beta gates.
 
 - [Architecture](docs/ARCHITECTURE.md)
 - [Plan and milestone gates](docs/INKPILOT-PLAN.md)
