@@ -1,0 +1,93 @@
+name: inkPilot Phone controls focused
+
+on:
+  push:
+    branches: [test/phone-outgoing-focused]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: inkpilot-phone-controls-focused
+  cancel-in-progress: true
+
+jobs:
+  phone:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    env:
+      CMAKE_BUILD_PARALLEL_LEVEL: '2'
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 2
+      - name: Verify exact Phone candidate and file ratchet
+        run: |
+          test "$(git rev-parse HEAD^)" = 8285c07d1367ecc17788cc5518f46899a1e52f40
+          git diff --name-only HEAD^ HEAD | sort > /tmp/phone-focused-delta
+          printf '%s\n' .github/workflows/phone-focused-emulator.yml | diff -u - /tmp/phone-focused-delta
+          python3 scripts/verify_app_identity.py
+          scripts/check-file-size-ratchet.sh
+      - name: Reclaim hosted runner toolchains
+        run: |
+          df -h "$GITHUB_WORKSPACE"
+          sudo rm -rf -- /usr/share/dotnet /opt/ghc /usr/local/.ghcup /usr/local/share/boost /opt/hostedtoolcache/CodeQL
+      - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3 # v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@9fc6c4e9069bf8d3d10b2204b1fb8f6ef7065407 # v3
+        with:
+          packages: platform-tools
+          log-accepted-android-sdk-licenses: false
+      - uses: gradle/actions/setup-gradle@ed408507eac070d1f99cc633dbcf757c94c7933a # v4
+      - name: Install pinned native build toolchain
+        run: |
+          staging="$RUNNER_TEMP/phone-ndk"
+          for attempt in 1 2; do
+            mkdir -p "$staging/user"
+            cp -a "$ANDROID_HOME/licenses" "$staging/licenses"
+            if ANDROID_USER_HOME="$staging/user" sdkmanager --sdk_root="$staging" --install 'ndk;28.2.13676358' &&
+              grep -Eq '^Pkg.Revision[[:space:]]*=[[:space:]]*28\.2\.13676358[[:space:]]*$' "$staging/ndk/28.2.13676358/source.properties"; then
+              mkdir -p "$ANDROID_HOME/ndk"
+              rm -rf -- "$ANDROID_HOME/ndk/28.2.13676358"
+              mv "$staging/ndk/28.2.13676358" "$ANDROID_HOME/ndk/"
+              exit 0
+            fi
+            rm -rf -- "$staging"
+            if (( attempt == 2 )); then exit 1; fi
+            sleep 10
+          done
+      - name: Build candidate and fake Telecom instrumentation
+        run: >-
+          ./gradlew :app:assembleFossDebug :app:assembleFossDebugAndroidTest
+          --console=plain --no-daemon --max-workers=2
+          -Dorg.gradle.jvmargs=-Xmx3g -PinkpilotAbi=x86_64
+      - name: Enable emulator acceleration
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Run manual Phone UI classes on disposable emulator
+        uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2
+        with:
+          api-level: 35
+          arch: x86_64
+          target: google_apis
+          ram-size: 2048M
+          disk-size: 2048M
+          emulator-boot-timeout: 300
+          disable-animations: true
+          emulator-options: -no-window -no-snapshot -noaudio -no-boot-anim -gpu swiftshader_indirect -camera-back none
+          script: |
+            adb -s emulator-5554 install -r app/build/outputs/apk/foss/debug/*.apk
+            adb -s emulator-5554 shell cmd role add-role-holder --user 0 android.app.role.SMS app.inkpilot.android.debug
+            scripts/run-inkpilot-test-class.sh emulator-5554 org.fossify.messages.inkpilot.phone.ManualDialUiTest
+            scripts/run-inkpilot-test-class.sh emulator-5554 org.fossify.messages.inkpilot.phone.ManualCallUiTest
+      - name: Upload redacted class verdicts
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: inkPilot-phone-focused-controls
+          path: app/build/test-class-evidence/org.fossify.messages.inkpilot.phone.Manual*UiTest/result.txt
+          if-no-files-found: warn
