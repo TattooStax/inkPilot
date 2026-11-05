@@ -55,13 +55,14 @@ class FocusedReviewRouteTest {
                 SmokeViews.assertText(body)
                 SmokeViews.assertText("Choose business SIM")
                 SmokeViews.assertText("Historical text for staff context")
-                SmokeViews.assertText("Model draft approval is unavailable. Reply directly in the conversation.")
                 it.onActivity { activity ->
                     fun descendants(view: View): List<View> = listOf(view) + if (view is ViewGroup)
                         (0 until view.childCount).flatMap { index -> descendants(view.getChildAt(index)) } else emptyList()
                     val controls = descendants(activity.findViewById(org.fossify.messages.R.id.inkpilot_canvas))
                         .filterIsInstance<TextView>()
                     val labels = controls.map { view -> view.text.toString() }
+                    assertTrue("Unqualified history includes direct-reply guidance",
+                        "Model draft approval is unavailable. Reply directly in the conversation." in labels)
                     assertFalse("Focused review must not render the regular composer",
                         "Attach image (up to 1 MiB)" in labels)
                     assertFalse("Old model text cannot choose a SIM",
