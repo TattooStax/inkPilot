@@ -88,6 +88,63 @@ class StudioLeadIntakeTest : StudioDatabaseTestBase() {
             arrayOf(original.eventId))
         assertNull(repository.readEvidence(reviewed.request)?.reviewedLeadIntake)
         assertFalse(BoundedIntentReplyRenderer.eligible(repository.readEvidence(reviewed.request)))
+        assertTrue(repository.leadIntakeTargets().single().hasStoredReview)
+        val cleared = repository.clearLeadIntake(reviewed.request) as LeadIntakeReviewResult.Saved
+        assertEquals(reviewed.request.expectedRevision + 1, cleared.request.expectedRevision)
+        assertNull(repository.readEvidence(cleared.request)?.reviewedLeadIntake)
+        assertFalse(repository.leadIntakeTargets().single().hasStoredReview)
+    }
+
+    @Test fun staleStoredReviewCanBeClearedWithoutBecomingEvidence() {
+        val original = inbound()
+        val reviewed = repository.reviewLeadIntake(original, ReplyLanguage.EN,
+            setOf(LeadQuestion.SIZE)) as LeadIntakeReviewResult.Saved
+        repository.saveMemory(original.contactId, "Staff changed context")
+        val current = reviewed.request.copy(expectedRevision = repository.contact(original.contactId)!!.revision)
+        assertNull(repository.readEvidence(current)?.reviewedLeadIntake)
+        assertTrue(repository.leadIntakeTargets().single().hasStoredReview)
+        val cleared = repository.clearLeadIntake(current) as LeadIntakeReviewResult.Saved
+        assertEquals(current.expectedRevision + 1, cleared.request.expectedRevision)
+        assertFalse(repository.leadIntakeTargets().single().hasStoredReview)
+        repository.database.rawQuery("SELECT COUNT(*) FROM lead_intake_reviews", null).use {
+            assertTrue(it.moveToFirst()); assertEquals(0, it.getInt(0))
+        }
+    }
+
+    @Test fun inactiveReviewBlocksQueuedRawWorkerBeforeAnyHeldDraft() {
+        val original = inbound()
+        val reviewed = repository.reviewLeadIntake(original, ReplyLanguage.EN,
+            setOf(LeadQuestion.SIZE)) as LeadIntakeReviewResult.Saved
+        assertEquals(original.eventId, repository.pendingRequests().single().eventId)
+        val source = repository.readSource(original.eventId)
+        assertTrue(repository.blockInactiveLeadScope(reviewed.request))
+        assertEquals(source, repository.readSource(original.eventId))
+        assertTrue(repository.pendingRequests().isEmpty())
+        assertEquals("REVIEW_SCOPE_UNAVAILABLE", repository.staffAttention().single().reason)
+        assertTrue(repository.heldDrafts().isEmpty())
+        repository.database.rawQuery("SELECT COUNT(*) FROM send_claims", null).use {
+            assertTrue(it.moveToFirst()); assertEquals(0, it.getInt(0))
+        }
+    }
+
+    @Test fun inactiveReviewBlocksExplicitRawRegenerationAfterHeldDraft() {
+        val original = inbound()
+        held(original)
+        val reviewed = repository.reviewLeadIntake(original, ReplyLanguage.EN,
+            setOf(LeadQuestion.PLACEMENT)) as LeadIntakeReviewResult.Saved
+        val source = repository.readSource(original.eventId)
+        assertEquals(DraftRegenerationOutcome.ReviewScopeUnavailable,
+            repository.regenerate(original.eventId, reviewed.request.expectedRevision))
+        assertEquals(source, repository.readSource(original.eventId))
+        assertTrue(repository.pendingRequests().isEmpty())
+        assertFalse(repository.heldDrafts().single().canReview)
+        repository.database.rawQuery("SELECT COUNT(*) FROM draft_regenerations WHERE event_id = ?",
+            arrayOf(original.eventId)).use {
+            assertTrue(it.moveToFirst()); assertEquals(0, it.getInt(0))
+        }
+        repository.database.rawQuery("SELECT COUNT(*) FROM send_claims", null).use {
+            assertTrue(it.moveToFirst()); assertEquals(0, it.getInt(0))
+        }
     }
 
     @Test fun aClaimedSendCannotAcquireFreshLeadAuthority() {

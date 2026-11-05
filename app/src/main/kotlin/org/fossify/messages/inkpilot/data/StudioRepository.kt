@@ -27,8 +27,9 @@ class StudioRepository(context: Context, databaseName: String = DATABASE_NAME) :
     ): DraftRequest = db.recordStudioInbound(eventId, threadId, number, body, displayName, receivedAt, subscriptionId)
 
     /** Authorizes a new held generation; never submits a message. */
-    fun regenerate(eventId: String, expectedRevision: Long): DraftRegenerationOutcome =
-        db.regenerateStudioDraft(eventId, expectedRevision)
+    fun regenerate(
+        eventId: String, expectedRevision: Long, allowStoredLeadReview: Boolean = false,
+    ): DraftRegenerationOutcome = db.regenerateStudioDraft(eventId, expectedRevision, allowStoredLeadReview)
 
     fun intakeCheckpoint(): Long = db.rawQuery("SELECT provider_id FROM intake_checkpoint WHERE id = 1", null).use {
         check(it.moveToFirst()); it.getLong(0)

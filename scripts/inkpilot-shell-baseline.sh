@@ -63,6 +63,9 @@ run_class org.fossify.messages.inkpilot.studio.StudioAvailabilityTest
 run_class org.fossify.messages.inkpilot.studio.StudioCalendarUiTest
 run_class org.fossify.messages.inkpilot.studio.StudioReminderGateTest
 run_class org.fossify.messages.inkpilot.data.StudioProposalTest
+run_class org.fossify.messages.inkpilot.data.StudioLeadIntakeTest
+run_class org.fossify.messages.inkpilot.data.StudioLeadIntakeMigrationTest
+run_class org.fossify.messages.inkpilot.ui.LeadIntakeReviewUiTest
 run_class org.fossify.messages.inkpilot.smoke.ModelQualificationTest
 run_class org.fossify.messages.inkpilot.smoke.OneShellAcceptanceTest
 run_class org.fossify.messages.inkpilot.phone.PhoneRoleQualificationTest

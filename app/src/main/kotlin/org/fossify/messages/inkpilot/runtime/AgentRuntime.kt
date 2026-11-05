@@ -20,10 +20,11 @@ import inkpilot.agent.LocalDraftModel
 import inkpilot.inference.LlamaDraftModel
 import org.fossify.messages.inkpilot.data.StudioRepository
 import org.fossify.messages.inkpilot.data.readEvidence
+import org.fossify.messages.inkpilot.data.blockInactiveLeadScope
 
 object AgentRuntime {
     // The bounded route stays off until blind model and device qualification pass.
-    private const val BOUNDED_INTENT_QUALIFIED = false
+    internal const val BOUNDED_INTENT_QUALIFIED = false
     internal val inferenceLock = Any()
 
     fun importModel(context: Context, uri: Uri): String = ModelFiles.import(context.applicationContext, uri)
@@ -34,7 +35,9 @@ object AgentRuntime {
     }
 
     fun regenerate(context: Context, eventId: String, expectedRevision: Long): org.fossify.messages.inkpilot.data.DraftRegenerationOutcome {
-        val result = StudioRepository(context).use { it.regenerate(eventId, expectedRevision) }
+        val result = StudioRepository(context).use {
+            it.regenerate(eventId, expectedRevision, allowStoredLeadReview = BOUNDED_INTENT_QUALIFIED)
+        }
         if (result is org.fossify.messages.inkpilot.data.DraftRegenerationOutcome.Held) runPending(context)
         return result
     }
@@ -93,6 +96,11 @@ object AgentRuntime {
         var needsAttention = false
         for (request in repository.pendingRequests(limit = 3)) {
             if (cancellation() || !repository.isDraftingEnabled()) break
+            if (!BOUNDED_INTENT_QUALIFIED && repository.blockInactiveLeadScope(request)) {
+                settings.recordStatus("Lead review inactive for local drafts. Staff should reply directly.")
+                needsAttention = true
+                continue
+            }
             val model = LocalDraftModel { prompt, stop ->
                 val instructions = if (BOUNDED_INTENT_QUALIFIED) prompt.instructions
                     else prompt.instructions + "\nStudio guide:\n" + repository.soul()

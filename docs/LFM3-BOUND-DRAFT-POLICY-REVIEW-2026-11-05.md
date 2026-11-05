@@ -55,14 +55,20 @@ apply. Studio DB v8 now stores a staff UI review for one current event, with
 revision, contact, thread, reply language, and reviewed missing fields. Save,
 correction, and clearing bump the contact revision atomically so an in-flight
 old question cannot be held. Reads require every recorded scope field to
-match the current source. The Drafts side card exposes setup, correction,
-and clearing. The local UI action is recorded as `STAFF_UI` with a timestamp;
+match the current source. The setup and correction dialog is staged but its
+Drafts side card entry is hidden while the selector flag is false. The local UI
+action is recorded as `STAFF_UI` with a timestamp;
 there is no individual staff account identity or external attestation.
 
-The feature flag remains false, so reviewed scope does not change the live
-raw-draft route. Previously held raw drafts still return `ALREADY_HELD` and
-remain visible for staff review until staff dismisses them or source revision
-changes; the new renderer does not retroactively certify those bodies. The
+The feature flag remains false. A stored review blocks the RAW worker before
+inference and records a durable staff task, including when there was no prior
+held draft. Explicit regeneration of an event with a stored review returns
+`ReviewScopeUnavailable` from the database transaction; ordinary unscoped
+draft regeneration remains available. Clearing a stale or tampered row for
+the exact current event deletes its metadata without granting it model
+authority. A scope edit bumps the source revision and makes an older held RAW
+draft stale; staff must dismiss it or reply directly. The new renderer does
+not retroactively certify those bodies. The
 existing `VerifiedDraftFact` types remain unused by this renderer; their
 nonblank source IDs are not proof of verified prices or appointments. No
 claims may be derived from them.
