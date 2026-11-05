@@ -1,6 +1,7 @@
 package org.fossify.messages.inkpilot.data
 
 import inkpilot.agent.DraftStoreResult
+import org.fossify.messages.inkpilot.runtime.heldDraftForSend
 import org.junit.Assert.*
 import org.junit.Test
 
@@ -17,6 +18,12 @@ class ThreadDraftLookupTest : StudioDatabaseTestBase() {
         reopen()
         assertEquals(original.draftId, repository.draftsForThread(42).single().draftId)
         assertEquals(original.body, repository.draft(original.draftId)?.body)
-        assertNull(repository.draft("does-not-exist"))
+        assertFalse(repository.heldDrafts().any { it.draftId == original.draftId })
+        assertEquals(original.draftId, repository.heldDraftForSend(original.draftId)?.draftId)
+        assertNull(repository.heldDraftForSend("does-not-exist"))
+        val claim = requireNotNull(repository.claimDraftForSend(original.draftId, original.body, "Staff reply", 3))
+        assertEquals("Staff reply", claim.body)
+        assertNull(repository.heldDraftForSend(original.draftId))
+        assertNull(repository.claimDraftForSend(original.draftId, original.body, "Replay", 3))
     }
 }
