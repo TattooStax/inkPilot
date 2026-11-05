@@ -1,11 +1,13 @@
 package org.fossify.messages.inkpilot.phone
 
+import android.content.Intent
 import android.telecom.Call
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
 import android.widget.TextView
 import androidx.test.core.app.ActivityScenario
+import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import org.junit.Assert.*
 import org.junit.Test
@@ -26,6 +28,16 @@ class ManualCallUiTest {
     private fun texts(view: View): List<String> =
         (if (view is TextView) listOf(view.text.toString()) else emptyList()) +
             (if (view is ViewGroup) (0 until view.childCount).flatMap { texts(view.getChildAt(it)) } else emptyList())
+
+    @Test fun requestedOutgoingCallWaitsForTelecomInsteadOfShowingEndedImmediately() {
+        val context = ApplicationProvider.getApplicationContext<android.content.Context>()
+        val intent = Intent(context, ManualCallActivity::class.java)
+            .putExtra(ManualCallActivity.OUTGOING_REQUEST, true)
+        ActivityScenario.launch<ManualCallActivity>(intent).use { scenario -> scenario.onActivity { activity ->
+            assertTrue(texts(activity.window.decorView).contains("Opening call controls…"))
+            assertFalse(texts(activity.window.decorView).contains("Call ended"))
+        } }
+    }
 
     @Test fun incomingOngoingMultipleCallControlsAndPrivacyTransitions() {
         ActivityScenario.launch(ManualCallActivity::class.java).use { scenario -> scenario.onActivity { activity ->

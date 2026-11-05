@@ -13,11 +13,11 @@ internal class ManualCallScreen(private val activity: Activity, private val unlo
     private var position = 0
     private val wanted = mutableSetOf<String>()
 
-    fun update(controller: ManualCallController?, locked: Boolean) {
+    fun update(controller: ManualCallController?, locked: Boolean, noCallLabel: String = "Call ended") {
         position = 0; wanted.clear()
         val calls = controller?.calls().orEmpty()
         if (calls.isEmpty()) {
-            row("ended", "Call ended")
+            row("ended", noCallLabel)
             row("close", "Close", close)
         }
         if (locked && calls.isNotEmpty()) row("unlock", "Unlock caller details", unlock)

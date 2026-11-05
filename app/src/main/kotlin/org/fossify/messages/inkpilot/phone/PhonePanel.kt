@@ -11,6 +11,12 @@ internal class PhonePanel(
     private val actions: ManualDialActions = AndroidDialActions(activity),
     private val openHistory: () -> Unit = {},
     private val openContacts: () -> Unit = {},
+    private val openCallControls: (Boolean) -> Unit = { outgoing ->
+        activity.startActivity(Intent(activity, ManualCallActivity::class.java).apply {
+            if (outgoing) putExtra(ManualCallActivity.OUTGOING_REQUEST, true)
+        })
+    },
+    private val hasActiveCall: () -> Boolean = { StudioInCallService.current?.activeCalls?.isNotEmpty() == true },
 ) {
     fun view(initial: String = ""): View {
         val body = StudioUi.column(activity)
@@ -37,13 +43,14 @@ internal class PhonePanel(
             if (value.isEmpty()) return@button
             if (!actions.held()) actions.unavailable()
             else if (!actions.permitted()) actions.requestPermission()
-            else actions.place(value)
+            else if (actions.place(value) == ManualDialResult.LOCAL_CONTROLS) openCallControls(true)
         })
         body.addView(StudioUi.button(activity, "Call history", openHistory))
         body.addView(StudioUi.button(activity, "Contacts", openContacts))
-        if (StudioInCallService.current?.activeCalls?.isNotEmpty() == true) {
-            body.addView(StudioUi.button(activity, "Return to call") {
-                activity.startActivity(Intent(activity, ManualCallActivity::class.java))
+        if (held) {
+            body.addView(StudioUi.button(activity, "Call controls") {
+                if (hasActiveCall()) openCallControls(false)
+                else StudioUi.error(activity, "No active inkPilot call controls are available.")
             })
         }
         return StudioUi.scroll(activity, body)
