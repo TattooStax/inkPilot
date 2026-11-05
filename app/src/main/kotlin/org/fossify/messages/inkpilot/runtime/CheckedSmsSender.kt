@@ -17,10 +17,13 @@ internal fun StudioRepository.heldDraftForSend(draftId: String) =
     draft(draftId)?.takeIf { it.status == "HELD" && it.canReview }
 
 /** Staff approval is the only caller. No worker or model can reach this send action. */
-internal class CheckedSmsSender(private val context: Context) {
+internal class CheckedSmsSender(
+    private val context: Context,
+    private val repositories: () -> StudioRepository = { StudioRepository(context) },
+) {
     fun approveAndSend(draftId: String, editedBody: String, subscriptionId: Int): String {
         require(editedBody.isNotBlank() && editedBody.length <= 800) { "Replies must be between 1 and 800 characters." }
-        val draft = StudioRepository(context).use { it.heldDraftForSend(draftId) }
+        val draft = repositories().use { it.heldDraftForSend(draftId) }
             ?: error("This draft is no longer waiting for approval.")
         if (draft.rendererPolicy != inkpilot.agent.DraftRendererPolicy.STAFF_QUESTION_V1) {
             check(AgentSettings(context).enabled) { "Model drafts are unqualified. Reply directly in the conversation." }
@@ -35,7 +38,7 @@ internal class CheckedSmsSender(private val context: Context) {
         val manager = SmsManager.getSmsManagerForSubscriptionId(subscriptionId)
         val parts = manager.divideMessage(editedBody)
         require(parts.size in 1..32) { "This reply cannot be sent as SMS." }
-        StudioRepository(context).use { repository ->
+        repositories().use { repository ->
             val claim = repository.claimDraftForSend(draftId, draft.body, editedBody, subscriptionId)
                 ?: error("This conversation changed or was paused. Review it again before sending.")
             var invoked = false

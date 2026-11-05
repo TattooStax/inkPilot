@@ -89,6 +89,29 @@ class StudioStaffQuestionTest : StudioDatabaseTestBase() {
         assertEquals(StaffQuestionResult.Stale, repository.holdStaffQuestion(request, LeadQuestion.STYLE))
     }
 
+    @Test fun dismissedChoiceCanBeReplacedAfterRestartWithoutReusingHistoryOrClaimedRows() {
+        repository.setDraftingEnabled(false)
+        val request = review()
+        val first = (repository.holdStaffQuestion(request, LeadQuestion.SIZE) as StaffQuestionResult.Held).draftId
+        assertTrue(repository.dismissDraft(first))
+        reopen()
+        val replacement = (repository.holdStaffQuestion(request, LeadQuestion.DATE) as StaffQuestionResult.Held).draftId
+        assertFalse(first == replacement)
+        val target = requireNotNull(repository.staffQuestionTarget(42))
+        assertEquals(request.expectedRevision + 1, target.request.expectedRevision)
+        assertEquals(setOf(LeadQuestion.SIZE, LeadQuestion.DATE), target.reviewed?.missingQuestions)
+        assertEquals("DISMISSED", repository.database.rawQuery("SELECT state FROM held_drafts WHERE draft_id=?",
+            arrayOf(first)).use { it.moveToFirst(); it.getString(0) })
+        assertEquals(StaffQuestionResult.Held(replacement),
+            repository.holdStaffQuestion(target.request, LeadQuestion.DATE))
+        val held = requireNotNull(repository.draft(replacement))
+        assertTrue(held.canReview)
+        assertNotNull(repository.claimDraftForSend(replacement, held.body, held.body, 3))
+        assertEquals(StaffQuestionResult.Stale, repository.holdStaffQuestion(target.request, LeadQuestion.SIZE))
+        assertNull(repository.claimDraftForSend(first, "Gracias por escribirnos. ¿Qué tamaño tienes en mente?",
+            "Reopen", 3))
+    }
+
     @Test fun concurrentSelectionHasExactlyOneDurableQuestion() {
         val request = review(setOf(LeadQuestion.SIZE))
         val start = CountDownLatch(1)

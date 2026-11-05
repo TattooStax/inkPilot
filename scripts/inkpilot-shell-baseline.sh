@@ -50,6 +50,10 @@ run_class org.fossify.messages.inkpilot.studio.StudioImageOrphanRecoveryTest
 run_class org.fossify.messages.inkpilot.data.StudioArchiveTest
 run_class org.fossify.messages.inkpilot.data.StudioDraftPolicyMigrationTest
 run_class org.fossify.messages.inkpilot.data.StudioDraftPolicyTest
+run_class org.fossify.messages.inkpilot.data.StudioStaffQuestionMigrationTest
+run_class org.fossify.messages.inkpilot.data.StudioStaffQuestionTest
+run_class org.fossify.messages.inkpilot.ui.StaffQuestionReviewUiTest
+run_class org.fossify.messages.inkpilot.runtime.StaffQuestionCheckedSendTest
 run_class org.fossify.messages.inkpilot.data.StudioArchiveCleanupNoticeTest
 run_class org.fossify.messages.inkpilot.ui.StudioStaffAttentionTest
 run_class org.fossify.messages.inkpilot.ui.StudioArchiveHandoffTest
