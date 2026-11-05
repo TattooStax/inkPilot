@@ -25,6 +25,7 @@ import org.fossify.commons.extensions.appLaunched
 import org.fossify.messages.inkpilot.data.StudioArchiveCleanupNotice
 import org.fossify.messages.inkpilot.data.StudioArchiveExporter
 import org.fossify.messages.inkpilot.data.StudioRepository
+import org.fossify.messages.inkpilot.data.saveStaffEdit
 import org.fossify.messages.inkpilot.studio.StudioPanels
 import java.util.concurrent.Executors
 
@@ -235,7 +236,8 @@ class StudioHomeActivity : AppCompatActivity() {
         val root = StudioUi.column(this, 0)
         work.load({ repository.draftsForThread(threadId) }) { drafts ->
             prioritizeThreadDrafts(drafts, selectedDraftId).forEachIndexed { index, draft ->
-                root.addView(InlineDraftReview(this, work, ::refreshPanels, repository::saveStaffEdit).view(draft), index)
+                val review = InlineDraftReview(this, work, ::refreshPanels, repository::saveStaffEdit)
+                root.addView(review.view(draft), index)
             }
         }
         root.addView(ThreadComposer(this, work, ::pickAttachment, ::refreshPanels, ::openRoute,

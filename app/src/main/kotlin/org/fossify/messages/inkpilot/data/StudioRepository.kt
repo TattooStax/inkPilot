@@ -116,8 +116,6 @@ class StudioRepository(context: Context, databaseName: String = DATABASE_NAME) :
 
     fun dismissDraft(draftId: String): Boolean = db.dismissStudioDraft(draftId)
 
-    fun saveStaffEdit(draftId: String, body: String): Boolean = db.saveStudioStaffEdit(draftId, body)
-
     fun invalidateAllPending() { db.execSQL("UPDATE studio_contacts SET revision = revision + 1") }
 
     fun isDraftingEnabled(): Boolean = db.studioDraftingEnabled()

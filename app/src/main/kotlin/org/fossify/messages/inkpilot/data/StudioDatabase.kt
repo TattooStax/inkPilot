@@ -18,10 +18,13 @@ private const val STUDIO_V7 = 7
 private const val STUDIO_V8 = 8
 
 /** Business records are never placed in the inherited, destructively rebuildable SMS cache. */
-internal class StudioDatabase(context: Context, name: String,
-                              private val legacyEdits: SharedPreferences? = if (name == StudioRepository.DATABASE_NAME)
-                                  context.applicationContext.getSharedPreferences("held_staff_edits", Context.MODE_PRIVATE) else null) :
-    SQLiteOpenHelper(context, name, null, STUDIO_SCHEMA_VERSION) {
+internal class StudioDatabase(
+    context: Context,
+    name: String,
+    private val legacyEdits: SharedPreferences? = if (name == StudioRepository.DATABASE_NAME) {
+        context.applicationContext.getSharedPreferences("held_staff_edits", Context.MODE_PRIVATE)
+    } else null,
+) : SQLiteOpenHelper(context, name, null, STUDIO_SCHEMA_VERSION) {
     init {
         setWriteAheadLoggingEnabled(true)
     }

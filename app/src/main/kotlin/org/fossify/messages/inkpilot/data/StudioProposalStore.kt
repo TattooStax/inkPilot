@@ -174,7 +174,10 @@ class StudioProposalStore(private val repository: StudioRepository) {
         if (db.rawQuery("SELECT 1 FROM held_drafts WHERE event_id=? AND kind='PROPOSAL_REPLY'",
                 arrayOf(item.eventId)).use { it.moveToFirst() })
             return ProposalActionResult.Conflict("A reply proposal was already reviewed")
-        db.execSQL("UPDATE held_drafts SET state='DISMISSED', staff_edit_body=NULL WHERE event_id=? AND state='HELD'", arrayOf(item.eventId))
+        db.execSQL(
+            "UPDATE held_drafts SET state='DISMISSED', staff_edit_body=NULL WHERE event_id=? AND state='HELD'",
+            arrayOf(item.eventId),
+        )
         val draftId = UUID.randomUUID().toString()
         db.insertOrThrow("held_drafts", null, ContentValues().apply {
             put("draft_id", draftId); put("event_id", item.eventId); put("kind", "PROPOSAL_REPLY")
