@@ -86,7 +86,7 @@
     "app/src/androidTest/kotlin/org/fossify/messages/inkpilot/smoke/InShellComposerTest.kt": 119,
     "app/src/androidTest/kotlin/org/fossify/messages/inkpilot/smoke/InShellThreadTest.kt": 154,
     "app/src/androidTest/kotlin/org/fossify/messages/inkpilot/smoke/LocalLoopSmokeTest.kt": 143,
-    "app/src/androidTest/kotlin/org/fossify/messages/inkpilot/smoke/MmsComposerOutcomeTest.kt": 191,
+    "app/src/androidTest/kotlin/org/fossify/messages/inkpilot/smoke/MmsComposerOutcomeTest.kt": 193,
     "app/src/androidTest/kotlin/org/fossify/messages/inkpilot/smoke/ModelQualificationTest.kt": 49,
     "app/src/androidTest/kotlin/org/fossify/messages/inkpilot/smoke/NativeSendSmokeTest.kt": 125,
     "app/src/androidTest/kotlin/org/fossify/messages/inkpilot/smoke/OneShellAcceptanceTest.kt": 159,

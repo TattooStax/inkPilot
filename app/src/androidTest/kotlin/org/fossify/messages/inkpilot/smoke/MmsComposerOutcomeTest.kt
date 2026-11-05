@@ -10,6 +10,7 @@ import android.widget.EditText
 import android.widget.Button
 import org.fossify.messages.inkpilot.ui.StudioHomeActivity
 import org.fossify.messages.inkpilot.ui.StudioRoute
+import org.fossify.messages.inkpilot.ui.StudioTab
 import org.fossify.messages.inkpilot.ui.prepareInShellComposerSend
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import org.fossify.messages.messaging.ComposerStore
@@ -112,7 +113,7 @@ class MmsComposerOutcomeTest {
                 scenario.onActivity { activity ->
                     activity.composerRoutes.refreshFromProvider()
                     val title = activity.findViewById<android.widget.TextView>(org.fossify.messages.R.id.inkpilot_title)
-                    assertEquals("Messages", title.text.toString())
+                    assertEquals(StudioTab.SMS.label, title.text.toString())
                     assertTrue(descendants(activity.window.decorView).filterIsInstance<EditText>()
                         .none { it.text.toString() == "draft" })
                 }
@@ -137,7 +138,7 @@ class MmsComposerOutcomeTest {
                     activity.composerRoutes.refreshFromProvider()
                     activity.openRoute(StudioRoute.Tab(org.fossify.messages.inkpilot.ui.StudioTab.SMS))
                     val title = activity.findViewById<android.widget.TextView>(org.fossify.messages.R.id.inkpilot_title)
-                    assertEquals("Messages", title.text.toString())
+                    assertEquals(StudioTab.SMS.label, title.text.toString())
                     assertTrue(descendants(activity.window.decorView).filterIsInstance<EditText>()
                         .none { it.text.toString() == "sent caption" })
                 }
@@ -159,7 +160,7 @@ class MmsComposerOutcomeTest {
                 scenario.moveToState(Lifecycle.State.RESUMED)
                 scenario.onActivity { activity ->
                     val title = activity.findViewById<android.widget.TextView>(org.fossify.messages.R.id.inkpilot_title)
-                    assertEquals("Messages", title.text.toString())
+                    assertEquals(StudioTab.SMS.label, title.text.toString())
                     assertFalse(descendants(activity.window.decorView).filterIsInstance<EditText>()
                         .any { it.text.toString() == "already sent" })
                 }
@@ -182,7 +183,8 @@ class MmsComposerOutcomeTest {
             assertTrue(context.getSharedPreferences("durable_composers", 0).edit()
                 .putString("mms-confirmed:$id", request.attemptId).commit())
             val recovered = ComposerStore(context)
-            assertFalse(recovered.isUnknown(id))
+            assertTrue(recovered.hasCompletedCompose(id))
+            assertFalse(recovered.pendingFile(id).exists())
             assertNull(recovered.load(id))
             assertEquals(null, context.getSharedPreferences("durable_composers", 0)
                 .getString("mms-confirmed:$id", null))
