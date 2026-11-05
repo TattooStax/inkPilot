@@ -24,11 +24,12 @@ class CustomerServiceDrafts(
             val source = evidence?.source ?: store.readSource(request.eventId)
                 ?: return stopped(DraftStopReason.SOURCE_MISSING)
             validateSource(request, source)?.let { return stopped(it) }
+            if (!replyRenderer.eligible(evidence)) return stopped(DraftStopReason.UNSAFE_CONTENT)
 
             stage = DraftFailureStage.RECEIPT_READ
             store.findHeldDraft(key)?.let { receipt ->
                 if (cancellation.isCancelled()) return stopped(DraftStopReason.CANCELLED)
-                return if (validReceipt(receipt, source, key)) {
+                return if (replyRenderer.acceptsUnprovenReceipt() && validReceipt(receipt, source, key)) {
                     DraftOutcome.Held(receipt, DraftDisposition.ALREADY_HELD)
                 } else stopped(DraftStopReason.INVALID_RECEIPT)
             }
@@ -41,7 +42,6 @@ class CustomerServiceDrafts(
             if (notes.sumOf { it.text.length.toLong() } > limits.memoryCharacters) return stopped(DraftStopReason.CONTEXT_LIMIT)
             if (cancellation.isCancelled()) return stopped(DraftStopReason.CANCELLED)
 
-            if (!replyRenderer.eligible(evidence)) return stopped(DraftStopReason.UNSAFE_CONTENT)
             stage = DraftFailureStage.MODEL
             val output = model.generate(
                 DraftPrompt(replyRenderer.instructions(evidence) ?: DRAFT_INSTRUCTIONS,
@@ -62,6 +62,9 @@ class CustomerServiceDrafts(
                 DraftStoreResult.SourceChanged -> stopped(DraftStopReason.SOURCE_CHANGED)
                 DraftStoreResult.StaffPaused -> stopped(DraftStopReason.STAFF_PAUSED)
                 is DraftStoreResult.Held -> {
+                    if (result.disposition == DraftDisposition.ALREADY_HELD && !replyRenderer.acceptsUnprovenReceipt()) {
+                        return stopped(DraftStopReason.INVALID_RECEIPT)
+                    }
                     val validBody = result.disposition == DraftDisposition.ALREADY_HELD || result.receipt.body == body
                     if (validReceipt(result.receipt, source, key) && validBody) {
                         DraftOutcome.Held(result.receipt, result.disposition)
