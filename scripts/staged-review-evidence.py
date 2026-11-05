@@ -24,7 +24,8 @@ def main(path):
                     "parentCheckable", "parentChecked", "revision", "stored", "missing", "controls"}
         if set(item) != expected:
             raise ValueError("unexpected diagnostic keys")
-        checked(item["stage"], {"SIZE_TAPPED", "SAVE_CLICKED", "SAVE_WAIT_EXPIRED"})
+        checked(item["stage"], {"SIZE_TAPPED", "SAVE_CLICKED", "SAVE_WAIT_EXPIRED",
+                                "TARGET_CLEAR_TAPPED", "TARGET_CLEAR_WAIT_EXPIRED"})
         checked(item["sizeClass"], {"CHECKED_TEXT", "TEXT", "ABSENT", "OTHER"})
         for key in ("sizeCheckable", "sizeChecked", "parentCheckable", "parentChecked", "stored"):
             if type(item[key]) is not bool:

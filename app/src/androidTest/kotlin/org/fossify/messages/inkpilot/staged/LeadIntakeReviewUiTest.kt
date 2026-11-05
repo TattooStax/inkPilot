@@ -90,7 +90,19 @@ class LeadIntakeReviewUiTest : StudioDatabaseTestBase() {
 
                 openStagedDialog(scenario)
                 clickTarget("Maya · Review saved · Can I book a consultation?")
-                SmokeViews.clickText("Next")
+                recordDiagnostic("TARGET_CLEAR_TAPPED")
+                try {
+                    val instrumentation = InstrumentationRegistry.getInstrumentation()
+                    val next = SmokeViews.await("reply language transition for clear") {
+                        findVisibleText(instrumentation.uiAutomation.rootInActiveWindow, "Next")
+                            ?.takeIf { it.isVisibleToUser && it.isClickable }
+                    }
+                    assertTrue(next.performAction(AccessibilityNodeInfo.ACTION_CLICK))
+                    instrumentation.waitForIdleSync()
+                } catch (failure: AssertionError) {
+                    recordDiagnostic("TARGET_CLEAR_WAIT_EXPIRED")
+                    throw AssertionError("Clear review language dialog unavailable; controls=${visibleControls()}", failure)
+                }
                 SmokeViews.clickText("Clear review")
                 SmokeViews.await("cleared lead question") {
                     repository.leadIntakeTargets().single().takeIf { it.reviewed == null }
