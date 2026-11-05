@@ -27,8 +27,12 @@ internal fun SQLiteDatabase.claimStudioDraft(
 ): SendClaim? {
     require(editedBody.isNotBlank() && editedBody.length <= 800 && subscriptionId >= 0) { "Invalid send proposal" }
     return transaction {
-        rawQuery("""SELECT event_id, body, source_revision, state, thread_id, contact_id, recipient, staff_edit_body
-            FROM held_drafts WHERE draft_id = ?""", arrayOf(draftId)).use {
+        rawQuery(
+            """SELECT d.event_id, d.body, d.source_revision, d.state, d.thread_id, d.contact_id,
+                d.recipient, d.staff_edit_body FROM held_drafts d
+                WHERE d.draft_id = ? AND ${StudioDraftPolicySchema.REVIEWABLE}""",
+            arrayOf(draftId),
+        ).use {
             if (!it.matchesHeldClaim(expectedBody, editedBody)) return@transaction null
             val source = studioSource(it.getString(0)) ?: return@transaction null
             if (!it.matchesClaimSource(source)) return@transaction null

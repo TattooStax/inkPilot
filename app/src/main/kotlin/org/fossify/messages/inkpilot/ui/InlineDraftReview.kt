@@ -4,15 +4,18 @@ import android.widget.EditText
 import androidx.appcompat.app.AppCompatActivity
 import org.fossify.messages.inkpilot.data.ReviewDraft
 import org.fossify.messages.inkpilot.runtime.AgentRuntime
+import inkpilot.agent.DraftRendererPolicy
 
 private const val CLIENT_CONTEXT_LINES = 2
 private const val CLIENT_CONTEXT_SP = 14f
 private const val DRAFT_HEADING_SP = 16f
 
-private fun reviewHeading(): String = if (AgentRuntime.BOUNDED_INTENT_QUALIFIED)
+private fun reviewHeading(draft: ReviewDraft): String = if (AgentRuntime.BOUNDED_INTENT_QUALIFIED &&
+    draft.rendererPolicy != DraftRendererPolicy.LEGACY_RAW)
     "Held assistant reply" else "Earlier unqualified model text"
 
-private fun reviewLabel(): String = if (AgentRuntime.BOUNDED_INTENT_QUALIFIED)
+private fun reviewLabel(draft: ReviewDraft): String = if (AgentRuntime.BOUNDED_INTENT_QUALIFIED &&
+    draft.rendererPolicy != DraftRendererPolicy.LEGACY_RAW)
     "Reply to review" else "Historical text for staff context"
 
 /** Staff approval lives in the thread; the model never calls a send API. */
@@ -21,7 +24,7 @@ internal class InlineDraftReview(private val activity: AppCompatActivity, privat
     fun view(draft: ReviewDraft): android.view.View {
         val canReview = draft.canReview && AgentRuntime.BOUNDED_INTENT_QUALIFIED
         val root = StudioUi.column(activity, 8)
-        root.addView(StudioUi.text(activity, "${reviewHeading()} · ${draft.recipient}", DRAFT_HEADING_SP, true))
+        root.addView(StudioUi.text(activity, "${reviewHeading(draft)} · ${draft.recipient}", DRAFT_HEADING_SP, true))
         root.addView(StudioUi.text(activity, "Client: ${draft.inboundText}", CLIENT_CONTEXT_SP).apply {
             maxLines = CLIENT_CONTEXT_LINES
             ellipsize = android.text.TextUtils.TruncateAt.END
@@ -35,7 +38,7 @@ internal class InlineDraftReview(private val activity: AppCompatActivity, privat
             minLines = 2
             maxLines = 5
         }
-        root.addView(StudioUi.text(activity, reviewLabel(), CLIENT_CONTEXT_SP).apply { labelFor = editor.id })
+        root.addView(StudioUi.text(activity, reviewLabel(draft), CLIENT_CONTEXT_SP).apply { labelFor = editor.id })
         root.addView(editor)
         var sim = -1
         val select = StudioUi.button(activity, "Choose business SIM") {}

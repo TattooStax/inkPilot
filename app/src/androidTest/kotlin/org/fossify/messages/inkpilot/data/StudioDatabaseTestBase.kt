@@ -5,6 +5,7 @@ import androidx.test.core.app.ApplicationProvider
 import inkpilot.agent.DraftKey
 import inkpilot.agent.DraftRequest
 import inkpilot.agent.DraftStoreResult
+import inkpilot.agent.DraftRendererPolicy
 import inkpilot.agent.HeldDraftWrite
 import org.junit.After
 import org.junit.Before
@@ -36,6 +37,7 @@ abstract class StudioDatabaseTestBase {
     protected fun write(request: DraftRequest, body: String = "What day suits you?"): HeldDraftWrite = HeldDraftWrite(
         DraftKey(request.eventId), request.threadId, request.contactId,
         requireNotNull(repository.readSource(request.eventId)).recipient, request.expectedRevision, body,
+        DraftRendererPolicy.BOUNDED_INTENT_V1,
     )
 
     protected fun held(request: DraftRequest = inbound()): ReviewDraft {

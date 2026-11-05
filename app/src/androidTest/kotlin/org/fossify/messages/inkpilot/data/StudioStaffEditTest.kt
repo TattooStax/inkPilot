@@ -115,7 +115,7 @@ class StudioStaffEditTest : StudioDatabaseTestBase() {
             }
             StudioDatabase(context, name, prefs).use { helper ->
                 val upgraded = helper.writableDatabase
-                assertEquals(9, upgraded.version)
+                assertEquals(10, upgraded.version)
                 upgraded.rawQuery("SELECT body, staff_edit_body FROM held_drafts WHERE draft_id='d'", null).use { row ->
                     assertTrue(row.moveToFirst())
                     assertEquals("Original model text", row.getString(0))

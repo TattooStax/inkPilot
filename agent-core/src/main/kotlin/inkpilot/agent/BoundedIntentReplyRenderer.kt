@@ -56,6 +56,13 @@ object BoundedIntentReplyRenderer : DraftReplyRenderer {
 
     override fun eligible(evidence: DraftEvidence?): Boolean = reviewedScope(evidence) != null
 
+    override fun receiptPolicy(): DraftRendererPolicy = DraftRendererPolicy.BOUNDED_INTENT_V1
+
+    override fun acceptsHeldBody(body: String, evidence: DraftEvidence?): Boolean {
+        val scope = reviewedScope(evidence) ?: return false
+        return scope.missingQuestions.any { templates[scope.language]?.get(it) == body }
+    }
+
     override fun instructions(evidence: DraftEvidence?): String? {
         val scope = reviewedScope(evidence) ?: return null
         val choices = scope.missingQuestions.sortedBy { it.name }.joinToString(",") { it.name }

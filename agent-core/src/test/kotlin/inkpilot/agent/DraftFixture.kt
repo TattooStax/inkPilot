@@ -61,4 +61,5 @@ internal class FakeDraftStore(var source: DraftSource?) : HeldDraftStore {
 
 internal fun receiptFor(write: HeldDraftWrite) = HeldDraftReceipt(
     "draft-1", write.key, write.threadId, write.contactId, write.recipient, write.expectedRevision, write.body,
+    write.rendererPolicy,
 )

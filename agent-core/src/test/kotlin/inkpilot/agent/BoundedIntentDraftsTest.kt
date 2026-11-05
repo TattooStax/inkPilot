@@ -174,10 +174,50 @@ class BoundedIntentDraftsTest {
         fixture.store.receipts[write.key] = receiptFor(write)
         val withoutNewReview = evidence(fixture).copy(reviewedLeadIntake = null)
         val outcome = coordinator(fixture, withoutNewReview) { error("Model must not run") }
-            .draft(fixture.request) as DraftOutcome.Held
-        assertEquals(DraftDisposition.ALREADY_HELD, outcome.disposition)
-        assertEquals(oldBody, outcome.receipt.body)
+            .draft(fixture.request)
+        assertEquals(DraftOutcome.Stopped(DraftStopReason.UNSAFE_CONTENT), outcome)
+        assertEquals(oldBody, fixture.store.receipts[write.key]?.body)
         assertEquals(0, fixture.store.holdAttempts)
+
+        val withNewReview = coordinator(fixture, evidence(fixture)) { error("Model must not run") }
+            .draft(fixture.request)
+        assertEquals(DraftOutcome.Stopped(DraftStopReason.INVALID_RECEIPT), withNewReview)
+        assertEquals(oldBody, fixture.store.receipts[write.key]?.body)
+        assertEquals(0, fixture.store.holdAttempts)
+    }
+
+    @Test fun racingLegacyReceiptIsNotAdoptedAfterModelGeneration() {
+        val fixture = DraftFixture()
+        val oldBody = "Your appointment is confirmed."
+        fixture.store.beforeHold = { write ->
+            fixture.store.receipts[write.key] = receiptFor(write.copy(body = oldBody,
+                rendererPolicy = DraftRendererPolicy.LEGACY_RAW))
+        }
+        val result = coordinator(fixture, evidence(fixture)) { "EN:SIZE" }.draft(fixture.request)
+        assertEquals(DraftOutcome.Stopped(DraftStopReason.INVALID_RECEIPT), result)
+        assertEquals(oldBody, fixture.store.receipts[DraftKey(fixture.request.eventId)]?.body)
+        assertEquals(0, fixture.store.inserts)
+    }
+
+    @Test fun boundedReplayUsesStoredRendererProvenance() {
+        val fixture = DraftFixture()
+        val first = coordinator(fixture, evidence(fixture)) { "EN:SIZE" }.draft(fixture.request)
+        assertTrue(first is DraftOutcome.Held)
+        val replay = coordinator(fixture, evidence(fixture)) { error("Model must not run") }.draft(fixture.request)
+        assertTrue(replay is DraftOutcome.Held)
+        assertEquals(DraftDisposition.ALREADY_HELD, (replay as DraftOutcome.Held).disposition)
+        assertEquals(DraftRendererPolicy.BOUNDED_INTENT_V1, replay.receipt.rendererPolicy)
+        assertEquals(1, fixture.store.inserts)
+    }
+
+    @Test fun stampedReceiptWithUnrenderedTextIsRejected() {
+        val fixture = DraftFixture()
+        val write = HeldDraftWrite(DraftKey(fixture.request.eventId), fixture.request.threadId,
+            fixture.request.contactId, fixture.initialSource.recipient, fixture.request.expectedRevision,
+            "Your appointment is confirmed.", DraftRendererPolicy.BOUNDED_INTENT_V1)
+        fixture.store.receipts[write.key] = receiptFor(write)
+        assertEquals(DraftOutcome.Stopped(DraftStopReason.INVALID_RECEIPT),
+            coordinator(fixture, evidence(fixture)) { error("Model must not run") }.draft(fixture.request))
     }
 
     @Test fun heldOutActionPriceImageMedicalAndToolRepliesNeverBecomeDrafts() {

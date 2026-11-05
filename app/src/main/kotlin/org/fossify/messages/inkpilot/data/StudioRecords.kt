@@ -1,5 +1,7 @@
 package org.fossify.messages.inkpilot.data
 
+import inkpilot.agent.DraftRendererPolicy
+
 data class StudioContact(
     val id: String,
     val number: String,
@@ -27,6 +29,7 @@ data class ReviewDraft(
     val status: String = "HELD",
     val sendBody: String? = null,
     val staffEditBody: String? = null,
+    val rendererPolicy: DraftRendererPolicy = DraftRendererPolicy.LEGACY_RAW,
 )
 
 enum class SendStatus { SENDING, SENT, FAILED, UNKNOWN }
