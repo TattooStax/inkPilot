@@ -6,6 +6,7 @@ import android.os.SystemClock
 import android.content.ContentUris
 import android.content.pm.PackageManager
 import android.provider.Telephony
+import android.telephony.SubscriptionManager
 import android.net.Uri
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.work.WorkInfo
@@ -19,6 +20,7 @@ import org.fossify.messages.receivers.NotificationReplyIdentity
 import org.fossify.messages.extensions.getThreadId
 import org.fossify.messages.extensions.getMMS
 import org.fossify.messages.helpers.SmsRole
+import org.fossify.messages.inkpilot.data.StudioRepository
 import org.fossify.messages.transport.LocalMessageTransport
 import org.junit.Assert.*
 import org.junit.Assume.assumeTrue
@@ -29,6 +31,15 @@ import java.util.concurrent.TimeUnit
 @RunWith(AndroidJUnit4::class)
 class CarrierIngressTest {
     private val context get() = InstrumentationRegistry.getInstrumentation().targetContext
+
+    /** Provider writes require a subscription registered on the disposable emulator. */
+    private fun providerSubscriptionId(): Int {
+        val active = context.getSystemService(SubscriptionManager::class.java).activeSubscriptionInfoList.orEmpty()
+        val default = SubscriptionManager.getDefaultSmsSubscriptionId()
+        return active.firstOrNull { it.subscriptionId == default }?.subscriptionId
+            ?: active.firstOrNull()?.subscriptionId
+            ?: error("A registered emulator SMS subscription is required for provider fixtures")
+    }
 
     @Test fun providerInsertFailureRetainsStaffReviewAndDoesNotCreateAgentSource() {
         val sender = "+12025550972"
@@ -43,6 +54,24 @@ class CarrierIngressTest {
             assertEquals("provider_failed", row.reason)
             assertNull(CarrierIngressPolicy.nativeSource(0, 972))
             assertTrue(journal.remove(row.receipt))
+            assertEquals(before, journal.count())
+        }
+    }
+
+    @Test fun thrownNativeProviderInsertRetainsPrivateReviewWithoutAgentSource() {
+        val sender = "+12025550974"
+        val body = "Synthetic provider exception ${System.nanoTime()}"
+        FilteredSmsJournal(context).use { journal ->
+            val before = journal.count()
+            try {
+                SmsReceiver().handleMessageSync(context, sender, "", body, 1_700_000_000_002L,
+                    threadId = 974, subscriptionId = 7, status = -1,
+                    nativeInsert = { throw SecurityException("provider unavailable") })
+                assertEquals(before + 1, journal.count())
+                assertEquals("provider_failed", journal.latest().first { it.body == body }.reason)
+            } finally {
+                journal.latest().filter { it.body == body }.forEach { journal.remove(it.receipt) }
+            }
             assertEquals(before, journal.count())
         }
     }
@@ -106,13 +135,20 @@ class CarrierIngressTest {
         assertTrue(SmsRole.isHeld(context))
         val sender = "+12025550989"
         val token = "inkpilot-admission-${System.nanoTime()}"
-        val bodies = listOf("$token contact lookup", "$token journal unavailable")
+        val bodies = listOf("$token contact lookup", "$token journal unavailable", "$token journal committed then threw")
+        val subscription = providerSubscriptionId()
         try {
             bodies.forEachIndexed { index, body ->
                 val result = SmsReceiver().admitDecodedMessage(
-                    context, sender, "", body, 1_700_000_000_000L + index, 7, -1,
+                    context, sender, "", body, 1_700_000_000_000L + index, subscription, -1,
                     classify = { if (index == 0) error("contact provider denied") else "blocked" },
-                    journal = { if (index == 1) error("SQLite unavailable") },
+                    journal = { reason ->
+                        if (index == 1) error("SQLite unavailable")
+                        if (index == 2) {
+                            FilteredSmsJournal(context).use { it.record(sender, body, 1_700_000_000_000L + index, subscription, reason) }
+                            error("Failure after durable journal commit")
+                        }
+                    },
                 )
                 assertEquals(SmsAdmission.Result.QUARANTINED_NATIVE, result)
                 context.contentResolver.query(
@@ -123,19 +159,40 @@ class CarrierIngressTest {
                 ).use { cursor ->
                     assertNotNull(cursor)
                     assertTrue(cursor!!.moveToFirst())
-                    assertTrue(cursor.getLong(0) > 0)
+                    val id = cursor.getLong(0)
+                    assertTrue(id > 0)
+                    StudioRepository(context).use { assertNull(it.readSource("sms:$id")) }
                     assertEquals(body, cursor.getString(1))
                     assertEquals(1, cursor.getInt(2))
                     assertFalse(cursor.moveToNext())
                 }
+                FilteredSmsJournal(context).use { journal ->
+                    val expected = if (index == 2) "blocked" else "native_unadmitted"
+                    assertEquals(listOf(expected),
+                        reviewEntries(journal, token).filter { it.body == body }.map { it.reason })
+                }
             }
         } finally {
+            FilteredSmsJournal(context).use { journal ->
+                reviewEntries(journal, token).forEach { journal.remove(it.receipt) }
+            }
             bodies.forEach { body ->
                 context.contentResolver.delete(Telephony.Sms.CONTENT_URI,
                     "${Telephony.Sms.ADDRESS} = ? AND ${Telephony.Sms.BODY} = ?",
                     arrayOf(sender, body))
             }
         }
+    }
+
+    private fun reviewEntries(journal: FilteredSmsJournal, token: String): List<FilteredSmsJournal.Entry> {
+        val entries = mutableListOf<FilteredSmsJournal.Entry>()
+        var cursor: FilteredSmsJournal.Cursor? = null
+        do {
+            val page = journal.page(cursor, limit = 100)
+            entries += page.entries.filter { token in it.body }
+            cursor = page.next
+        } while (cursor != null)
+        return entries
     }
 
     @Test fun staffCanPageAndDisposeMoreThanOneScreenOfFilteredArrivals() {
@@ -189,6 +246,7 @@ class CarrierIngressTest {
         val thread = context.getThreadId(sender)
         assertTrue(thread > 0)
         val token = "inkpilot-mms-fixture-${System.nanoTime()}"
+        val subscription = providerSubscriptionId()
         val values = ContentValues().apply {
             put(Telephony.Mms.DATE, 1_700_000_000L)
             put(Telephony.Mms.DATE_SENT, 1_700_000_000L)
@@ -200,7 +258,7 @@ class CarrierIngressTest {
             put(Telephony.Mms.MESSAGE_ID, token)
             put(Telephony.Mms.MMS_VERSION, 18)
             put(Telephony.Mms.READ, 1)
-            put(Telephony.Mms.SUBSCRIPTION_ID, 7)
+            put(Telephony.Mms.SUBSCRIPTION_ID, subscription)
             put(Telephony.Mms.STATUS, 0)
         }
         val uri = requireNotNull(context.contentResolver.insert(Telephony.Mms.Inbox.CONTENT_URI, values))
@@ -254,16 +312,18 @@ class CarrierIngressTest {
     }
 
     @Test fun nativeReplyIdentityRejectsCrossThreadAndUsesProviderSubscription() {
+        assumeTrue(Build.HARDWARE == "ranchu" || Build.HARDWARE == "goldfish")
         assertTrue(SmsRole.isHeld(context))
         val sender = "+12025550975"
         val thread = context.getThreadId(sender)
         assertTrue(thread > 0)
+        val subscription = providerSubscriptionId()
         val values = ContentValues().apply {
             put(Telephony.Sms.ADDRESS, sender)
             put(Telephony.Sms.BODY, "Synthetic identity-only reply source")
             put(Telephony.Sms.DATE, 1_700_000_000_002L)
             put(Telephony.Sms.THREAD_ID, thread)
-            put(Telephony.Sms.SUBSCRIPTION_ID, 7)
+            put(Telephony.Sms.SUBSCRIPTION_ID, subscription)
             put(Telephony.Sms.READ, 1)
         }
         val uri = requireNotNull(context.contentResolver.insert(Telephony.Sms.Inbox.CONTENT_URI, values))
@@ -273,7 +333,7 @@ class CarrierIngressTest {
             val source = NotificationReplyIdentity.read(context, good)
             assertEquals(thread, source?.threadId)
             assertEquals(sender, source?.recipient)
-            assertEquals(7, source?.subscriptionId)
+            assertEquals(subscription, source?.subscriptionId)
             assertNull(NotificationReplyIdentity.read(context, good.copy(threadId = thread + 1)))
             assertNull(NotificationReplyIdentity.read(context, good.copy(origin = "mms")))
         } finally { context.contentResolver.delete(uri, null, null) }

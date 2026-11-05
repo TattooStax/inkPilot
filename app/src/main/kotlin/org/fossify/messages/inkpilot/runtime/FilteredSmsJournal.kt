@@ -6,25 +6,51 @@ import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 import java.security.MessageDigest
 
-/** Private, recoverable record of SMS that could not be safely delivered or was filtered. */
+/** Private SMS admission receipts and recoverable staff review for filtered or uncertain arrivals. */
 internal class FilteredSmsJournal(context: Context, name: String = "inkpilot-filtered-sms.db") :
-    SQLiteOpenHelper(context.applicationContext, name, null, 1) {
+    SQLiteOpenHelper(context.applicationContext, name, null, 2) {
 
     data class Entry(val receipt: String, val sender: String, val body: String, val receivedAt: Long, val reason: String)
     data class Cursor(val receivedAt: Long, val receipt: String)
     data class Page(val entries: List<Entry>, val next: Cursor?)
 
-    override fun onCreate(db: SQLiteDatabase) = db.execSQL(
-        "CREATE TABLE skipped_sms (receipt TEXT PRIMARY KEY NOT NULL, sender TEXT NOT NULL, " +
-            "body TEXT NOT NULL, received_at INTEGER NOT NULL, subscription_id INTEGER NOT NULL, reason TEXT NOT NULL)"
+    override fun onCreate(db: SQLiteDatabase) {
+        db.execSQL(
+            "CREATE TABLE skipped_sms (receipt TEXT PRIMARY KEY NOT NULL, sender TEXT NOT NULL, " +
+                "body TEXT NOT NULL, received_at INTEGER NOT NULL, " +
+                "subscription_id INTEGER NOT NULL, reason TEXT NOT NULL)"
+        )
+        createAdmissions(db)
+    }
+
+    override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
+        if (oldVersion != 1 || newVersion != 2) error("No filtered SMS migration from $oldVersion to $newVersion")
+        createAdmissions(db)
+    }
+
+    private fun createAdmissions(db: SQLiteDatabase) = db.execSQL(
+        "CREATE TABLE admitted_sms(provider_id INTEGER PRIMARY KEY NOT NULL, fingerprint TEXT NOT NULL)"
     )
 
-    override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) =
-        error("No filtered SMS migration from $oldVersion to $newVersion")
+    internal val admissions get() = SmsAdmissionLedger(writableDatabase)
+
+    /** A filter receipt may already exist if its write succeeded before an exception was raised. */
+    internal fun recordNativeReview(sender: String, body: String, receivedAt: Long, subscriptionId: Int) {
+        writableDatabase.beginTransaction()
+        try {
+            val exists = readableDatabase.rawQuery(
+                "SELECT 1 FROM skipped_sms WHERE sender = ? AND body = ? AND received_at = ? " +
+                    "AND subscription_id = ? LIMIT 1",
+                arrayOf(sender, body, receivedAt.toString(), subscriptionId.toString()),
+            ).use { it.moveToFirst() }
+            if (!exists) record(sender, body, receivedAt, subscriptionId, "native_unadmitted")
+            writableDatabase.setTransactionSuccessful()
+        } finally { writableDatabase.endTransaction() }
+    }
 
     fun record(sender: String, body: String, receivedAt: Long, subscriptionId: Int, reason: String) {
         require(sender.isNotBlank() && sender.length <= 256 && receivedAt >= 0)
-        require(reason in setOf("keyword", "blocked", "unknown_sender", "provider_failed"))
+        require(reason in setOf("keyword", "blocked", "unknown_sender", "provider_failed", "native_unadmitted"))
         val receipt = receiptOf(sender, body, receivedAt, subscriptionId, reason)
         val row = ContentValues().apply {
             put("receipt", receipt); put("sender", sender); put("body", body)

@@ -29,6 +29,8 @@ import org.fossify.messages.helpers.refreshMessages
 import org.fossify.messages.models.Message
 import org.fossify.messages.inkpilot.runtime.CarrierIngressPolicy
 import org.fossify.messages.inkpilot.runtime.FilteredSmsJournal
+import org.fossify.messages.inkpilot.runtime.SmsIntakeRecovery
+import org.fossify.messages.inkpilot.runtime.SmsAdmissionLedger
 import org.fossify.messages.helpers.SmsRole
 import org.fossify.messages.transport.LocalInboundSink
 import org.fossify.messages.transport.holdAndDrainInboundArrival
@@ -98,6 +100,40 @@ class SmsReceiver : BroadcastReceiver() {
             .recordStatus("SMS filter or private review storage failed. Check the native inbox or Agent review for this arrival.") } },
     )
 
+    private fun reportNativeInsertFailure(
+        context: Context, address: String, body: String, date: Long, subscriptionId: Int,
+    ) {
+        runCatching { FilteredSmsJournal(context).use {
+            it.record(address, body, date, subscriptionId, "provider_failed")
+        } }
+        org.fossify.messages.inkpilot.runtime.AgentSettings(context)
+            .recordStatus("An SMS could not enter the native inbox. Open Agent to review it.")
+    }
+
+    private data class NativeAdmission(val id: Long, val admitted: Boolean)
+
+    private fun insertAndAdmit(
+        context: Context, address: String, body: String, date: Long, threadId: Long,
+        subscriptionId: Int, nativeOnly: Boolean, nativeInsert: (Context) -> Long,
+    ): NativeAdmission {
+        val result = runCatching {
+            SmsIntakeRecovery.withAdmissionLock {
+                val id = nativeInsert(context)
+                val admitted = if (nativeOnly || CarrierIngressPolicy.nativeSource(id, threadId) == null) false
+                    else runCatching { FilteredSmsJournal(context).use {
+                        it.admissions.admitFromProvider(context, id,
+                            SmsAdmissionLedger.NativeIdentity(threadId, address, body, date, subscriptionId))
+                    } }.getOrDefault(false)
+                NativeAdmission(id, admitted)
+            }
+        }.getOrDefault(NativeAdmission(0, false))
+        if (!nativeOnly && result.id > 0 && !result.admitted) {
+            org.fossify.messages.inkpilot.runtime.AgentSettings(context)
+                .recordStatus("SMS is in the native inbox, but local admission needs staff review.")
+        }
+        return result
+    }
+
     internal fun handleMessageSync(
         context: Context,
         address: String,
@@ -125,15 +161,17 @@ class SmsReceiver : BroadcastReceiver() {
             FilteredSmsJournal(context).use { it.record(address, body, date, subscriptionId, "provider_failed") }
             return
         }
-        val newMessageId = nativeInsert(context)
+        val admission = insertAndAdmit(context, address, body, date, threadId, subscriptionId, nativeOnly, nativeInsert)
+        val newMessageId = admission.id
         if (CarrierIngressPolicy.nativeSource(newMessageId, threadId) == null) {
-            FilteredSmsJournal(context).use { it.record(address, body, date, subscriptionId, "provider_failed") }
-            org.fossify.messages.inkpilot.runtime.AgentSettings(context)
-                .recordStatus("An SMS could not enter the native inbox. Open Agent to review it.")
+            reportNativeInsertFailure(context, address, body, date, subscriptionId)
             return
         }
 
-        if (nativeOnly) {
+        if (!admission.admitted) {
+            runCatching { FilteredSmsJournal(context).use {
+                it.recordNativeReview(address, body, date, subscriptionId)
+            } }.onFailure { runCatching { SmsIntakeRecovery.enqueueContinuation(context) } }
             refreshMessages()
             refreshConversations()
             return

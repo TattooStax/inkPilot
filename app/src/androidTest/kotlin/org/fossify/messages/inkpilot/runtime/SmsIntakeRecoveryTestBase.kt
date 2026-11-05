@@ -25,6 +25,7 @@ abstract class SmsIntakeRecoveryTestBase {
     protected var since = 0L
     private lateinit var databaseName: String
     private val ownedRows = mutableListOf<Uri>()
+    private val ownedBodies = mutableSetOf<String>()
 
     @Before
     fun prepareProviderFixture() {
@@ -51,6 +52,16 @@ abstract class SmsIntakeRecoveryTestBase {
     fun removeOnlyOwnedFixtures() {
         if (::repository.isInitialized) repository.close()
         if (::context.isInitialized) {
+            FilteredSmsJournal(context).use { journal ->
+                for (uri in ownedRows) journal.admissions.removeAdmission(ContentUris.parseId(uri))
+                var cursor: FilteredSmsJournal.Cursor? = null
+                do {
+                    val page = journal.page(cursor, limit = 100)
+                    page.entries.filter { it.reason == "native_unadmitted" && it.body in ownedBodies }
+                        .forEach { journal.remove(it.receipt) }
+                    cursor = page.next
+                } while (cursor != null)
+            }
             for (uri in ownedRows) context.contentResolver.delete(uri, null, null)
             if (::databaseName.isInitialized) context.deleteDatabase(databaseName)
         }
@@ -63,7 +74,8 @@ abstract class SmsIntakeRecoveryTestBase {
         repository = StudioRepository(context, databaseName)
     }
 
-    protected fun insertInbox(address: String, body: String, date: Long = since, type: Int = Telephony.Sms.MESSAGE_TYPE_INBOX): Long {
+    protected fun insertInbox(address: String, body: String, date: Long = since,
+        type: Int = Telephony.Sms.MESSAGE_TYPE_INBOX, admitted: Boolean = true): Long {
         val thread = Telephony.Threads.getOrCreateThreadId(context, "+12025550991")
         val values = ContentValues().apply {
             put(Telephony.Sms.ADDRESS, address); put(Telephony.Sms.BODY, body)
@@ -73,7 +85,15 @@ abstract class SmsIntakeRecoveryTestBase {
         }
         val uri = requireNotNull(context.contentResolver.insert(Telephony.Sms.CONTENT_URI, values))
         ownedRows.add(uri)
-        return ContentUris.parseId(uri)
+        ownedBodies.add(body)
+        val id = ContentUris.parseId(uri)
+        if (admitted && type == Telephony.Sms.MESSAGE_TYPE_INBOX) FilteredSmsJournal(context).use {
+            check(it.admissions.admitFromProvider(context, id,
+                SmsAdmissionLedger.NativeIdentity(thread, address, body, date, -1))) {
+                "Fixture was not admitted by native readback"
+            }
+        }
+        return id
     }
 
     protected fun nativeBody(id: Long): String? = context.contentResolver.query(
