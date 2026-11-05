@@ -144,11 +144,15 @@ class OneShellAcceptanceTest {
             if (ready) true else null
         }
         scenario.onActivity { assertFooter(it) }
+        java.io.File(instrumentation.targetContext.filesDir, "device-test-evidence/studio-tab-window.json").delete()
     }
 
     private fun observedNavigation(label: String, action: () -> Unit) {
-        try { action() }
-        catch (failure: AssertionError) {
+        runCatching { recordStudioTabMarker(instrumentation.targetContext, label, "actionStarted") }
+        try {
+            action()
+            runCatching { recordStudioTabMarker(instrumentation.targetContext, label, "actionReturned") }
+        } catch (failure: Throwable) {
             runCatching { recordStudioTabWindow(instrumentation.targetContext, label) }
             throw failure
         }
