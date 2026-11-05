@@ -1,6 +1,10 @@
 package org.fossify.messages.messaging
 
+import android.Manifest
 import android.content.Context
+import android.content.pm.PackageManager
+import android.telephony.SubscriptionManager
+import androidx.core.content.ContextCompat
 import org.fossify.messages.extensions.getAddresses
 import org.fossify.messages.extensions.messagingUtils
 import org.fossify.messages.extensions.messagesDB
@@ -10,13 +14,14 @@ import org.fossify.messages.models.Message
 
 /** Reload and commit the claim before handoff. Never dispatch a stale editor/alarm snapshot. */
 fun Context.dispatchScheduled(snapshot: Message, fromAlarm: Boolean = false,
-                              nowMillis: Long = System.currentTimeMillis()): DispatchOutcome {
+                              nowMillis: Long = System.currentTimeMillis(),
+                              activeSimIds: () -> Set<Int>? = { activeScheduledSubscriptions() }): DispatchOutcome {
     val key = snapshot.key()
     ScheduledVerdicts(this).use { journal ->
         var rejection = "This send is already claimed. Check the conversation before sending again."
         val message = journal.claimPrepared(key) {
             val current = messagesDB.get(key) ?: return@claimPrepared null
-            val problem = scheduledClaimProblem(current, fromAlarm, nowMillis)
+            val problem = scheduledClaimProblem(current, fromAlarm, nowMillis, activeSimIds)
             if (problem != null) {
                 rejection = problem
                 return@claimPrepared null
@@ -58,13 +63,25 @@ private fun Context.handoffScheduled(message: Message, key: MessageKey) {
     }
 }
 
-private fun Context.scheduledClaimProblem(current: Message, fromAlarm: Boolean, nowMillis: Long): String? {
+private fun Context.scheduledClaimProblem(current: Message, fromAlarm: Boolean, nowMillis: Long,
+    activeSimIds: () -> Set<Int>?): String? {
     if (fromAlarm && current.millis() > nowMillis) return "This edited message is scheduled for later."
     val addresses = current.participants.getAddresses().distinct()
     if (!current.isMMS && addresses.size != 1) return SMS_GROUP_REFUSAL
-    return scheduledPreflight(current.subscriptionId, addresses.isNotEmpty(), SmsRole.isHeld(this)) {
+    val active = runCatching { activeSimIds() }.getOrNull()
+    val hasAccess = SmsRole.isHeld(this) && current.subscriptionId in active.orEmpty()
+    return scheduledPreflight(current.subscriptionId, addresses.isNotEmpty(), hasAccess) {
         scheduledMediaReadable(current)
     }
+}
+
+private fun Context.activeScheduledSubscriptions(): Set<Int>? {
+    if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) !=
+        PackageManager.PERMISSION_GRANTED) return null
+    return runCatching {
+        getSystemService(SubscriptionManager::class.java).activeSubscriptionInfoList.orEmpty()
+            .map { it.subscriptionId }.toSet()
+    }.getOrNull()
 }
 
 private fun Context.scheduledMediaReadable(message: Message): Boolean =
