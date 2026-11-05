@@ -38,6 +38,7 @@ run_class org.fossify.messages.inkpilot.smoke.ShellBaselineTest
 run_class org.fossify.messages.inkpilot.smoke.InShellThreadTest
 run_class org.fossify.messages.inkpilot.smoke.ThreadReviewRegressionTest
 run_class org.fossify.messages.inkpilot.smoke.InShellComposerTest
+run_class org.fossify.messages.inkpilot.smoke.ComposerClaimRecoveryTest
 run_class org.fossify.messages.inkpilot.studio.StudioImageLinksTest
 run_class org.fossify.messages.inkpilot.studio.StudioImageImportUiTest
 run_class org.fossify.messages.inkpilot.data.StudioArchiveTest
