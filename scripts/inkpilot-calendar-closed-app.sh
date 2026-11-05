@@ -8,6 +8,10 @@ if [[ $# -ne 1 || ! $1 =~ ^emulator-[0-9]+$ ]]; then
 fi
 serial=$1
 package=app.inkpilot.android.debug
+sdk=$(adb -s "$serial" shell getprop ro.build.version.sdk | tr -d '\r')
+namespace=()
+# WorkManager 2.10.x uses its own JobScheduler namespace on Android 14+.
+if (( sdk >= 34 )); then namespace=(-n androidx.work.systemjobscheduler); fi
 cd "$(dirname "${BASH_SOURCE[0]}")/.."
 [[ $(adb -s "$serial" shell getprop ro.kernel.qemu | tr -d '\r') == 1 ]] || {
   echo 'This test requires a disposable emulator.' >&2; exit 2;
@@ -84,11 +88,11 @@ PY
 
 job_present() {
   local state
-  state=$(adb -s "$serial" shell cmd jobscheduler get-job-state "$package" "$job_id" 2>&1) || return 1
+  state=$(adb -s "$serial" shell cmd jobscheduler get-job-state "${namespace[@]}" "$package" "$job_id" 2>&1) || return 1
   [[ $state != *'Could not find job'* && $state != *unknown* ]]
 }
 if job_present; then echo 'PASS periodic OS job registered before process kill'
-else echo 'FAIL periodic OS job absent before process kill' >&2; fi
+else echo 'FAIL periodic OS job absent before process kill' >&2; exit 1; fi
 # The shell baseline may have left inkPilot's Activity visible. Background it
 # before `am kill`; a foreground process would be intentionally spared.
 adb -s "$serial" shell input keyevent KEYCODE_HOME
@@ -97,11 +101,11 @@ adb -s "$serial" shell am kill "$package"
   echo 'App process remained alive after am kill.' >&2; exit 1;
 }
 if job_present; then echo 'PASS periodic OS job survives process kill'
-else echo 'FAIL periodic OS job absent after process kill' >&2; fi
+else echo 'FAIL periodic OS job absent after process kill' >&2; exit 1; fi
 
 # Force only the already persisted periodic JobScheduler job. This starts the
 # Worker process, but does not launch the app's UI or register new work in test code.
-adb -s "$serial" shell cmd jobscheduler run -f "$package" "$job_id" >/dev/null
+adb -s "$serial" shell cmd jobscheduler run -f "${namespace[@]}" "$package" "$job_id" >/dev/null
 requeued=0
 for _ in $(seq 1 30); do
   sleep 1
