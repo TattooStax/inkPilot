@@ -42,6 +42,28 @@ class StudioProposalTest : StudioDatabaseTestBase() {
         assertTrue(noClaim())
     }
 
+    @Test fun staffApprovedReplyResolvesOnlyItsOwnFailedInboundTask() {
+        val scope = inbound("sms:proposal")
+        assertTrue(repository.recordDraftAttempt(scope.eventId, scope.expectedRevision, "UNSAFE_CONTENT"))
+        val other = inbound("sms:other", number = "+15551234568", receivedAt = 2_000)
+        assertTrue(repository.recordDraftAttempt(other.eventId, other.expectedRevision, "MODEL_FAILED"))
+        val proposal = id(repository.proposeAction(scope,
+            request(scope, "draft_reply", """{"body":"I can help with your question."}""")))
+        val staff = StudioCalendarStore(repository).addStaff("Shawn")
+        assertTrue(repository.confirmProposal(proposal, staff) is ProposalActionResult.Applied)
+        assertEquals(other.eventId, repository.staffAttention().single().eventId)
+        repository.database.rawQuery("SELECT reason, resolution FROM staff_attention WHERE event_id = ?",
+            arrayOf(scope.eventId)).use {
+            assertTrue(it.moveToFirst())
+            assertEquals("UNSAFE_CONTENT", it.getString(0))
+            assertEquals("REPLACED", it.getString(1))
+        }
+        assertEquals(scope.eventId, repository.heldDrafts().single().eventId)
+        assertTrue(noClaim())
+        reopen()
+        assertEquals(other.eventId, repository.staffAttention().single().eventId)
+    }
+
     @Test fun heldProposalsRemainVisibleAheadOfLaterHistory() {
         val scope = inbound()
         val held = id(repository.proposeAction(scope, request(scope, "draft_reply", """{"body":"Review me"}""")))

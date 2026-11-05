@@ -182,6 +182,7 @@ class StudioProposalStore(private val repository: StudioRepository) {
             put("source_revision", item.sourceRevision); put("body", payload.body)
             put("created_at", System.currentTimeMillis())
         })
+        db.resolveStaffAttentionForEvent(item.eventId, item.sourceRevision)
         return ProposalActionResult.Applied("held-draft:$draftId")
     }
 }
