@@ -11,6 +11,8 @@ import android.os.Build
 import android.os.SystemClock
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
+import androidx.test.runner.lifecycle.ActivityLifecycleMonitorRegistry
+import androidx.test.runner.lifecycle.Stage
 import org.fossify.messages.activities.*
 import org.fossify.commons.extensions.appLockManager
 import org.fossify.commons.extensions.baseConfig
@@ -52,6 +54,27 @@ class ShellIngressTest {
         } finally {
             instrumentation.removeMonitor(monitor)
         }
+    }
+
+    /** A forwarded share may reuse an already running Home through onNewIntent. */
+    private fun awaitSharedHome(uri: Uri): StudioHomeActivity? {
+        val instrumentation = InstrumentationRegistry.getInstrumentation()
+        val deadline = SystemClock.uptimeMillis() + 10_000L
+        do {
+            instrumentation.waitForIdleSync()
+            var matching: StudioHomeActivity? = null
+            instrumentation.runOnMainSync {
+                matching = ActivityLifecycleMonitorRegistry.getInstance().getActivitiesInStage(Stage.RESUMED)
+                    .filterIsInstance<StudioHomeActivity>()
+                    .firstOrNull { activity ->
+                        (activity.intent.getBundleExtra(ExternalRouteParser.ROUTE)?.decodeRoute() as? StudioRoute.Compose)
+                            ?.mediaUris?.contains(uri) == true
+                    }
+            }
+            if (matching != null) return matching
+            Thread.sleep(50)
+        } while (SystemClock.uptimeMillis() < deadline)
+        return null
     }
 
     @Test fun shareAndSmsIntentsKeepSeparateRecipientsBodyAndGrantedMedia() {
@@ -237,7 +260,6 @@ class ShellIngressTest {
         assertFalse(provider.exported)
         assertTrue(provider.grantUriPermissions)
 
-        val shell = instrumentation.addMonitor(StudioHomeActivity::class.java.name, null, false)
         var home: StudioHomeActivity? = null
         var composerId = 0L
         try {
@@ -246,7 +268,7 @@ class ShellIngressTest {
                 putExtra("targetPackage", context.packageName)
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             })
-            home = shell.waitForActivityWithTimeout(10_000) as StudioHomeActivity?
+            home = awaitSharedHome(uri)
             assertNotNull(home)
             val forwarded = home!!.intent
             val route = forwarded.getBundleExtra(ExternalRouteParser.ROUTE)!!.decodeRoute() as StudioRoute.Compose
@@ -264,7 +286,6 @@ class ShellIngressTest {
             if (composerId != 0L) ComposerStore(context).clear(composerId)
             sender.startActivity(Intent().setClassName(sender.packageName, CrossPackageShareSender::class.java.name)
                 .setAction(CrossPackageShareSender.CLEANUP).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
-            instrumentation.removeMonitor(shell)
         }
     }
 

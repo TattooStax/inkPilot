@@ -7,6 +7,7 @@ import android.graphics.drawable.ColorDrawable
 import android.os.Build
 import android.view.View
 import android.view.ViewGroup
+import android.view.accessibility.AccessibilityNodeInfo
 import android.widget.EditText
 import android.widget.ImageView
 import android.widget.TextView
@@ -123,7 +124,9 @@ class OneShellAcceptanceTest {
         assertNotNull("Contacts must remain in the active accessibility window", contactsNode)
         assertEquals("Contacts", contactsNode!!.contentDescription?.toString())
         assertTrue("Contacts remains an accessibility action", contactsNode.isClickable)
-        SmokeViews.clickDescription("Contacts")
+        assertTrue("Contacts nav accessibility action",
+            contactsNode.performAction(AccessibilityNodeInfo.ACTION_CLICK))
+        instrumentation.waitForIdleSync()
         scenario.onActivity { assertLargeTab(it, "Contacts", R.id.inkpilot_tab_contacts) }
         SmokeViews.clickDescription("Studio")
         scenario.onActivity { assertLargeTab(it, "Studio", R.id.inkpilot_tab_studio) }
