@@ -107,22 +107,18 @@ class OneShellAcceptanceTest {
         }
     }
 
-    // Separate methods expose the failing tab in redacted class evidence.
-    @Test fun smsTabAtLargeText() = assertTabAtLargeText("SMS", R.id.inkpilot_tab_sms)
-    @Test fun phoneTabAtLargeText() = assertTabAtLargeText("Phone", R.id.inkpilot_tab_phone)
-    @Test fun contactsTabAtLargeText() = assertTabAtLargeText("Contacts", R.id.inkpilot_tab_contacts)
-    @Test fun studioTabAtLargeText() = assertTabAtLargeText("Studio", R.id.inkpilot_tab_studio)
-    @Test fun calendarTabAtLargeText() = assertTabAtLargeText("Calendar", R.id.inkpilot_tab_calendar)
-
-    private fun assertTabAtLargeText(label: String, id: Int) = atLargeText { scenario ->
-        SmokeViews.clickDescription(label)
-        scenario.onActivity { activity ->
-            assertFooter(activity)
-            assertTrue("$label is selected", activity.findViewById<View>(id).isSelected)
-        }
-    }
-
-    @Test fun landscapeTabsAtLargeText() = atLargeText { scenario ->
+    @Test fun tabsRemainVisibleAtLargeTextAndLandscape() = atLargeText { scenario ->
+        // Separate callsites preserve the original sequence and identify a redacted failing tab.
+        SmokeViews.clickDescription("SMS")
+        scenario.onActivity { assertLargeTab(it, "SMS", R.id.inkpilot_tab_sms) }
+        SmokeViews.clickDescription("Phone")
+        scenario.onActivity { assertLargeTab(it, "Phone", R.id.inkpilot_tab_phone) }
+        SmokeViews.clickDescription("Contacts")
+        scenario.onActivity { assertLargeTab(it, "Contacts", R.id.inkpilot_tab_contacts) }
+        SmokeViews.clickDescription("Studio")
+        scenario.onActivity { assertLargeTab(it, "Studio", R.id.inkpilot_tab_studio) }
+        SmokeViews.clickDescription("Calendar")
+        scenario.onActivity { assertLargeTab(it, "Calendar", R.id.inkpilot_tab_calendar) }
         scenario.onActivity { it.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE }
         SmokeViews.await<Boolean>("landscape shell") {
             var ready = false
@@ -132,6 +128,11 @@ class OneShellAcceptanceTest {
             if (ready) true else null
         }
         scenario.onActivity { assertFooter(it) }
+    }
+
+    private fun assertLargeTab(activity: StudioHomeActivity, label: String, id: Int) {
+        assertFooter(activity)
+        assertTrue("$label is selected", activity.findViewById<View>(id).isSelected)
     }
 
     private fun atLargeText(check: (ActivityScenario<StudioHomeActivity>) -> Unit) {
