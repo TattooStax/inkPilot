@@ -75,6 +75,7 @@ class FocusedReviewRouteTest {
                 val db = repository.database
                 db.beginTransaction()
                 try {
+                    db.delete("staff_attention", "event_id = ?", arrayOf(event))
                     draftId?.let { db.delete("held_drafts", "draft_id = ?", arrayOf(it)) }
                     db.delete("inbound_events", "event_id = ?", arrayOf(event))
                     contactId?.let { id ->
