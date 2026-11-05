@@ -183,7 +183,7 @@
     "app/src/main/kotlin/org/fossify/messages/extensions/Context.kt": 1328,
     "app/src/main/kotlin/org/fossify/messages/extensions/Cursor.kt": 20,
     "app/src/main/kotlin/org/fossify/messages/extensions/Math.kt": 10,
-    "app/src/main/kotlin/org/fossify/messages/extensions/NativeMessageDeletion.kt": 47,
+    "app/src/main/kotlin/org/fossify/messages/extensions/NativeMessageDeletion.kt": 48,
     "app/src/main/kotlin/org/fossify/messages/extensions/ReceivedMessageNotifications.kt": 30,
     "app/src/main/kotlin/org/fossify/messages/extensions/RecyclerView.kt": 18,
     "app/src/main/kotlin/org/fossify/messages/extensions/SimpleContact.kt": 52,

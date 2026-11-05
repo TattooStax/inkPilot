@@ -22,6 +22,7 @@ internal fun deleteProviderRowThenCache(
 }
 
 /** Return true only when the exact provider row is gone and the local cache is updated. */
+@Suppress("TooGenericExceptionCaught") // Device providers may throw different failures; all must preserve local attention.
 fun Context.deleteMessage(id: Long, isMMS: Boolean): Boolean {
     if (id <= 0L) return false
     val uri = if (isMMS) Mms.CONTENT_URI else Sms.CONTENT_URI
