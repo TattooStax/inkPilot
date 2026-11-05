@@ -747,7 +747,7 @@
     "scripts/inkpilot-device-result.py": 13,
     "scripts/inkpilot-device-run.sh": 122,
     "scripts/inkpilot-model-benchmark.sh": 60,
-    "scripts/inkpilot-shell-baseline.sh": 25,
+    "scripts/inkpilot-shell-baseline.sh": 32,
     "scripts/inkpilot-tool-probe.py": 121,
     "scripts/inkpilot_model_benchmark.py": 169,
     "scripts/run-inkpilot-test-class.sh": 39,

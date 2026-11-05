@@ -23,3 +23,10 @@ scripts/run-inkpilot-test-class.sh "$serial" org.fossify.messages.inkpilot.studi
 scripts/run-inkpilot-test-class.sh "$serial" org.fossify.messages.inkpilot.data.ScheduledVerdictTest
 scripts/run-inkpilot-test-class.sh "$serial" org.fossify.messages.inkpilot.data.ScheduledQueueTest
 scripts/run-inkpilot-test-class.sh "$serial" org.fossify.messages.inkpilot.data.ScheduledIdentityLifecycleTest
+# Synthetic ingress, calendar, model-contract, and optional-bridge regressions.
+scripts/run-inkpilot-test-class.sh "$serial" org.fossify.messages.inkpilot.smoke.ShellIngressTest
+scripts/run-inkpilot-test-class.sh "$serial" org.fossify.messages.inkpilot.runtime.CarrierIngressTest
+scripts/run-inkpilot-test-class.sh "$serial" org.fossify.messages.inkpilot.studio.StudioAvailabilityTest
+scripts/run-inkpilot-test-class.sh "$serial" org.fossify.messages.inkpilot.studio.StudioCalendarUiTest
+scripts/run-inkpilot-test-class.sh "$serial" org.fossify.messages.inkpilot.smoke.ModelQualificationTest
+scripts/run-inkpilot-test-class.sh "$serial" org.fossify.messages.transport.BridgeHistoryTest
