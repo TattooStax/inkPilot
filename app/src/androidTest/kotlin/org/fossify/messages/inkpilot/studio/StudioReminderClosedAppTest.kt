@@ -7,6 +7,7 @@ import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import java.util.UUID
 import java.util.concurrent.TimeUnit
+import java.io.File
 import org.fossify.messages.inkpilot.data.StudioRepository
 import org.junit.Assert.*
 import org.junit.Test
@@ -47,15 +48,22 @@ class StudioReminderPrecommitTest {
 class StudioReminderClosedAppPrepareTest {
     @Test fun commitReminderAfterPersistentRecoveryButBeforeOneTimeEnqueue() {
         val context = ApplicationProvider.getApplicationContext<Context>()
+        val stage = File(context.filesDir, "calendar-closed-app-stage")
+        fun record(value: String) { stage.writeText(value) }
+        record("entered")
         val preferences = context.getSharedPreferences(FIXTURE, Context.MODE_PRIVATE)
         assertFalse("Previous fixture must be verified and cleaned first", preferences.contains("id"))
+        record("fixture-empty")
         val work = WorkManager.getInstance(context)
         // The earlier shell suite may have armed a sweep that is about to run.
         // Reset its clock before creating the deliberately unscheduled row.
         work.cancelUniqueWork(CalendarReminderRecovery.PERIODIC_NAME).result.get(15, TimeUnit.SECONDS)
         work.cancelUniqueWork(CalendarReminderRecovery.RESTART_NAME).result.get(15, TimeUnit.SECONDS)
+        record("cancelled-old-work")
         StudioRepository(context).use { repository ->
+            record("repository-open")
             val staff = StudioCalendarStore(repository).addStaff("Synthetic recovery ${UUID.randomUUID()}")
+            record("staff-added")
             val start = ((System.currentTimeMillis() / 60_000) + 240) * 60_000
             val proposal = CalendarProposal("Synthetic reminder", "appointment", staff,
                 start, start + TimeUnit.HOURS.toMillis(1), StudioCalendarStore(repository).studioZone().id,
@@ -63,16 +71,21 @@ class StudioReminderClosedAppPrepareTest {
             val interrupted = StudioCalendarStore(repository,
                 reminders = { _, _, _ -> error("Simulated process death after commit") })
             assertThrows(IllegalStateException::class.java) { interrupted.schedule(proposal) }
+            record("simulated-death")
             val committed = interrupted.entries(start, proposal.endsAt).single { it.staffId == staff }
             assertEquals(proposal.reminderAt, committed.reminderAt)
+            record("row-committed")
             val periodic = work.getWorkInfosForUniqueWork(CalendarReminderRecovery.PERIODIC_NAME)
                 .get(15, TimeUnit.SECONDS)
             assertEquals(1, periodic.size)
             assertFalse(periodic.single().state.isFinished)
+            record("periodic-armed")
             assertTrue(work.getWorkInfosForUniqueWork(
                 CalendarReminderScheduler.name(committed.id, committed.revision))
                 .get(15, TimeUnit.SECONDS).isEmpty())
+            record("one-time-absent")
             assertTrue(preferences.edit().putLong("id", committed.id).putLong("staff", staff).commit())
+            record("fixture-persisted")
         }
     }
 }

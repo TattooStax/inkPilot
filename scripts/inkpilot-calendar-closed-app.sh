@@ -19,11 +19,26 @@ trap 'rm -rf "$temporary"' EXIT
 
 run_class() {
   local class=$1
+  if [[ $class == StudioReminderClosedAppPrepareTest ]]; then
+    adb -s "$serial" shell run-as "$package" rm -f files/calendar-closed-app-stage
+  fi
   if ! timeout 600 adb -s "$serial" shell am instrument -w -e class \
       "org.fossify.messages.inkpilot.studio.$class" \
       "$package.test/androidx.test.runner.AndroidJUnitRunner" > "$temporary/result" 2>&1 ||
       ! python3 scripts/inkpilot-device-result.py "$temporary/result" >/dev/null 2>&1; then
-    echo "FAIL $class (private instrumentation output retained only until exit)" >&2
+    # Publish only synthetic stage and source-controlled location; never raw assertions.
+    local site method stage
+    site=$(grep -Eo 'StudioReminderClosedAppTest\.kt:[0-9]+' "$temporary/result" | head -n 1 || true)
+    method=$(sed -nE 's/^Error in ([A-Za-z_][A-Za-z0-9_]*)\(.*/\1/p' "$temporary/result" | head -n 1)
+    stage='none'
+    if [[ $class == StudioReminderClosedAppPrepareTest ]]; then
+      local recorded
+      recorded=$(adb -s "$serial" exec-out run-as "$package" cat files/calendar-closed-app-stage 2>/dev/null | tr -d '\r\n' || true)
+      case "$recorded" in
+        entered|fixture-empty|cancelled-old-work|repository-open|staff-added|simulated-death|row-committed|periodic-armed|one-time-absent|fixture-persisted) stage=$recorded ;;
+      esac
+    fi
+    echo "FAIL $class (${method:-instrumentation failed}; ${site:-no source site}; stage=$stage; private output withheld)" >&2
     exit 1
   fi
   echo "PASS $class"
