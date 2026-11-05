@@ -26,47 +26,49 @@ internal fun Context.captureSharedComposerImages(uris: List<Uri>): List<Uri>? {
         !it.name.startsWith("share-$COPY_SESSION-") }.forEach(File::delete)
     val captured = mutableListOf<File>()
     return try {
-        uris.map { source ->
-            val extension = when (contentResolver.getType(source)) {
-                "image/png" -> "png"
-                "image/jpeg" -> "jpg"
-                else -> error("Unsupported shared image")
-            }
-            val id = UUID.randomUUID().toString()
-            val file = File(directory, "$id.$extension")
-            // Commit the final name before any bytes can reach it. If this process dies
-            // after rename but before ComposerStore.save, recovery can remove that copy.
-            val journal = File(directory, "share-$COPY_SESSION-$id$JOURNAL_SUFFIX")
-            captured.add(journal)
-            FileOutputStream(journal).use { output ->
-                output.write(file.name.toByteArray(Charsets.UTF_8))
-                output.fd.sync()
-            }
-            val temporary = File.createTempFile("share-$COPY_SESSION-", ".part", directory)
-            captured.add(temporary)
-            val input = contentResolver.openInputStream(source) ?: error("Shared image unavailable")
-            input.use { stream ->
-                FileOutputStream(temporary).use { output ->
-                    val buffer = ByteArray(COPY_BUFFER_BYTES)
-                    var total = 0
-                    while (true) {
-                        val count = stream.read(buffer)
-                        if (count < 0) break
-                        total += count
-                        require(total <= MAX_SHARED_IMAGE_BYTES) { "Shared image too large" }
-                        output.write(buffer, 0, count)
-                    }
-                    output.fd.sync()
-                }
-            }
-            check(temporary.renameTo(file)) { "Shared image copy failed" }
-            captured.add(file)
-            FileProvider.getUriForFile(this, "$packageName.provider", file)
-        }
+        uris.map { copySharedComposerImage(it, directory, captured) }
     } catch (_: Exception) {
         captured.forEach(File::delete)
         null
     }
+}
+
+private fun Context.copySharedComposerImage(source: Uri, directory: File, captured: MutableList<File>): Uri {
+    val extension = when (contentResolver.getType(source)) {
+        "image/png" -> "png"
+        "image/jpeg" -> "jpg"
+        else -> error("Unsupported shared image")
+    }
+    val id = UUID.randomUUID().toString()
+    val file = File(directory, "$id.$extension")
+    // Commit the final name before any bytes can reach it. If this process dies
+    // after rename but before ComposerStore.save, recovery can remove that copy.
+    val journal = File(directory, "share-$COPY_SESSION-$id$JOURNAL_SUFFIX")
+    captured.add(journal)
+    FileOutputStream(journal).use { output ->
+        output.write(file.name.toByteArray(Charsets.UTF_8))
+        output.fd.sync()
+    }
+    val temporary = File.createTempFile("share-$COPY_SESSION-", ".part", directory)
+    captured.add(temporary)
+    val input = contentResolver.openInputStream(source) ?: error("Shared image unavailable")
+    input.use { stream ->
+        FileOutputStream(temporary).use { output ->
+            val buffer = ByteArray(COPY_BUFFER_BYTES)
+            var total = 0
+            while (true) {
+                val count = stream.read(buffer)
+                if (count < 0) break
+                total += count
+                require(total <= MAX_SHARED_IMAGE_BYTES) { "Shared image too large" }
+                output.write(buffer, 0, count)
+            }
+            output.fd.sync()
+        }
+    }
+    check(temporary.renameTo(file)) { "Shared image copy failed" }
+    captured.add(file)
+    return FileProvider.getUriForFile(this, "$packageName.provider", file)
 }
 
 /** Delete only this app's opaque composer copies; never follow an external URI or path. */
