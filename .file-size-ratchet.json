@@ -217,7 +217,7 @@
     "app/src/main/kotlin/org/fossify/messages/inkpilot/phone/ManualCallScreen.kt": 77,
     "app/src/main/kotlin/org/fossify/messages/inkpilot/phone/ManualDialActions.kt": 44,
     "app/src/main/kotlin/org/fossify/messages/inkpilot/phone/PhoneHistoryPanel.kt": 80,
-    "app/src/main/kotlin/org/fossify/messages/inkpilot/phone/PhonePanel.kt": 45,
+    "app/src/main/kotlin/org/fossify/messages/inkpilot/phone/PhonePanel.kt": 47,
     "app/src/main/kotlin/org/fossify/messages/inkpilot/phone/PhoneRoleSetup.kt": 25,
     "app/src/main/kotlin/org/fossify/messages/inkpilot/phone/StudioInCallService.kt": 69,
     "app/src/main/kotlin/org/fossify/messages/inkpilot/runtime/AgentRuntime.kt": 142,

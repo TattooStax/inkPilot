@@ -37,9 +37,11 @@ internal class PhonePanel(
         })
         body.addView(StudioUi.button(activity, "Call history", openHistory))
         body.addView(StudioUi.button(activity, "Contacts", openContacts))
-        if (StudioInCallService.current != null) body.addView(StudioUi.button(activity, "Return to call") {
-            activity.startActivity(Intent(activity, ManualCallActivity::class.java))
-        })
+        if (StudioInCallService.current?.activeCalls?.isNotEmpty() == true) {
+            body.addView(StudioUi.button(activity, "Return to call") {
+                activity.startActivity(Intent(activity, ManualCallActivity::class.java))
+            })
+        }
         return StudioUi.scroll(activity, body)
     }
 }
