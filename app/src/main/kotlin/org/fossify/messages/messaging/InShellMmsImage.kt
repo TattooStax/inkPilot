@@ -16,7 +16,8 @@ internal fun Context.inShellMmsRejection(uris: List<Uri>): String? {
     val mimeType = contentResolver.getType(uri)?.takeIf { it in IMAGE_TYPES }
         ?: return "Attach a JPEG or PNG image"
     return try {
-        contentResolver.openInputStream(uri)?.use { it.imageRejection(mimeType) } ?: "Attachment is unreadable"
+        val input = contentResolver.openInputStream(uri) ?: return "Attachment is unreadable"
+        input.use { it.imageRejection(mimeType) }
     } catch (_: Exception) { "Attachment is unreadable" }
 }
 

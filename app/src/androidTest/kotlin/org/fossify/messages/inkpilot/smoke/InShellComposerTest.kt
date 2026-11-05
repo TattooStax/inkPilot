@@ -16,7 +16,7 @@ import java.util.UUID
 
 /** Synthetic dispatcher only: this suite never reaches a carrier. */
 class InShellComposerTest {
-    @Test fun corruptPngIsRefusedBeforeSimLookupOrComposerClaim() {
+    @Test fun invalidPngsAreRefusedBeforeSimLookupOrComposerClaim() {
         val context = ApplicationProvider.getApplicationContext<android.content.Context>()
         val source = File(context.cacheDir, "attachments/${UUID.randomUUID()}.png")
         source.parentFile!!.mkdirs()
@@ -29,7 +29,13 @@ class InShellComposerTest {
             output.toByteArray()
         }
         val validSource = File(context.cacheDir, "attachments/${UUID.randomUUID()}.png").apply { writeBytes(valid) }
+        val truncatedSource = File(context.cacheDir, "attachments/${UUID.randomUUID()}.png")
+            .apply { writeBytes(valid.copyOf(8)) }
+        val oversizedSource = File(context.cacheDir, "attachments/${UUID.randomUUID()}.png")
+            .apply { writeBytes(ByteArray(1_048_577)) }
         val validUri = FileProvider.getUriForFile(context, "${context.packageName}.provider", validSource)
+        val truncatedUri = FileProvider.getUriForFile(context, "${context.packageName}.provider", truncatedSource)
+        val oversizedUri = FileProvider.getUriForFile(context, "${context.packageName}.provider", oversizedSource)
         val uri = FileProvider.getUriForFile(context, "${context.packageName}.provider", source)
         val id = -(UUID.randomUUID().mostSignificantBits and Long.MAX_VALUE).coerceAtLeast(1L)
         try {
@@ -42,22 +48,23 @@ class InShellComposerTest {
                     assertEquals(DispatchOutcome.Rejected("Image cannot be decoded"), result)
                     assertNull(store.load(id))
                     assertFalse(store.isUnknown(id))
-                    assertEquals(valid.toList(), activity.contentResolver.openInputStream(validUri)!!.use { it.readBytes().toList() })
-                    val bounds = android.graphics.BitmapFactory.Options().apply { inJustDecodeBounds = true }
-                    android.graphics.BitmapFactory.decodeByteArray(valid, 0, valid.size, bounds)
-                    assertEquals(2, bounds.outWidth)
-                    assertEquals(2, bounds.outHeight)
-                    assertEquals("image/png", bounds.outMimeType)
-                    assertTrue(valid.isDecodableMmsImage("image/png"))
-                    assertEquals("image/png", activity.contentResolver.getType(validUri))
-                    assertEquals(valid.toList(), activity.contentResolver.openInputStream(validUri)!!.use { it.readBytes().toList() })
-                    val rejection = activity.inShellMmsRejection(listOf(validUri))
-                    assertNotEquals("Attachment is unreadable", rejection)
-                    assertNotEquals("Image cannot be decoded", rejection)
-                    assertNull(rejection)
+                    fun assertPreclaimRefusal(candidate: Uri, expected: String) {
+                        val rejected = org.fossify.messages.inkpilot.ui.prepareInShellComposerSend(activity, store,
+                            request.copy(attachmentUris = listOf(candidate)), activeSimIds = {
+                                error("SIM lookup must not occur") }).getOrThrow()
+                        assertEquals(DispatchOutcome.Rejected(expected), rejected)
+                        assertNull(store.load(id))
+                        assertFalse(store.isUnknown(id))
+                    }
+                    assertPreclaimRefusal(truncatedUri, "Image cannot be decoded")
+                    assertPreclaimRefusal(oversizedUri, "Image exceeds the 1 MiB MMS limit")
+                    assertNull(activity.inShellMmsRejection(listOf(validUri)))
                     assertNull(store.load(id))
                 } }
-        } finally { ComposerStore(context).clear(id); source.delete(); validSource.delete() }
+        } finally {
+            ComposerStore(context).clear(id)
+            listOf(source, validSource, truncatedSource, oversizedSource).forEach(File::delete)
+        }
     }
 
     @Test fun groupSmsIsVisibleRefusalBeforeSimOrComposerClaim() {
