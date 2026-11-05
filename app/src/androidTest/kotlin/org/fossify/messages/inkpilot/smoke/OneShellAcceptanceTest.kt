@@ -113,6 +113,16 @@ class OneShellAcceptanceTest {
         scenario.onActivity { assertLargeTab(it, "SMS", R.id.inkpilot_tab_sms) }
         SmokeViews.clickDescription("Phone")
         scenario.onActivity { assertLargeTab(it, "Phone", R.id.inkpilot_tab_phone) }
+        val active = SmokeViews.await("active window after Phone") {
+            instrumentation.uiAutomation.rootInActiveWindow
+        }
+        assertEquals("Phone canvas must leave the shell window active",
+            instrumentation.targetContext.packageName, active.packageName?.toString())
+        val contactsNode = active.findAccessibilityNodeInfosByViewId(
+            "${instrumentation.targetContext.packageName}:id/inkpilot_tab_contacts").firstOrNull()
+        assertNotNull("Contacts must remain in the active accessibility window", contactsNode)
+        assertEquals("Contacts", contactsNode!!.contentDescription?.toString())
+        assertTrue("Contacts remains an accessibility action", contactsNode.isClickable)
         SmokeViews.clickDescription("Contacts")
         scenario.onActivity { assertLargeTab(it, "Contacts", R.id.inkpilot_tab_contacts) }
         SmokeViews.clickDescription("Studio")

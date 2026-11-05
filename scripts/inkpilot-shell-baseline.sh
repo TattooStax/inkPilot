@@ -56,13 +56,7 @@ run_class org.fossify.messages.inkpilot.data.StudioContactIdentityTest
 run_class org.fossify.messages.inkpilot.data.ThreadDraftLookupTest
 # Synthetic ingress, calendar, model-contract, and optional-bridge regressions.
 run_class org.fossify.messages.inkpilot.smoke.ShellIngressTest
-if adb -s "$serial" exec-out run-as "$package" cat files/device-test-evidence/explicit-settings-stage.json \
-    > app/build/test-class-evidence/explicit-settings-stage.json.partial 2>/dev/null; then
-  mv app/build/test-class-evidence/explicit-settings-stage.json.partial \
-    app/build/test-class-evidence/explicit-settings-stage.json
-else
-  rm -f app/build/test-class-evidence/explicit-settings-stage.json.partial
-fi
+run_class org.fossify.messages.inkpilot.ui.NotificationEntryRouteTest
 run_class org.fossify.messages.inkpilot.runtime.CarrierIngressTest
 run_class org.fossify.messages.inkpilot.runtime.SmsAdmissionLedgerTest
 run_class org.fossify.messages.inkpilot.runtime.SmsIntakeRecoveryTest

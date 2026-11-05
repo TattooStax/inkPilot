@@ -20,7 +20,6 @@ import org.junit.Assert.*
 import org.junit.Assume.assumeTrue
 import org.junit.Test
 import org.junit.runner.RunWith
-import java.io.File
 
 @RunWith(AndroidJUnit4::class)
 class ShellIngressTest {
@@ -41,6 +40,18 @@ class ShellIngressTest {
             Thread.sleep(50)
         } while (SystemClock.uptimeMillis() < deadline)
         return actual
+    }
+
+    /** A monitor can return its prior Activity again, including one already destroyed. */
+    private fun launchHome(start: () -> Unit): StudioHomeActivity? {
+        val instrumentation = InstrumentationRegistry.getInstrumentation()
+        val monitor = instrumentation.addMonitor(StudioHomeActivity::class.java.name, null, false)
+        return try {
+            start()
+            monitor.waitForActivityWithTimeout(10_000) as StudioHomeActivity?
+        } finally {
+            instrumentation.removeMonitor(monitor)
+        }
     }
 
     @Test fun shareAndSmsIntentsKeepSeparateRecipientsBodyAndGrantedMedia() {
@@ -122,27 +133,24 @@ class ShellIngressTest {
 
     @Test fun historicalPendingIntentAndPreferencesResolveIntoShell() {
         assumeTrue(Build.HARDWARE in setOf("ranchu", "goldfish"))
-        File(context.filesDir, "device-test-evidence/explicit-settings-stage.json").delete()
         val instrumentation = InstrumentationRegistry.getInstrumentation()
-        val shell = instrumentation.addMonitor(StudioHomeActivity::class.java.name, null, false)
-        try {
+        run {
             val old = PendingIntent.getActivity(context, 7311, Intent(context, ThreadActivity::class.java).apply {
                 putExtra(THREAD_ID, 47L); addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
             }, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
-            old.send()
-            val first = shell.waitForActivityWithTimeout(10_000) as StudioHomeActivity?
+            val first = launchHome { old.send() }
             assertNotNull(first)
             assertEquals("Conversation", awaitRenderedTitle(first!!, "Conversation"))
             instrumentation.runOnMainSync {
                 assertNotNull(first.findViewById<android.view.View>(org.fossify.messages.R.id.inkpilot_home))
                 first.finish()
             }
-            context.startActivity(Intent(context, SettingsActivity::class.java)
-                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK))
-            val explicitSettings = shell.waitForActivityWithTimeout(10_000) as StudioHomeActivity?
+            val explicitSettings = launchHome {
+                context.startActivity(Intent(context, SettingsActivity::class.java)
+                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK))
+            }
             assertNotNull(explicitSettings)
             val settingsTitle = awaitRenderedTitle(explicitSettings!!, "Settings")
-            recordExplicitSettingsStage(context, first!!, explicitSettings, settingsTitle)
             assertEquals(StudioRoute.Settings("messaging"),
                 explicitSettings.intent.getBundleExtra(ExternalRouteParser.ROUTE)?.decodeRoute())
             assertFalse(explicitSettings.appLockManager.isLocked())
@@ -150,9 +158,10 @@ class ShellIngressTest {
             instrumentation.runOnMainSync {
                 explicitSettings.finish()
             }
-            context.startActivity(Intent(Intent.ACTION_APPLICATION_PREFERENCES).setPackage(context.packageName)
-                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK))
-            val settings = shell.waitForActivityWithTimeout(10_000) as StudioHomeActivity?
+            val settings = launchHome {
+                context.startActivity(Intent(Intent.ACTION_APPLICATION_PREFERENCES).setPackage(context.packageName)
+                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK))
+            }
             assertNotNull(settings)
             assertEquals("Settings", awaitRenderedTitle(settings!!, "Settings"))
             instrumentation.runOnMainSync {
@@ -160,9 +169,10 @@ class ShellIngressTest {
                 assertEquals("SMS", settings.findViewById<android.widget.TextView>(org.fossify.messages.R.id.inkpilot_title).text.toString())
                 settings.finish()
             }
-            context.startActivity(Intent(context, ArchivedConversationsActivity::class.java)
-                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK))
-            val archive = shell.waitForActivityWithTimeout(10_000) as StudioHomeActivity?
+            val archive = launchHome {
+                context.startActivity(Intent(context, ArchivedConversationsActivity::class.java)
+                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK))
+            }
             assertNotNull(archive)
             assertEquals("Archive", awaitRenderedTitle(archive!!, "Archive"))
             instrumentation.runOnMainSync {
@@ -170,9 +180,10 @@ class ShellIngressTest {
                 assertEquals("SMS", archive.findViewById<android.widget.TextView>(org.fossify.messages.R.id.inkpilot_title).text.toString())
                 archive.finish()
             }
-            context.startActivity(Intent(context, RecycleBinConversationsActivity::class.java)
-                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK))
-            val recycle = shell.waitForActivityWithTimeout(10_000) as StudioHomeActivity?
+            val recycle = launchHome {
+                context.startActivity(Intent(context, RecycleBinConversationsActivity::class.java)
+                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK))
+            }
             assertNotNull(recycle)
             assertEquals("Recycle", awaitRenderedTitle(recycle!!, "Recycle"))
             instrumentation.runOnMainSync {
@@ -180,26 +191,29 @@ class ShellIngressTest {
                 assertEquals("SMS", recycle.findViewById<android.widget.TextView>(org.fossify.messages.R.id.inkpilot_title).text.toString())
                 recycle.finish()
             }
-            context.startActivity(Intent(context, ConversationDetailsActivity::class.java).apply {
-                putExtra(THREAD_ID, 47L); addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
-            })
-            val details = shell.waitForActivityWithTimeout(10_000) as StudioHomeActivity?
+            val details = launchHome {
+                context.startActivity(Intent(context, ConversationDetailsActivity::class.java).apply {
+                    putExtra(THREAD_ID, 47L); addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+                })
+            }
             assertNotNull(details)
             assertEquals("Details", awaitRenderedTitle(details!!, "Details"))
             context.startActivity(Intent(context, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
             assertEquals("SMS", awaitRenderedTitle(details, "SMS"))
             instrumentation.runOnMainSync { details.finish() }
-            context.startActivity(Intent(context, VCardViewerActivity::class.java)
-                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK))
-            val vcard = shell.waitForActivityWithTimeout(10_000) as StudioHomeActivity?
+            val vcard = launchHome {
+                context.startActivity(Intent(context, VCardViewerActivity::class.java)
+                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK))
+            }
             assertNotNull(vcard)
             assertEquals("Contacts", awaitRenderedTitle(vcard!!, "Contacts"))
             instrumentation.runOnMainSync {
                 vcard.finish()
             }
-            context.startActivity(Intent(context, MainActivity::class.java)
-                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK))
-            val up = shell.waitForActivityWithTimeout(10_000) as StudioHomeActivity?
+            val up = launchHome {
+                context.startActivity(Intent(context, MainActivity::class.java)
+                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK))
+            }
             assertNotNull(up)
             assertEquals("SMS", awaitRenderedTitle(up!!, "SMS"))
             instrumentation.runOnMainSync {
@@ -209,7 +223,7 @@ class ShellIngressTest {
                 assertTrue(androidx.test.runner.lifecycle.ActivityLifecycleMonitorRegistry.getInstance()
                     .getActivitiesInStage(androidx.test.runner.lifecycle.Stage.RESUMED).none { it is ThreadActivity })
             }
-        } finally { instrumentation.removeMonitor(shell) }
+        }
     }
 
     @Test fun coldShareForwardsReadableUriAndPrivateBodyIntoOneComposer() {
