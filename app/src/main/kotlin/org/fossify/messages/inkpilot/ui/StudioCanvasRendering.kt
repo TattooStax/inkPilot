@@ -9,12 +9,13 @@ internal fun supplementalCanvas(
     route: StudioRoute,
     messages: MessagePanel,
     work: StudioWork,
+    repository: StudioRepository,
     back: () -> Unit,
 ): android.view.View? = when (route) {
     is StudioRoute.PhoneDial -> messages.phone(route.number)
     StudioRoute.PhoneHistory -> PhoneHistoryPanel(activity, work,
         { activity.openRoute(StudioRoute.PhoneDial(it)) }, back).view()
-    is StudioRoute.Attachment -> AttachmentPanel(activity, back).view(route)
+    is StudioRoute.Attachment -> AttachmentPanel(activity, back, repository, work).view(route)
     else -> null
 }
 

@@ -135,7 +135,7 @@ class StudioHomeActivity : AppCompatActivity() {
             threadFooter = { threadFooter(it) }, importImage = ::importMmsImage)
         val auxiliary = AuxiliaryPanel(this, work, ::openRoute, ::refreshPanels, ::exportStudio)
         val view = panels.view(route) {
-            supplementalCanvas(this, route, messages, work) { onBackPressedDispatcher.onBackPressed() }
+            supplementalCanvas(this, route, messages, work, repository) { onBackPressedDispatcher.onBackPressed() }
                 ?: when (route) {
                     is StudioRoute.Thread -> messages.thread(route.threadId)
                     is StudioRoute.Compose -> StudioUi.scroll(this, ThreadComposer(this, work, ::pickAttachment,
