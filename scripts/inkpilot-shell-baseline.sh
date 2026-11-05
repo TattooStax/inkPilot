@@ -55,6 +55,7 @@ run_class org.fossify.messages.inkpilot.data.StudioContactIdentityTest
 run_class org.fossify.messages.inkpilot.data.ThreadDraftLookupTest
 # Synthetic ingress, calendar, model-contract, and optional-bridge regressions.
 run_class org.fossify.messages.inkpilot.smoke.ShellIngressTest
+run_class org.fossify.messages.inkpilot.ui.NotificationEntryRouteTest
 run_class org.fossify.messages.inkpilot.runtime.CarrierIngressTest
 run_class org.fossify.messages.inkpilot.runtime.SmsAdmissionLedgerTest
 run_class org.fossify.messages.inkpilot.runtime.SmsIntakeRecoveryTest

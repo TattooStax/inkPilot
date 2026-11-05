@@ -3,7 +3,6 @@ package org.fossify.messages.inkpilot.studio
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
-import android.content.Intent
 import androidx.core.app.NotificationCompat
 import androidx.work.Data
 import androidx.work.ExistingWorkPolicy
@@ -15,7 +14,7 @@ import androidx.work.WorkerParameters
 import java.util.concurrent.TimeUnit
 import org.fossify.messages.R
 import org.fossify.messages.inkpilot.data.StudioRepository
-import org.fossify.messages.inkpilot.ui.StudioHomeActivity
+import org.fossify.messages.inkpilot.ui.studioPanelIntent
 
 internal class CalendarReminderScheduler(private val context: Context) {
     /** Versioned work names let older edits complete harmlessly after a newer edit. */
@@ -42,8 +41,7 @@ internal class CalendarReminderWorker(context: Context, params: WorkerParameters
                 val outcome = attemptDueCalendarReminder(calendar, id, revision, System.currentTimeMillis(),
                     canPost = { CalendarReminderGate.canPost(applicationContext, manager) },
                 ) { due ->
-                    val intent = Intent(applicationContext, StudioHomeActivity::class.java)
-                        .putExtra("inkpilot_panel", "calendar")
+                    val intent = studioPanelIntent(applicationContext, "calendar")
                     val pending = PendingIntent.getActivity(applicationContext, 9081, intent,
                         PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
                     val notification = NotificationCompat.Builder(applicationContext, CalendarReminderGate.CHANNEL_ID)
