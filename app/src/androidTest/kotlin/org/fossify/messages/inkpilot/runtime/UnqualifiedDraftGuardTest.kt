@@ -72,9 +72,11 @@ class UnqualifiedDraftGuardTest {
             assertFalse(repository.drafts().single { it.eventId == heldId }.canReview)
             assertEquals("MODEL_UNQUALIFIED", repository.staffAttention().single { it.eventId == pendingId && it.current }.reason)
             assertEquals("MODEL_UNQUALIFIED", repository.staffAttention().single { it.eventId == heldId && it.current }.reason)
-            assertThrows(IllegalStateException::class.java) {
-                AgentRuntime.approveAndSend(context, saved.receipt.draftId, saved.receipt.body, 1)
+            val blocked = assertThrows(IllegalStateException::class.java) {
+                // Even if the model gate regresses, no active SIM can match this fixture.
+                AgentRuntime.approveAndSend(context, saved.receipt.draftId, saved.receipt.body, -1)
             }
+            assertEquals("Model drafts are unqualified. Reply directly in the conversation.", blocked.message)
             assertNull(repository.getSendClaim(saved.receipt.draftId))
             StudioRepository(context).use { reopened ->
                 assertFalse(reopened.isDraftingEnabled())

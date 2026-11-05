@@ -43,6 +43,7 @@ import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
+import java.io.File
 
 /** Uses the real startup database and provider, only on a clean disposable emulator install. */
 @RunWith(AndroidJUnit4::class)
@@ -54,6 +55,14 @@ class LegacyFirstLaunchTest {
     private val recycledId = 8_000_002L
     private val temporaryThread = 8_000_003L
     private var fixtureStarted = false
+    private var hadRetiredPreference = false
+    private var retiredPreference = false
+    private var previousRecycleBin = false
+    private var previousRunCount = 0
+    private var previousPostureName: String? = null
+    private var previousPostureToken: ByteArray? = null
+
+    private val postureToken get() = File(context.noBackupFilesDir, "role_posture_token")
 
     @Before
     fun requireIsolatedEmulator() {
@@ -92,6 +101,13 @@ class LegacyFirstLaunchTest {
 
     @Test
     fun preservesScheduledDraftArchiveAndRecycleOnLegacyFirstLaunch() {
+        val prefs = context.getSharedPrefs()
+        hadRetiredPreference = prefs.contains("was_db_cleared_4")
+        retiredPreference = prefs.getBoolean("was_db_cleared_4", false)
+        previousRecycleBin = context.config.useRecycleBin
+        previousRunCount = context.config.appRunCount
+        previousPostureName = context.config.rolePostureName
+        previousPostureToken = postureToken.takeIf { it.exists() }?.readBytes()
         fixtureStarted = true
         val now = System.currentTimeMillis()
         providerThread = Telephony.Threads.getOrCreateThreadId(context, "+12025550981")
@@ -218,13 +234,26 @@ class LegacyFirstLaunchTest {
     @After
     fun removeOnlyOwnedFixtures() {
         if (!fixtureStarted) return
-        providerUri?.let { context.contentResolver.delete(it, null, null) }
-        providerUri?.let { context.messagesDB.delete(MessageKey(MessageOrigin.SMS, ContentUris.parseId(it))) }
-        context.messagesDB.delete(MessageKey(MessageOrigin.SCHEDULED_SMS, scheduledId))
-        context.messagesDB.delete(MessageKey(MessageOrigin.SMS, recycledId))
-        context.draftsDB.delete(temporaryThread)
-        context.conversationsDB.deleteThreadId(temporaryThread)
-        context.conversationsDB.deleteThreadId(providerThread)
+        try {
+            providerUri?.let { context.contentResolver.delete(it, null, null) }
+            providerUri?.let { context.messagesDB.delete(MessageKey(MessageOrigin.SMS, ContentUris.parseId(it))) }
+            context.messagesDB.delete(MessageKey(MessageOrigin.SCHEDULED_SMS, scheduledId))
+            context.messagesDB.delete(MessageKey(MessageOrigin.SMS, recycledId))
+            context.draftsDB.delete(temporaryThread)
+            context.conversationsDB.deleteThreadId(temporaryThread)
+            context.conversationsDB.deleteThreadId(providerThread)
+        } finally {
+            val editor = context.getSharedPrefs().edit()
+            if (hadRetiredPreference) editor.putBoolean("was_db_cleared_4", retiredPreference)
+            else editor.remove("was_db_cleared_4")
+            val restoredRetiredPreference = editor.commit()
+            context.config.useRecycleBin = previousRecycleBin
+            context.config.appRunCount = previousRunCount
+            context.config.rolePostureName = previousPostureName
+            val token = previousPostureToken
+            if (token == null) postureToken.delete() else postureToken.writeBytes(token)
+            assertTrue("Restore retired preference after first-launch fixture", restoredRetiredPreference)
+        }
     }
 
     private fun message(id: Long, thread: Long, body: String, date: Int, scheduled: Boolean = false) =

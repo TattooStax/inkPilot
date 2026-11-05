@@ -72,8 +72,13 @@ class StudioImageImportUiTest {
                 }
             }
         } finally {
+            val ownedOriginal = original ?: runCatching {
+                val gallery = StudioAlbumStore(repository)
+                gallery.linkedImages(contact.id, 73).singleOrNull()
+                    ?.let { StudioImageFiles(context, gallery).originalFile(it) }
+            }.getOrNull()
             instrumentation.removeMonitor(monitor); repository.close(); context.deleteDatabase(name)
-            source.delete(); original?.delete()
+            source.delete(); ownedOriginal?.delete()
         }
     }
 

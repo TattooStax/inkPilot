@@ -5,7 +5,6 @@ import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteException
 import android.database.sqlite.SQLiteOpenHelper
-import org.fossify.messages.inkpilot.studio.StudioFeatureSchema
 
 /** Business records are never placed in the inherited, destructively rebuildable SMS cache. */
 internal class StudioV1Fixture(context: Context, name: String) : SQLiteOpenHelper(context, name, null, 1) {
@@ -92,7 +91,29 @@ internal class StudioV1Fixture(context: Context, name: String) : SQLiteOpenHelpe
                 PRIMARY KEY(draft_id, part_index)
             )
         """.trimIndent())
-        StudioFeatureSchema.create(db)
+        // Frozen feature tables from 5bc2abf. A current production helper would
+        // make the old database fixture change whenever a later schema changes.
+        db.execSQL("""CREATE TABLE studio_albums (
+            id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL COLLATE NOCASE UNIQUE,
+            artist TEXT NOT NULL DEFAULT '')""")
+        db.execSQL("""CREATE TABLE studio_images (
+            id INTEGER PRIMARY KEY AUTOINCREMENT, filename TEXT NOT NULL UNIQUE,
+            display_name TEXT NOT NULL, imported_at INTEGER NOT NULL)""")
+        db.execSQL("""CREATE TABLE studio_album_images (
+            album_id INTEGER NOT NULL REFERENCES studio_albums(id),
+            image_id INTEGER NOT NULL REFERENCES studio_images(id),
+            PRIMARY KEY(album_id,image_id))""")
+        db.execSQL("""CREATE TABLE studio_staff (
+            id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL COLLATE NOCASE UNIQUE)""")
+        db.execSQL("""CREATE TABLE studio_calendar (
+            id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT NOT NULL, kind TEXT NOT NULL,
+            staff_id INTEGER NOT NULL REFERENCES studio_staff(id), starts_at INTEGER NOT NULL,
+            ends_at INTEGER NOT NULL, zone_id TEXT NOT NULL, room TEXT NOT NULL COLLATE NOCASE,
+            status TEXT NOT NULL DEFAULT 'scheduled')""")
+        db.execSQL("CREATE INDEX studio_calendar_time ON studio_calendar(starts_at,ends_at,status)")
+        listOf("Finished Work", "Outlines", "Client References").forEach { name ->
+            db.execSQL("INSERT INTO studio_albums(name) VALUES(?)", arrayOf(name))
+        }
     }
 
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {

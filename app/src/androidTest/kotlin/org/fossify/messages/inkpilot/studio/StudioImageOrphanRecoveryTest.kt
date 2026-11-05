@@ -25,22 +25,38 @@ class StudioImageOrphanPreparationTest {
         val committed = UUID.randomUUID().toString()
         val ambiguous = UUID.randomUUID().toString()
         val directory = File(context.filesDir, "studio-images").apply { mkdirs() }
-        File(directory, "$abandoned.image").writeBytes(byteArrayOf(1, 2, 3))
-        File(directory, "$committed.image").writeBytes(byteArrayOf(4, 5, 6))
-        File(directory, "$ambiguous.image").writeBytes(byteArrayOf(7))
-        File(directory, "import-$session-$abandoned.journal").writeBytes(byteArrayOf(1))
-        File(directory, "import-$session-$committed.journal").writeBytes(byteArrayOf(1))
-        File(directory, "import-$session-$abandoned.part").writeBytes(byteArrayOf(1))
-        StudioRepository(context, name).use { repository ->
-            val store = StudioAlbumStore(repository)
-            store.addOriginal(store.albums().first().id, "$committed.image", "Synthetic committed image")
-            assertTrue(store.hasOriginalFilename("$committed.image"))
-            assertFalse(store.hasOriginalFilename("$abandoned.image"))
+        val abandonedFile = File(directory, "$abandoned.image")
+        val committedFile = File(directory, "$committed.image")
+        val ambiguousFile = File(directory, "$ambiguous.image")
+        val owned = listOf(abandonedFile, committedFile, ambiguousFile,
+            File(directory, "import-$session-$abandoned.journal"),
+            File(directory, "import-$session-$committed.journal"),
+            File(directory, "import-$session-$abandoned.part"))
+        val preferences = context.getSharedPreferences(FIXTURE, Context.MODE_PRIVATE)
+        assertFalse("Verify and clean the previous fixture first", preferences.contains("database"))
+        var prepared = false
+        try {
+            abandonedFile.writeBytes(byteArrayOf(1, 2, 3))
+            committedFile.writeBytes(byteArrayOf(4, 5, 6))
+            ambiguousFile.writeBytes(byteArrayOf(7))
+            owned.drop(3).forEach { it.writeBytes(byteArrayOf(1)) }
+            StudioRepository(context, name).use { repository ->
+                val store = StudioAlbumStore(repository)
+                store.addOriginal(store.albums().first().id, "$committed.image", "Synthetic committed image")
+                assertTrue(store.hasOriginalFilename("$committed.image"))
+                assertFalse(store.hasOriginalFilename("$abandoned.image"))
+            }
+            prepared = preferences.edit().putString("database", name).putString("session", session)
+                .putString("abandoned", abandoned).putString("committed", committed)
+                .putString("ambiguous", ambiguous).commit()
+            assertTrue(prepared)
+        } finally {
+            if (!prepared) {
+                owned.forEach(File::delete)
+                context.deleteDatabase(name)
+                preferences.edit().clear().commit()
+            }
         }
-        assertTrue(context.getSharedPreferences(FIXTURE, Context.MODE_PRIVATE).edit()
-            .putString("database", name).putString("session", session)
-            .putString("abandoned", abandoned).putString("committed", committed)
-            .putString("ambiguous", ambiguous).commit())
     }
 }
 
@@ -57,21 +73,28 @@ class StudioImageOrphanRecoveryTest {
         val directory = File(context.filesDir, "studio-images")
         val abandonedFile = File(directory, "$abandoned.image")
         val committedFile = File(directory, "$committed.image")
-        StudioRepository(context, name).use { repository ->
-            val store = StudioAlbumStore(repository)
-            StudioImageFiles(context, store).recoverIncompleteImports()
-            assertFalse(abandonedFile.exists())
-            assertTrue(committedFile.isFile)
-            assertEquals(byteArrayOf(4, 5, 6).toList(), committedFile.readBytes().toList())
-            assertTrue(store.hasOriginalFilename(committedFile.name))
+        val ambiguousFile = File(directory, "$ambiguous.image")
+        val abandonedJournal = File(directory, "import-$session-$abandoned.journal")
+        val committedJournal = File(directory, "import-$session-$committed.journal")
+        val abandonedPart = File(directory, "import-$session-$abandoned.part")
+        try {
+            StudioRepository(context, name).use { repository ->
+                val store = StudioAlbumStore(repository)
+                StudioImageFiles(context, store).recoverIncompleteImports()
+                assertFalse(abandonedFile.exists())
+                assertTrue(committedFile.isFile)
+                assertEquals(byteArrayOf(4, 5, 6).toList(), committedFile.readBytes().toList())
+                assertTrue(store.hasOriginalFilename(committedFile.name))
+            }
+            assertFalse(abandonedJournal.exists())
+            assertFalse(committedJournal.exists())
+            assertFalse(abandonedPart.exists())
+            assertTrue(ambiguousFile.isFile)
+        } finally {
+            listOf(abandonedFile, committedFile, ambiguousFile,
+                abandonedJournal, committedJournal, abandonedPart).forEach(File::delete)
+            context.deleteDatabase(name)
+            saved.edit().clear().commit()
         }
-        assertFalse(File(directory, "import-$session-$abandoned.journal").exists())
-        assertFalse(File(directory, "import-$session-$committed.journal").exists())
-        assertFalse(File(directory, "import-$session-$abandoned.part").exists())
-        assertTrue(File(directory, "$ambiguous.image").isFile)
-        committedFile.delete()
-        File(directory, "$ambiguous.image").delete()
-        context.deleteDatabase(name)
-        saved.edit().clear().commit()
     }
 }

@@ -7,6 +7,7 @@ import org.fossify.commons.models.SimpleContact
 import org.fossify.messages.extensions.messagesDB
 import org.fossify.messages.messaging.*
 import org.fossify.messages.models.Message
+import org.junit.After
 import org.junit.Assert.*
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -15,8 +16,11 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 class ScheduledQueueTest {
     private val context = ApplicationProvider.getApplicationContext<android.content.Context>()
+    private val ownedVerdicts = OwnedScheduledVerdictFixture(context)
     private fun message() = Message(System.nanoTime(), "original human text", 6, 0, arrayListOf(), 1,
-        false, System.nanoTime(), false, null, "", "", "", -1, true)
+        false, System.nanoTime(), false, null, "", "", "", -1, true).also { ownedVerdicts.track(it.key()) }
+
+    @After fun removeOwnedVerdicts() = ownedVerdicts.cleanup()
 
     @Test fun alarmPostFailureLeavesExactDueRowAndBodyRecoverable() {
         val row = message()

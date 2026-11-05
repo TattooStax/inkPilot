@@ -9,6 +9,7 @@ import org.fossify.messages.extensions.messagesDB
 import org.fossify.messages.extensions.updateScheduledMessagesThreadId
 import org.fossify.messages.messaging.*
 import org.fossify.messages.models.Message
+import org.junit.After
 import org.junit.Assert.*
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -17,8 +18,12 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 class ScheduledIdentityLifecycleTest {
     private val context = ApplicationProvider.getApplicationContext<Context>()
+    private val ownedVerdicts = OwnedScheduledVerdictFixture(context)
     private fun message(id: Long = System.nanoTime(), mms: Boolean = false) = Message(id,
         "original scheduled text", 6, 0, arrayListOf(), 1, false, id, mms, null, "", "", "", -1, true)
+        .also { ownedVerdicts.track(it.key()) }
+
+    @After fun removeOwnedVerdicts() = ownedVerdicts.cleanup()
 
     @Test fun preMigrationTypedAlarmResolvesCurrentThreadAfterRoomMove() {
         val row = message()

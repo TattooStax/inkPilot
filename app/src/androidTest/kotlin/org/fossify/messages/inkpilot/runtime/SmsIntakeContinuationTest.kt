@@ -9,6 +9,7 @@ import org.fossify.messages.inkpilot.data.StudioRepository
 import org.junit.Assert.*
 import org.junit.Test
 import org.junit.runner.RunWith
+import java.util.UUID
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -38,12 +39,17 @@ class SmsIntakeContinuationTest : SmsIntakeRecoveryTestBase() {
             context, Configuration.Builder().setWorkerFactory(factory).build(),
         )
         val manager = WorkManager.getInstance(context)
+        var earlierIds: Set<UUID>? = null
         try {
+            val previous = manager.getWorkInfosByTag(SmsIntakeRecovery.CONTINUATION_TAG)
+                .get(5, TimeUnit.SECONDS).map { it.id }.toSet()
+            earlierIds = previous
             SmsIntakeRecovery.recoverAndSchedule(context, repository, since, maxPages = 1)
             val deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(15)
             var allFinished = false
             while (System.nanoTime() < deadline) {
                 val info = manager.getWorkInfosByTag(SmsIntakeRecovery.CONTINUATION_TAG).get(5, TimeUnit.SECONDS)
+                    .filterNot { it.id in previous }
                 if (repository.intakeCheckpoint() == latest && workerStarts.get() >= 2 &&
                     info.isNotEmpty() && info.all { it.state == WorkInfo.State.SUCCEEDED }) {
                     allFinished = true
@@ -59,9 +65,16 @@ class SmsIntakeContinuationTest : SmsIntakeRecoveryTestBase() {
             assertTrue(repository.heldDrafts().isEmpty())
             assertEquals("Synthetic continuation 404", nativeBody(latest))
         } finally {
-            manager.cancelAllWork().result.get(5, TimeUnit.SECONDS)
-            WorkManagerTestInitHelper.closeWorkDatabase()
-            WorkManagerImpl.setDelegate(null)
+            try {
+                earlierIds?.let { previous ->
+                    manager.getWorkInfosByTag(SmsIntakeRecovery.CONTINUATION_TAG).get(5, TimeUnit.SECONDS)
+                        .filterNot { it.id in previous }
+                        .forEach { manager.cancelWorkById(it.id).result.get(5, TimeUnit.SECONDS) }
+                }
+            } finally {
+                WorkManagerTestInitHelper.closeWorkDatabase()
+                WorkManagerImpl.setDelegate(null)
+            }
         }
     }
 }
