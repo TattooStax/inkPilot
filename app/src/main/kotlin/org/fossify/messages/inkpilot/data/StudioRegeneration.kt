@@ -18,7 +18,9 @@ internal fun SQLiteDatabase.regenerateStudioDraft(eventId: String, expectedRevis
             if (it.moveToFirst()) return@transaction DraftRegenerationOutcome.AlreadyClaimed
         }
         val source = studioSource(eventId) ?: return@transaction DraftRegenerationOutcome.Stale
-        if (source.staffPaused || source.revision != expectedRevision) return@transaction DraftRegenerationOutcome.Stale
+        if (source.staffPaused || source.revision != expectedRevision || staffHandledSource(eventId)) {
+            return@transaction DraftRegenerationOutcome.Stale
+        }
         insertWithOnConflict("draft_regenerations", null, ContentValues().apply {
             put("event_id", eventId); put("source_revision", expectedRevision)
         }, SQLiteDatabase.CONFLICT_REPLACE)

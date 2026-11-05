@@ -79,7 +79,7 @@ class StudioContactIdentityTest : StudioDatabaseTestBase() {
                 db.version = 2
             }
             StudioRepository(context, name).use { migrated ->
-                assertEquals(6, migrated.database.version)
+                assertEquals(7, migrated.database.version)
                 assertEquals(2, migrated.contacts().size)
                 assertEquals(IdentityReviewState.PENDING, migrated.memoryEntry("a")?.reviewState)
                 assertEquals("Legacy memory", migrated.contact("a")?.memory)

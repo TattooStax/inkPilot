@@ -5,6 +5,7 @@ import android.database.sqlite.SQLiteDatabase
 import inkpilot.agent.DraftDisposition
 import inkpilot.agent.DraftKey
 import inkpilot.agent.DraftStoreResult
+import inkpilot.agent.DraftSource
 import inkpilot.agent.HeldDraftReceipt
 import inkpilot.agent.HeldDraftWrite
 import java.util.UUID
@@ -18,10 +19,15 @@ internal fun SQLiteDatabase.studioReceipt(key: DraftKey): HeldDraftReceipt? = ra
     )
 }
 
+private fun SQLiteDatabase.unhandledSource(write: HeldDraftWrite): DraftSource? {
+    val source = studioSource(write.key.eventId) ?: return null
+    return source.takeUnless { staffHandledSource(write.key.eventId) }
+}
+
 internal fun SQLiteDatabase.holdStudioDraft(write: HeldDraftWrite): DraftStoreResult {
     require(write.body.isNotBlank() && write.body.length <= 800) { "Invalid draft text" }
     return transaction {
-        val source = studioSource(write.key.eventId) ?: return@transaction DraftStoreResult.SourceChanged
+        val source = unhandledSource(write) ?: return@transaction DraftStoreResult.SourceChanged
         if (source.staffPaused) return@transaction DraftStoreResult.StaffPaused
         if (source.threadId != write.threadId || source.contactId != write.contactId ||
             source.recipient != write.recipient || source.revision != write.expectedRevision
@@ -45,6 +51,7 @@ internal fun SQLiteDatabase.holdStudioDraft(write: HeldDraftWrite): DraftStoreRe
             put("thread_id", write.threadId); put("contact_id", write.contactId); put("recipient", write.recipient)
             put("source_revision", write.expectedRevision); put("body", write.body); put("created_at", System.currentTimeMillis())
         })
+        resolveStaffAttentionThroughSource(write.key.eventId, write.expectedRevision)
         DraftStoreResult.Held(checkNotNull(studioReceipt(write.key)), DraftDisposition.CREATED)
     }
 }

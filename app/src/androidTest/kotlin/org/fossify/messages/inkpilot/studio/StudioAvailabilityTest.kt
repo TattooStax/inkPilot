@@ -170,7 +170,7 @@ class StudioAvailabilityTest {
             old.version = 4
         }
         repository = StudioRepository(context, name); store = StudioCalendarStore(repository) { _, _, _ -> }
-        assertEquals(6, repository.database.version)
+        assertEquals(7, repository.database.version)
         assertEquals(ZoneId.systemDefault(), store.studioZone())
         val row = store.entries(1_800_000_000_000, 1_800_003_600_000).single()
         assertEquals("Original", row.title)

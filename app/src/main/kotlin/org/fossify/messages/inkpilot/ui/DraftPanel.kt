@@ -7,6 +7,7 @@ import org.fossify.messages.R
 import org.fossify.messages.inkpilot.data.ReviewDraft
 import org.fossify.messages.inkpilot.data.StudioRepository
 import org.fossify.messages.inkpilot.data.StudioStaffAttention
+import org.fossify.messages.inkpilot.data.markStaffAttentionHandled
 import org.fossify.messages.inkpilot.data.staffAttention
 
 internal class DraftPanel(
@@ -49,6 +50,10 @@ internal class DraftPanel(
                 list.addView(StudioUi.text(activity, "Context changed. Read the latest conversation.", DETAIL_SIZE))
             }
             list.addView(StudioUi.button(activity, "Open conversation") { open(StudioRoute.Thread(task.threadId)) })
+            list.addView(StudioUi.text(activity, "After replying or taking over, mark handled.", DETAIL_SIZE))
+            list.addView(StudioUi.button(activity, "Mark handled") {
+                work.load({ repository.markStaffAttentionHandled(task.eventId, task.sourceRevision) }) { refresh() }
+            })
             list.addView(StudioUi.rule(activity))
         }
     }

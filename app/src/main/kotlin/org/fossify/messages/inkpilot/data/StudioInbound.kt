@@ -78,6 +78,8 @@ internal fun SQLiteDatabase.pendingStudioRequests(limit: Int): List<DraftRequest
                 SELECT 1 FROM send_claims s JOIN held_drafts h ON h.draft_id = s.draft_id WHERE h.event_id = e.event_id
             ) AND NOT EXISTS (
                 SELECT 1 FROM draft_attempts a WHERE a.event_id = e.event_id AND a.source_revision = c.revision
+            ) AND NOT EXISTS (
+                SELECT 1 FROM staff_attention a WHERE a.event_id = e.event_id AND a.resolution = 'STAFF_HANDLED'
             ) ORDER BY e.received_at ASC, e.event_id LIMIT ?
         """.trimIndent(), arrayOf(DraftKind.CUSTOMER_SERVICE_REPLY.name, limit.toString()),
     ).use { cursor ->

@@ -6,8 +6,17 @@ import android.database.sqlite.SQLiteException
 import android.database.sqlite.SQLiteOpenHelper
 import org.fossify.messages.inkpilot.studio.StudioFeatureSchema
 
+private const val STUDIO_SCHEMA_VERSION = 7
+private const val STUDIO_V1 = 1
+private const val STUDIO_V2 = 2
+private const val STUDIO_V3 = 3
+private const val STUDIO_V4 = 4
+private const val STUDIO_V5 = 5
+private const val STUDIO_V6 = 6
+
 /** Business records are never placed in the inherited, destructively rebuildable SMS cache. */
-internal class StudioDatabase(context: Context, name: String) : SQLiteOpenHelper(context, name, null, 6) {
+internal class StudioDatabase(context: Context, name: String) :
+    SQLiteOpenHelper(context, name, null, STUDIO_SCHEMA_VERSION) {
     init {
         setWriteAheadLoggingEnabled(true)
     }
@@ -63,6 +72,7 @@ internal class StudioDatabase(context: Context, name: String) : SQLiteOpenHelper
                 PRIMARY KEY(event_id, source_revision)
             )
         """.trimIndent())
+        StudioStaffAttentionSchema.create(db)
         db.execSQL("""
             CREATE TABLE held_drafts (
                 draft_id TEXT PRIMARY KEY NOT NULL,
@@ -108,12 +118,17 @@ internal class StudioDatabase(context: Context, name: String) : SQLiteOpenHelper
     }
 
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
-        if (oldVersion !in 1..5 || newVersion != 6) throw SQLiteException("No studio migration from $oldVersion to $newVersion")
-        if (oldVersion == 1) StudioRevisionSchema.upgrade(db)
-        if (oldVersion <= 2) StudioIdentitySchema.create(db)
-        if (oldVersion <= 3) org.fossify.messages.inkpilot.studio.StudioImageLinkSchema.create(db)
-        if (oldVersion <= 4) org.fossify.messages.inkpilot.studio.StudioCalendarSchema.upgrade(db)
-        StudioProposalSchema.create(db)
+        if (oldVersion !in STUDIO_V1..STUDIO_V6 || newVersion != STUDIO_SCHEMA_VERSION) {
+            throw SQLiteException("No studio migration from $oldVersion to $newVersion")
+        }
+        if (oldVersion <= STUDIO_V5) {
+            if (oldVersion == STUDIO_V1) StudioRevisionSchema.upgrade(db)
+            if (oldVersion <= STUDIO_V2) StudioIdentitySchema.create(db)
+            if (oldVersion <= STUDIO_V3) org.fossify.messages.inkpilot.studio.StudioImageLinkSchema.create(db)
+            if (oldVersion <= STUDIO_V4) org.fossify.messages.inkpilot.studio.StudioCalendarSchema.upgrade(db)
+            StudioProposalSchema.create(db)
+        }
+        StudioStaffAttentionSchema.create(db)
     }
 
     companion object { private val openLock = Any() }
