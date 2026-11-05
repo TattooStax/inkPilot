@@ -15,6 +15,13 @@ import org.fossify.messages.inkpilot.ui.decodeRoute
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
+import java.io.FileInputStream
+
+private fun readShell(command: String): String? = runCatching {
+    InstrumentationRegistry.getInstrumentation().uiAutomation.executeShellCommand(command).use { pipe ->
+        FileInputStream(pipe.fileDescriptor).bufferedReader().use { it.readText() }
+    }
+}.getOrNull()
 
 /** Bounded lifecycle metadata; never persist a URI, message, contact, or view text. */
 internal fun recordColdShareFailure(target: Context, sender: Context, sharedUri: Uri) {
@@ -56,12 +63,23 @@ internal fun recordColdShareFailure(target: Context, sender: Context, sharedUri:
     val senderActivity = ComponentName(sender.packageName, CrossPackageShareSender::class.java.name)
     val senderMarker = File(sender.cacheDir, "task11-share-stage")
     val senderRead = runCatching { senderMarker.readText() }.getOrNull()
+    val activityTasks = readShell("dumpsys activity activities")
+    val activityLog = readShell("logcat -d -t 2000 -v brief -s ActivityTaskManager:I ActivityManager:I AndroidRuntime:E")
     val evidence = JSONObject().apply {
         put("shareAliasResolved", runCatching { target.packageManager.getActivityInfo(alias, 0).exported }.getOrDefault(false))
         put("senderActivityResolved", runCatching { sender.packageManager.getActivityInfo(senderActivity, 0).exported }.getOrDefault(false))
         put("senderCacheReadable", senderMarker.parentFile?.canRead() == true)
         put("senderMarkerReadable", senderRead != null)
         put("senderStage", senderRead?.takeIf { it in setOf("prepared", "forwarded") } ?: "missing")
+        put("activityTasksReadable", activityTasks != null)
+        put("senderInTask", activityTasks?.contains("CrossPackageShareSender") == true)
+        put("shareAliasInTask", activityTasks?.contains("NewConversationActivity") == true)
+        put("homeInTask", activityTasks?.contains("StudioHomeActivity") == true)
+        put("activityLogReadable", activityLog != null)
+        put("backgroundLaunchBlocked", activityLog?.contains("Background activity start denied", ignoreCase = true) == true ||
+            activityLog?.contains("Background activity launch blocked", ignoreCase = true) == true)
+        put("senderCrashLogged", activityLog?.contains("FATAL EXCEPTION") == true &&
+            activityLog?.contains("CrossPackageShareSender") == true)
         put("unlockResumed", unlockResumed)
         put("homes", stages)
     }
