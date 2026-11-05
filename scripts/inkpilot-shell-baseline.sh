@@ -29,13 +29,21 @@ scripts/run-inkpilot-test-class.sh "$serial" org.fossify.messages.inkpilot.ui.St
 scripts/run-inkpilot-test-class.sh "$serial" org.fossify.messages.inkpilot.data.ScheduledVerdictTest
 scripts/run-inkpilot-test-class.sh "$serial" org.fossify.messages.inkpilot.data.ScheduledQueueTest
 scripts/run-inkpilot-test-class.sh "$serial" org.fossify.messages.inkpilot.data.ScheduledIdentityLifecycleTest
+scripts/run-inkpilot-test-class.sh "$serial" org.fossify.messages.inkpilot.data.StudioCrossThreadAttentionTest
+scripts/run-inkpilot-test-class.sh "$serial" org.fossify.messages.inkpilot.data.StudioContactIdentityTest
+scripts/run-inkpilot-test-class.sh "$serial" org.fossify.messages.inkpilot.data.ThreadDraftLookupTest
 # Synthetic ingress, calendar, model-contract, and optional-bridge regressions.
 scripts/run-inkpilot-test-class.sh "$serial" org.fossify.messages.inkpilot.smoke.ShellIngressTest
 scripts/run-inkpilot-test-class.sh "$serial" org.fossify.messages.inkpilot.runtime.CarrierIngressTest
+scripts/run-inkpilot-test-class.sh "$serial" org.fossify.messages.inkpilot.runtime.SmsAdmissionLedgerTest
+scripts/run-inkpilot-test-class.sh "$serial" org.fossify.messages.inkpilot.runtime.SmsIntakeRecoveryTest
+scripts/run-inkpilot-test-class.sh "$serial" org.fossify.messages.inkpilot.smoke.MmsComposerOutcomeTest
 scripts/run-inkpilot-test-class.sh "$serial" org.fossify.messages.inkpilot.studio.StudioAvailabilityTest
 scripts/run-inkpilot-test-class.sh "$serial" org.fossify.messages.inkpilot.studio.StudioCalendarUiTest
+scripts/run-inkpilot-test-class.sh "$serial" org.fossify.messages.inkpilot.studio.StudioReminderGateTest
 scripts/run-inkpilot-test-class.sh "$serial" org.fossify.messages.inkpilot.data.StudioProposalTest
 scripts/run-inkpilot-test-class.sh "$serial" org.fossify.messages.inkpilot.smoke.ModelQualificationTest
 scripts/run-inkpilot-test-class.sh "$serial" org.fossify.messages.inkpilot.smoke.OneShellAcceptanceTest
 scripts/run-inkpilot-test-class.sh "$serial" org.fossify.messages.inkpilot.phone.PhoneRoleQualificationTest
+scripts/run-inkpilot-test-class.sh "$serial" org.fossify.messages.inkpilot.phone.ManualCallUiTest
 scripts/run-inkpilot-test-class.sh "$serial" org.fossify.messages.transport.BridgeHistoryTest

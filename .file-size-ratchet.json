@@ -706,7 +706,7 @@
     "scripts/inkpilot-device-result.py": 13,
     "scripts/inkpilot-device-run.sh": 126,
     "scripts/inkpilot-model-benchmark.sh": 63,
-    "scripts/inkpilot-shell-baseline.sh": 41,
+    "scripts/inkpilot-shell-baseline.sh": 49,
     "scripts/inkpilot-sms-role-preflight.sh": 50,
     "scripts/inkpilot-tool-probe.py": 121,
     "scripts/inkpilot_model_benchmark.py": 188,
