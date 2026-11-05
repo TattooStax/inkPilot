@@ -181,19 +181,46 @@ class LegacyFirstLaunchTest {
                 }
                 ready.takeIf { it }
             }
-            SmokeViews.await<Boolean>("native message text bound and visible in the thread viewport") {
-                var visible = false
-                instrumentation.runOnMainSync {
-                    val list = home.findViewById<RecyclerView>(R.id.inkpilot_thread_message_list)
-                    val matches = ArrayList<View>()
-                    list.findViewsWithText(matches, "Synthetic native history", View.FIND_VIEWS_WITH_TEXT)
-                    visible = matches.filterIsInstance<TextView>().any { text ->
-                        val rect = Rect()
-                        text.text.toString() == "Synthetic native history" && text.isShown &&
-                            text.getGlobalVisibleRect(rect) && !rect.isEmpty
+            var viewportDiagnostic = ""
+            try {
+                SmokeViews.await<Boolean>("native message text bound and visible in the thread viewport") {
+                    var visible = false
+                    instrumentation.runOnMainSync {
+                        val list = home.findViewById<RecyclerView>(R.id.inkpilot_thread_message_list)
+                        val matches = ArrayList<View>()
+                        list.findViewsWithText(matches, "Synthetic native history", View.FIND_VIEWS_WITH_TEXT)
+                        val listRect = Rect()
+                        val listVisible = list.getGlobalVisibleRect(listRect)
+                        val first = (list.layoutManager as? androidx.recyclerview.widget.LinearLayoutManager)?.findFirstVisibleItemPosition()
+                        val target = matches.filterIsInstance<TextView>()
+                        visible = target.any { text ->
+                            val rect = Rect()
+                            text.text.toString() == "Synthetic native history" && text.isShown &&
+                                text.getGlobalVisibleRect(rect) && !rect.isEmpty
+                        }
+                        val messagePosition = (list.adapter as? StudioMessageRows)?.messagePosition(
+                            MessageKey(MessageOrigin.SMS, providerId)) ?: -1
+                        val row = list.findViewHolderForAdapterPosition(messagePosition)?.itemView
+                        val rowRect = Rect()
+                        val rowVisible = row?.getGlobalVisibleRect(rowRect) == true
+                        val parent = list.parent as android.view.ViewGroup
+                        val footer = parent.getChildAt(parent.childCount - 1)
+                        val bit: (Boolean) -> Int = { if (it) 1 else 0 }
+                        viewportDiagnostic = listOf(list.width, list.height, bit(list.isShown),
+                            bit(listVisible), listRect.width(), listRect.height(), list.childCount,
+                            first ?: -1, target.size, bit(visible), row?.height ?: -1, bit(rowVisible),
+                            parent.height, footer?.height ?: -1,
+                            home.findViewById<View>(R.id.inkpilot_canvas).height,
+                            bit(home.window.decorView.rootWindowInsets?.isVisible(android.view.WindowInsets.Type.ime()) == true),
+                            bit(home.currentFocus is android.widget.EditText)).joinToString(",")
                     }
+                    visible.takeIf { it }
                 }
-                visible.takeIf { it }
+            } catch (failure: AssertionError) {
+                context.openFileOutput("firstlaunch-geometry.csv", Context.MODE_PRIVATE).use {
+                    it.write(viewportDiagnostic.toByteArray(Charsets.US_ASCII))
+                }
+                throw AssertionError("Native message viewport check failed; numeric geometry saved", failure)
             }
             SmokeViews.assertText("Synthetic native history")
             assertEquals("First shell launch must preserve the human scheduled message",

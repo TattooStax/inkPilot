@@ -32,6 +32,21 @@ if timeout 600 adb -s "$serial" shell am instrument -w -e class "$class" \
   python3 scripts/inkpilot-device-result.py "$result" > /dev/null 2>&1; then
   printf 'PASS %s\n' "$class" | tee "$evidence/result.txt"
 else
+  # The disposable first-launch fixture may publish bounded numeric view
+  # geometry; never copy instrumentation assertions or message text.
+  if [[ "$class" == org.fossify.messages.inkpilot.data.LegacyFirstLaunchTest ]]; then
+    geometry=$(adb -s "$serial" shell run-as app.inkpilot.android.debug cat files/firstlaunch-geometry.csv 2>/dev/null | tr -d '\r' || true)
+    python3 - "$geometry" "$evidence/geometry.csv" <<'PY_DIAG'
+import re, sys
+raw = sys.argv[1]
+if re.fullmatch(r'-?\d+(,-?\d+){16}', raw):
+    values = [int(item) for item in raw.split(',')]
+    if all(-1 <= item <= 5000 for item in values):
+        with open(sys.argv[2], 'w', encoding='ascii') as out:
+            out.write('list_width,list_height,list_shown,list_visible,visible_width,visible_height,children,first,matched_texts,text_visible,row_height,row_visible,parent_height,footer_height,canvas_height,ime_visible,focus_edit\n')
+            out.write(raw + '\n')
+PY_DIAG
+  fi
   # Only a Kotlin test filename and line number may leave the temporary raw
   # result. Assertion messages can contain customer text or phone numbers.
   site=$(grep -Eo '[A-Za-z_][A-Za-z0-9_]*Test\.kt:[0-9]+' "$result" | head -n 1 || true)
