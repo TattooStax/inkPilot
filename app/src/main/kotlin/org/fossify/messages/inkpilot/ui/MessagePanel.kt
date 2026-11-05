@@ -8,6 +8,9 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import org.fossify.messages.R
 
+private const val THREAD_VIEWPORT_SHARE = 2
+private const val READ_ONLY_MESSAGE_SIZE_SP = 14f
+
 internal class MessagePanel(
     private val activity: AppCompatActivity,
     private val work: StudioWork,
@@ -83,7 +86,8 @@ internal class MessagePanel(
             }
         })
         body.addView(StudioUi.button(activity, "Load older messages") { load() }, 0)
-        val footer = threadFooter?.invoke(threadId) ?: StudioUi.text(activity, "Read-only conversation", 14f)
+        val footer = threadFooter?.invoke(threadId)
+            ?: StudioUi.text(activity, "Read-only conversation", READ_ONLY_MESSAGE_SIZE_SP)
         body.addView(footer)
         if (threadFooter != null) reserveThreadViewport(body, list, footer)
         work.load({ gateway.markRead(threadId) }) { }
@@ -98,7 +102,7 @@ internal class MessagePanel(
                 body.getChildAt(index).takeUnless { it === list || it === footer }?.height ?: 0
             }
             val room = (bottom - top - body.paddingTop - body.paddingBottom - fixed).coerceAtLeast(0)
-            val footerHeight = minOf(preferredFooterHeight, room / 2)
+            val footerHeight = minOf(preferredFooterHeight, room / THREAD_VIEWPORT_SHARE)
             if (footer.layoutParams.height != footerHeight) {
                 footer.layoutParams = (footer.layoutParams as android.widget.LinearLayout.LayoutParams).apply {
                     height = footerHeight

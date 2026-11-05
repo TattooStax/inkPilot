@@ -260,7 +260,7 @@
     "app/src/main/kotlin/org/fossify/messages/inkpilot/ui/ExternalRouteParser.kt": 108,
     "app/src/main/kotlin/org/fossify/messages/inkpilot/ui/InboxAdapter.kt": 60,
     "app/src/main/kotlin/org/fossify/messages/inkpilot/ui/InlineDraftReview.kt": 48,
-    "app/src/main/kotlin/org/fossify/messages/inkpilot/ui/MessagePanel.kt": 117,
+    "app/src/main/kotlin/org/fossify/messages/inkpilot/ui/MessagePanel.kt": 121,
     "app/src/main/kotlin/org/fossify/messages/inkpilot/ui/MessagePresentation.kt": 26,
     "app/src/main/kotlin/org/fossify/messages/inkpilot/ui/ProposalPanel.kt": 97,
     "app/src/main/kotlin/org/fossify/messages/inkpilot/ui/SmsRefreshObserver.kt": 53,
