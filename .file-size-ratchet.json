@@ -98,7 +98,7 @@
     "app/src/androidTest/kotlin/org/fossify/messages/inkpilot/smoke/DispatchOutcomeTest.kt": 74,
     "app/src/androidTest/kotlin/org/fossify/messages/inkpilot/smoke/FocusedReviewRouteTest.kt": 87,
     "app/src/androidTest/kotlin/org/fossify/messages/inkpilot/smoke/HomeNavigationSmokeTest.kt": 41,
-    "app/src/androidTest/kotlin/org/fossify/messages/inkpilot/smoke/InShellComposerTest.kt": 213,
+    "app/src/androidTest/kotlin/org/fossify/messages/inkpilot/smoke/InShellComposerTest.kt": 218,
     "app/src/androidTest/kotlin/org/fossify/messages/inkpilot/smoke/InShellThreadTest.kt": 154,
     "app/src/androidTest/kotlin/org/fossify/messages/inkpilot/smoke/LocalLoopSmokeTest.kt": 190,
     "app/src/androidTest/kotlin/org/fossify/messages/inkpilot/smoke/MmsComposerOutcomeTest.kt": 197,

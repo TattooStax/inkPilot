@@ -49,7 +49,12 @@ class InShellComposerTest {
                     assertEquals(2, bounds.outHeight)
                     assertEquals("image/png", bounds.outMimeType)
                     assertTrue(valid.isDecodableMmsImage("image/png"))
-                    assertNull(activity.inShellMmsRejection(listOf(validUri)))
+                    assertEquals("image/png", activity.contentResolver.getType(validUri))
+                    assertEquals(valid.toList(), activity.contentResolver.openInputStream(validUri)!!.use { it.readBytes().toList() })
+                    val rejection = activity.inShellMmsRejection(listOf(validUri))
+                    assertNotEquals("Attachment is unreadable", rejection)
+                    assertNotEquals("Image cannot be decoded", rejection)
+                    assertNull(rejection)
                     assertNull(store.load(id))
                 } }
         } finally { ComposerStore(context).clear(id); source.delete(); validSource.delete() }
