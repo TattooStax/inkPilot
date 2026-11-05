@@ -33,7 +33,7 @@ class StudioAvailabilityTest {
 
     @Before fun setUp() {
         repository = StudioRepository(context, name)
-        store = StudioCalendarStore(repository) { _, _, _ -> }
+        store = StudioCalendarStore(repository, reminders = { _, _, _ -> })
         a = store.addStaff("A"); b = store.addStaff("B")
     }
     @After fun tearDown() { repository.close(); context.deleteDatabase(name) }
@@ -62,7 +62,7 @@ class StudioAvailabilityTest {
         assertTrue(store.schedule(booking(a, "2027-11-07T09:30")) is ScheduleResult.Saved)
         assertTrue(store.schedule(booking(a, "2027-11-07T08:30")) is ScheduleResult.Unavailable)
         repository.close()
-        repository = StudioRepository(context, name); store = StudioCalendarStore(repository) { _, _, _ -> }
+        repository = StudioRepository(context, name); store = StudioCalendarStore(repository, reminders = { _, _, _ -> })
         assertEquals(zone, store.studioZone().id)
     }
 
@@ -123,7 +123,7 @@ class StudioAvailabilityTest {
         val changed = booking(a, "2027-06-01T11:00").copy(reminderAt = at("2027-06-01T10:30"))
         assertTrue(store.edit(saved.id, changed) is ScheduleResult.Saved)
         repository.close()
-        repository = StudioRepository(context, name); store = StudioCalendarStore(repository) { _, _, _ -> }
+        repository = StudioRepository(context, name); store = StudioCalendarStore(repository, reminders = { _, _, _ -> })
         assertNull(store.dueReminder(saved.id, 0, at("2027-06-01T11:00")))
         val row = store.entries(at("2027-06-01T11:00"), at("2027-06-01T12:00")).single()
         assertEquals(1L, row.revision)
@@ -169,7 +169,7 @@ class StudioAvailabilityTest {
             old.execSQL("INSERT INTO held_drafts VALUES('v4-held','v4-event','CUSTOMER_SERVICE_REPLY','75','client','+12025550101',0,'Held text','HELD',2)")
             old.version = 4
         }
-        repository = StudioRepository(context, name); store = StudioCalendarStore(repository) { _, _, _ -> }
+        repository = StudioRepository(context, name); store = StudioCalendarStore(repository, reminders = { _, _, _ -> })
         assertEquals(9, repository.database.version)
         assertEquals(ZoneId.systemDefault(), store.studioZone())
         val row = store.entries(1_800_000_000_000, 1_800_003_600_000).single()

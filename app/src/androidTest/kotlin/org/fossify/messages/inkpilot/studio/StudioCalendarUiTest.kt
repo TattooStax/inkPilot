@@ -30,7 +30,7 @@ class StudioCalendarUiTest {
         val name = "synthetic-calendar-zone-ui-${UUID.randomUUID()}.db"
         val repository = StudioRepository(context, name)
         try {
-            val store = StudioCalendarStore(repository) { _, _, _ -> }
+            val store = StudioCalendarStore(repository, reminders = { _, _, _ -> })
             val savedZone = if (ZoneId.systemDefault().id == "America/Chicago") "UTC" else "America/Chicago"
             store.setStudioZone(savedZone)
             ActivityScenario.launch(StudioHomeActivity::class.java).use { scenario ->
@@ -87,7 +87,7 @@ class StudioCalendarUiTest {
         val name = "synthetic-calendar-ui-${UUID.randomUUID()}.db"
         val repository = StudioRepository(context, name)
         try {
-            val store = StudioCalendarStore(repository) { _, _, _ -> }
+            val store = StudioCalendarStore(repository, reminders = { _, _, _ -> })
             val staffId = store.addStaff("Synthetic artist")
             val zone = ZoneId.systemDefault()
             val day = LocalDate.now(zone)

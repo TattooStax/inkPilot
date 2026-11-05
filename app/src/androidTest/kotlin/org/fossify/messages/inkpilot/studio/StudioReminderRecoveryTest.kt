@@ -21,11 +21,11 @@ class StudioReminderRecoveryTest {
         var repository = StudioRepository(context, databaseName)
         var workName: String? = null
         try {
-            val staff = StudioCalendarStore(repository) { _, _, _ -> }.addStaff("Synthetic artist")
+            val staff = StudioCalendarStore(repository, reminders = { _, _, _ -> }).addStaff("Synthetic artist")
             val due = ((System.currentTimeMillis() / 60_000) + 180) * 60_000
             val proposal = CalendarProposal("Synthetic consultation", "appointment", staff,
                 due + 30 * 60_000, due + 60 * 60_000, "UTC", "", reminderAt = due)
-            val interrupted = StudioCalendarStore(repository) { _, _, _ -> error("Simulated crash before enqueue") }
+            val interrupted = StudioCalendarStore(repository, reminders = { _, _, _ -> error("Simulated crash before enqueue") })
             assertThrows(IllegalStateException::class.java) { interrupted.schedule(proposal) }
             val committed = interrupted.entries(proposal.startsAt, proposal.endsAt).single()
             assertEquals(due, committed.reminderAt)
@@ -33,9 +33,9 @@ class StudioReminderRecoveryTest {
 
             repository = StudioRepository(context, databaseName)
             val operations = mutableListOf<Operation>()
-            val recovered = StudioCalendarStore(repository) { id, revision, dueAt ->
+            val recovered = StudioCalendarStore(repository, reminders = { id, revision, dueAt ->
                 operations += requireNotNull(CalendarReminderScheduler(context).schedule(id, revision, dueAt))
-            }
+            })
             recovered.reconcileReminders()
             operations.single().result.get(15, TimeUnit.SECONDS)
             val name = CalendarReminderScheduler.name(committed.id, committed.revision)
