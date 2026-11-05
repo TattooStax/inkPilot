@@ -33,13 +33,17 @@ internal class ThreadAdapter(private val activity: android.app.Activity,
             }
         }
         body.addView(bubble, LinearLayout.LayoutParams(-2, -2))
-        bubble.setOnLongClickListener {
+        fun showActions(): Boolean {
             androidx.appcompat.app.AlertDialog.Builder(activity).setTitle("Message actions")
                 .setPositiveButton("Forward") { _, _ -> forward(message) }
                 .setNegativeButton("Cancel", null).show()
-            true
+            return true
         }
-        bubble.addView(StudioUi.text(activity, message.body, 17f).apply { maxWidth = StudioUi.dp(body, 280) })
+        bubble.setOnLongClickListener { showActions() }
+        bubble.addView(StudioUi.text(activity, message.body, 17f).apply {
+            maxWidth = StudioUi.dp(body, 280)
+            setOnLongClickListener { showActions() }
+        })
         message.attachment?.attachments?.forEach { attachment ->
             if (attachment.mimetype.startsWith("image/")) {
                 val image = android.widget.ImageView(activity).apply {
@@ -60,9 +64,9 @@ internal class ThreadAdapter(private val activity: android.app.Activity,
             })
         }
         val state = message.deliveryLabel()
+        val direction = if (message.isReceivedMessage()) "Received" else "Outgoing"
         body.addView(StudioUi.text(activity,
-            "${if (message.isMMS) "MMS" else "SMS"} · ${android.text.format.DateFormat.format("MMM d, h:mm a", message.millis())} $state", 12f))
-        body.contentDescription = "${if (message.isReceivedMessage()) "Received" else "Outgoing"} ${if (message.isMMS) "MMS" else "SMS"}"
+            "$direction ${if (message.isMMS) "MMS" else "SMS"} · ${android.text.format.DateFormat.format("MMM d, h:mm a", message.millis())} $state", 12f))
     }
     fun append(items: List<Message>) {
         val start = rows.size
