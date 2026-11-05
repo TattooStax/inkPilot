@@ -1,7 +1,6 @@
 package org.fossify.messages.inkpilot.ui
 
 import android.Manifest
-import android.content.Intent
 import android.content.pm.PackageManager
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
@@ -61,7 +60,9 @@ internal class MessagePanel(
         body.addView(StudioUi.button(activity, "Client reference images") { open(StudioRoute.ImageLinks(threadId = threadId)) })
         val adapter = StudioThreadAdapter(activity, forward = { message ->
             open(StudioRoute.Compose(emptyList(), message.body, message.attachment?.attachments?.map { it.getUri() }.orEmpty()))
-        }, importImage = importImage)
+        }, importImage = importImage, viewAttachment = { attachment ->
+            open(StudioRoute.Attachment(attachment.getUri(), attachment.mimetype, attachment.filename))
+        })
         val list = recycler().apply {
             id = R.id.inkpilot_thread_message_list
             this.adapter = adapter
@@ -117,5 +118,7 @@ internal class MessagePanel(
         setHasFixedSize(false)
     }
 
-    fun phone(): View = org.fossify.messages.inkpilot.phone.PhonePanel(activity).view()
+    fun phone(initial: String = ""): View = org.fossify.messages.inkpilot.phone.PhonePanel(activity,
+        openHistory = { open(StudioRoute.PhoneHistory) },
+        openContacts = { open(StudioRoute.Tab(StudioTab.CONTACTS)) }).view(initial)
 }

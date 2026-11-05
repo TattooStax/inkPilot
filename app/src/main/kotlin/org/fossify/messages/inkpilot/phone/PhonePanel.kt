@@ -1,15 +1,17 @@
 package org.fossify.messages.inkpilot.phone
 import android.app.Activity
 import android.content.Intent
-import android.net.Uri
-import android.provider.CallLog
-import android.provider.ContactsContract
 import android.text.InputType
 import android.view.View
 import android.widget.EditText
 import org.fossify.messages.inkpilot.ui.StudioUi
 
-internal class PhonePanel(private val activity: Activity, private val actions: ManualDialActions = AndroidDialActions(activity)) {
+internal class PhonePanel(
+    private val activity: Activity,
+    private val actions: ManualDialActions = AndroidDialActions(activity),
+    private val openHistory: () -> Unit = {},
+    private val openContacts: () -> Unit = {},
+) {
     fun view(initial: String = ""): View {
         val body = StudioUi.column(activity)
         body.addView(StudioUi.text(activity, "Manual Phone", 24f, true))
@@ -29,21 +31,15 @@ internal class PhonePanel(private val activity: Activity, private val actions: M
         body.addView(StudioUi.button(activity, "Call") {
             val value = number.text.toString().trim()
             if (value.isEmpty()) return@button
-            if (!actions.held()) {
-                val target = actions.fallbackPackage()?.takeUnless { it == activity.packageName }
-                if (target == null) actions.unavailable()
-                else actions.openFallback(target, value)
-            } else if (!actions.permitted()) actions.requestPermission()
+            if (!actions.held()) actions.unavailable()
+            else if (!actions.permitted()) actions.requestPermission()
             else actions.place(value)
         })
-        body.addView(StudioUi.button(activity, "Call history") { open(Intent(Intent.ACTION_VIEW, CallLog.Calls.CONTENT_URI)) })
-        body.addView(StudioUi.button(activity, "Contacts") { open(Intent(Intent.ACTION_VIEW, ContactsContract.Contacts.CONTENT_URI)) })
+        body.addView(StudioUi.button(activity, "Call history", openHistory))
+        body.addView(StudioUi.button(activity, "Contacts", openContacts))
         if (StudioInCallService.current != null) body.addView(StudioUi.button(activity, "Return to call") {
             activity.startActivity(Intent(activity, ManualCallActivity::class.java))
         })
         return StudioUi.scroll(activity, body)
-    }
-    private fun open(intent: Intent) {
-        runCatching { activity.startActivity(intent) }.onFailure { StudioUi.error(activity, "No app is available for this action.") }
     }
 }

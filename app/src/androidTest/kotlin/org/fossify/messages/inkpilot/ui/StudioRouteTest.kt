@@ -59,11 +59,37 @@ class StudioRouteTest {
 
     @Test fun roundTripsEveryDestination() {
         listOf(StudioRoute.Draft("draft-1"), StudioRoute.Settings("sms"), StudioRoute.Soul,
-            StudioRoute.Model, StudioRoute.Auxiliary("drafts")).forEach { route ->
+            StudioRoute.Model, StudioRoute.Auxiliary("drafts"), StudioRoute.PhoneDial("5550100"),
+            StudioRoute.PhoneHistory, StudioRoute.Attachment(Uri.parse("content://mms/part/9"), "image/png", "reference.png")).forEach { route ->
             val navigator = StudioNavigator()
             navigator.open(route)
             assertEquals(route, StudioNavigator(Bundle().also(navigator::save)).current)
         }
+    }
+
+    @Test fun dialIngressSelectsPhoneStackAndPreservesFilledNumber() {
+        val navigator = StudioNavigator()
+        navigator.acceptExternalRoute(StudioRoute.PhoneDial("5550100"))
+        assertEquals(StudioTab.PHONE, navigator.selectedTab)
+        assertEquals(StudioRoute.PhoneDial("5550100"), navigator.current)
+        assertTrue(navigator.pop())
+        assertEquals(StudioRoute.Tab(StudioTab.PHONE), navigator.current)
+    }
+
+    @Test fun dailyTabSelectionLeavesSideCardAndRetainsDailyCanvas() {
+        val navigator = StudioNavigator()
+        navigator.open(StudioRoute.Tab(StudioTab.PHONE))
+        navigator.open(StudioRoute.PhoneDial("5550100"))
+        navigator.open(StudioRoute.Soul)
+        navigator.open(StudioRoute.Model)
+        assertTrue(navigator.current.isSideRoute())
+        navigator.selectDailyTab(StudioTab.PHONE)
+        assertEquals(StudioRoute.PhoneDial("5550100"), navigator.current)
+        navigator.open(StudioRoute.Soul)
+        navigator.selectDailyTab(StudioTab.CONTACTS)
+        assertEquals(StudioRoute.Tab(StudioTab.CONTACTS), navigator.current)
+        navigator.selectDailyTab(StudioTab.PHONE)
+        assertEquals(StudioRoute.PhoneDial("5550100"), navigator.current)
     }
 
     @Test fun panelRetainsLiveViewAndRestoresUnsentText() {

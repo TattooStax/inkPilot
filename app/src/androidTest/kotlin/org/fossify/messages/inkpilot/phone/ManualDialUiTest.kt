@@ -1,7 +1,5 @@
 package org.fossify.messages.inkpilot.phone
 
-import android.content.ActivityNotFoundException
-import android.content.Intent
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
@@ -16,15 +14,12 @@ class ManualDialUiTest {
     private class FakeDial : ManualDialActions {
         var role = false
         var permission = true
-        var target: String? = "mock.dialer"
         val events = mutableListOf<String>()
         override fun held() = role
         override fun permitted() = permission
-        override fun fallbackPackage() = target
-        override fun request() { events += "request" } // Simulated refusal: role stays false.
+        override fun request() { events += "request" }
         override fun restore() { events += "restore" }
         override fun requestPermission() { events += "permission" }
-        override fun openFallback(target: String, number: String) { events += "fallback:$target:$number" }
         override fun place(number: String) { events += "place:$number" }
         override fun unavailable() { events += "unavailable" }
     }
@@ -34,18 +29,24 @@ class ManualDialUiTest {
         return null
     }
 
-    @Test fun refusalRevocationPermissionDenialAndEmergencyMockUseCorrectDispatch() {
+    @Test fun roleRefusalPermissionDenialAndEmergencyMockStayInPhoneTab() {
         ActivityScenario.launch(ManualCallActivity::class.java).use { scenario -> scenario.onActivity { activity ->
             val fake = FakeDial()
-            var panel = PhonePanel(activity, fake).view("5550100")
+            var history = 0
+            var contacts = 0
+            var panel = PhonePanel(activity, fake, { history++ }, { contacts++ }).view("5550100")
             activity.setContentView(panel)
             button(panel, "Choose inkPilot as Phone app")!!.performClick()
             button(panel, "Call")!!.performClick()
-            assertEquals(listOf("request", "fallback:mock.dialer:5550100"), fake.events)
+            assertEquals(listOf("request", "unavailable"), fake.events)
+            button(panel, "Call history")!!.performClick()
+            button(panel, "Contacts")!!.performClick()
+            assertEquals(1, history)
+            assertEquals(1, contacts)
             fake.role = true
             panel = PhonePanel(activity, fake).view("911") // Mock only, fake Telecom boundary.
             activity.setContentView(panel)
-            assertFalse(fake.events.any { it.startsWith("place") }) // Filling number never calls.
+            assertFalse(fake.events.any { it.startsWith("place") }) // Filling never calls.
             fake.permission = false
             button(panel, "Call")!!.performClick()
             assertEquals("permission", fake.events.last())
@@ -54,13 +55,7 @@ class ManualDialUiTest {
             assertEquals("place:911", fake.events.last())
             button(panel, "Restore previous Phone app")!!.performClick()
             assertEquals("restore", fake.events.last())
-            fake.role = false // Role revoked while panel is still visible.
-            button(panel, "Call")!!.performClick()
-            assertEquals("fallback:mock.dialer:911", fake.events.last())
-            fake.target = null
-            button(panel, "Call")!!.performClick()
-            assertEquals("unavailable", fake.events.last())
-            fake.target = activity.packageName // Never recurse into ourselves.
+            fake.role = false // Revoked while visible: no external dialer is launched.
             button(panel, "Call")!!.performClick()
             assertEquals("unavailable", fake.events.last())
             val before = fake.events.size
@@ -69,19 +64,11 @@ class ManualDialUiTest {
         } }
     }
 
-    @Test fun missingExternalHandlerReportsFailureAndFallbackIntentNeverPlacesCall() {
+    @Test fun unavailableRoleReportsNeedForInShellPhoneRole() {
         ActivityScenario.launch(ManualCallActivity::class.java).use { scenario -> scenario.onActivity { activity ->
             val errors = mutableListOf<String>()
-            var observed: Intent? = null
-            val actions = AndroidDialActions(activity, launch = {
-                observed = it
-                throw ActivityNotFoundException("mock missing dialer")
-            }, report = errors::add)
-            actions.openFallback("mock.dialer", "5550100")
-            assertEquals(Intent.ACTION_DIAL, observed!!.action)
-            assertEquals("mock.dialer", observed!!.getPackage())
-            assertEquals("tel:5550100", observed!!.data.toString())
-            assertEquals(listOf("No phone dialer is available."), errors)
+            AndroidDialActions(activity, report = errors::add).unavailable()
+            assertEquals(listOf("Choose inkPilot as your Phone app before calling."), errors)
         } }
     }
 }

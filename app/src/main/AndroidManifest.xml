@@ -18,6 +18,7 @@
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <uses-permission android:name="android.permission.READ_CALL_LOG" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.READ_SYNC_SETTINGS" />
     <uses-permission android:name="android.permission.CALL_PHONE" />
@@ -86,6 +87,21 @@
         <activity android:name=".inkpilot.ui.CompatibilityIngressActivity"
             android:exported="false" android:excludeFromRecents="true"
             android:theme="@style/Theme.InkPilot.Studio" />
+        <activity android:name=".inkpilot.ui.SettingsIngressActivity"
+            android:exported="false" android:excludeFromRecents="true"
+            android:theme="@style/Theme.InkPilot.Studio" />
+        <activity android:name=".inkpilot.ui.ArchiveIngressActivity"
+            android:exported="false" android:excludeFromRecents="true"
+            android:theme="@style/Theme.InkPilot.Studio" />
+        <activity android:name=".inkpilot.ui.RecycleIngressActivity"
+            android:exported="false" android:excludeFromRecents="true"
+            android:theme="@style/Theme.InkPilot.Studio" />
+        <activity android:name=".inkpilot.ui.DetailsIngressActivity"
+            android:exported="false" android:excludeFromRecents="true"
+            android:theme="@style/Theme.InkPilot.Studio" />
+        <activity android:name=".inkpilot.ui.VCardIngressActivity"
+            android:exported="false" android:excludeFromRecents="true"
+            android:theme="@style/Theme.InkPilot.Studio" />
         <receiver
             android:name=".inkpilot.runtime.StudioSmsResultReceiver"
             android:exported="false" />
@@ -102,13 +118,13 @@
 
         <activity-alias
             android:name=".activities.RecycleBinConversationsActivity"
-            android:targetActivity=".inkpilot.ui.CompatibilityIngressActivity"
+            android:targetActivity=".inkpilot.ui.RecycleIngressActivity"
             android:exported="false"
             android:label="@string/recycle_bin" />
 
         <activity-alias
             android:name=".activities.ArchivedConversationsActivity"
-            android:targetActivity=".inkpilot.ui.CompatibilityIngressActivity"
+            android:targetActivity=".inkpilot.ui.ArchiveIngressActivity"
             android:exported="false"
             android:label="@string/archived_conversations" />
 
@@ -152,7 +168,7 @@
 
         <activity-alias
             android:name=".activities.SettingsActivity"
-            android:targetActivity=".inkpilot.ui.CompatibilityIngressActivity"
+            android:targetActivity=".inkpilot.ui.SettingsIngressActivity"
             android:exported="true"
             android:label="@string/settings">
 
@@ -193,13 +209,13 @@
 
         <activity-alias
             android:name=".activities.VCardViewerActivity"
-            android:targetActivity=".inkpilot.ui.CompatibilityIngressActivity"
+            android:targetActivity=".inkpilot.ui.VCardIngressActivity"
             android:exported="false"
             android:label="@string/contact_details" />
 
         <activity-alias
             android:name=".activities.ConversationDetailsActivity"
-            android:targetActivity=".inkpilot.ui.CompatibilityIngressActivity"
+            android:targetActivity=".inkpilot.ui.DetailsIngressActivity"
             android:exported="false"
             android:label="@string/conversation_details" />
 

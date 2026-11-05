@@ -160,6 +160,15 @@ class ShellIngressTest {
                 assertEquals("SMS", details!!.findViewById<android.widget.TextView>(org.fossify.messages.R.id.inkpilot_title).text.toString())
                 details.finish()
             }
+            context.startActivity(Intent(context, VCardViewerActivity::class.java)
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK))
+            val vcard = shell.waitForActivityWithTimeout(10_000) as StudioHomeActivity?
+            assertNotNull(vcard)
+            instrumentation.runOnMainSync {
+                assertEquals("Contacts", vcard!!.findViewById<android.widget.TextView>(
+                    org.fossify.messages.R.id.inkpilot_title).text.toString())
+                vcard.finish()
+            }
             context.startActivity(Intent(context, MainActivity::class.java)
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK))
             val up = shell.waitForActivityWithTimeout(10_000) as StudioHomeActivity?

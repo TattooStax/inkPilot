@@ -16,6 +16,10 @@ internal class StudioNavigator(savedState: Bundle? = null) {
         if (route is StudioRoute.Tab) selectedTab = route.tab
         else if (current != route) stacks.getValue(selectedTab).add(route)
     }
+    fun selectDailyTab(tab: StudioTab) {
+        selectedTab = tab
+        while (current.isSideRoute()) pop()
+    }
     fun reset(tab: StudioTab) {
         selectedTab = tab
         stacks.getValue(tab).apply { clear(); add(StudioRoute.Tab(tab)) }
@@ -24,7 +28,9 @@ internal class StudioNavigator(savedState: Bundle? = null) {
         if (route is StudioRoute.Tab) { reset(route.tab); return }
         when (route) {
             is StudioRoute.Thread, is StudioRoute.Compose, is StudioRoute.Draft,
-            is StudioRoute.Settings, is StudioRoute.Auxiliary -> open(StudioRoute.Tab(StudioTab.SMS))
+            is StudioRoute.Settings, is StudioRoute.Auxiliary, is StudioRoute.Attachment ->
+                open(StudioRoute.Tab(StudioTab.SMS))
+            is StudioRoute.PhoneDial, StudioRoute.PhoneHistory -> open(StudioRoute.Tab(StudioTab.PHONE))
             else -> Unit
         }
         open(route)

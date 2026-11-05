@@ -17,7 +17,8 @@ internal enum class StudioTab(val label: String, val viewId: Int, val icon: Int)
     CALENDAR("Calendar", R.id.inkpilot_tab_calendar, R.drawable.inkpilot_nav_calendar),
 }
 
-internal fun navigation(activity: Activity, selected: StudioTab, choose: (StudioTab) -> Unit) = LinearLayout(activity).apply {
+internal fun navigation(activity: Activity, selected: StudioTab?,
+    choose: (StudioTab) -> Unit) = LinearLayout(activity).apply {
     id = R.id.inkpilot_navigation
     orientation = LinearLayout.HORIZONTAL
     StudioTab.entries.forEach { tab ->

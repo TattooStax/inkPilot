@@ -1,7 +1,5 @@
 package org.fossify.messages.inkpilot.ui
 
-import android.content.Intent
-import org.fossify.messages.models.Attachment
 import org.fossify.messages.models.Message
 
 /** SMS delivery-report status and MMS message-box values are separate provider namespaces. */
@@ -21,6 +19,3 @@ internal fun Message.deliveryLabel(): String = if (isMMS) when (type) {
     6 -> "Queued"
     else -> "Unknown state"
 }
-
-internal fun Attachment.viewIntent() = Intent(Intent.ACTION_VIEW).setDataAndType(getUri(), mimetype)
-    .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)

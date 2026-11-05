@@ -5,11 +5,12 @@ import android.os.Bundle
 import android.view.WindowManager
 
 /** Retains historical component names without ever inflating a legacy messenger screen. */
-class CompatibilityIngressActivity : Activity() {
+open class CompatibilityIngressActivity : Activity() {
+    protected open fun destination() = ExternalRouteParser.forward(this, intent)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
-        startActivity(ExternalRouteParser.forward(this, intent))
+        startActivity(destination())
         finish()
     }
 }

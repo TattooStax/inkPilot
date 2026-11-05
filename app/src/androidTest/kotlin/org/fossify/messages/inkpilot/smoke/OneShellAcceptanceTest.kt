@@ -1,5 +1,6 @@
 package org.fossify.messages.inkpilot.smoke
 
+import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.graphics.Rect
 import android.graphics.drawable.ColorDrawable
@@ -47,15 +48,44 @@ class OneShellAcceptanceTest {
             ActivityScenario.launch(StudioHomeActivity::class.java).use { scenario ->
                 SmokeViews.clickDescription("SMS")
                 SmokeViews.clickText("New message")
-                scenario.onActivity(::assertFooter)
+                scenario.onActivity { assertFooter(it) }
                 scenario.onActivity { it.onBackPressedDispatcher.onBackPressed() }
                 SmokeViews.clickDescription("Open agent controls")
                 SmokeViews.clickText("Messaging settings")
-                scenario.onActivity(::assertFooter)
+                scenario.onActivity { assertFooter(it, 0) }
             }
             assertEquals("Legacy activities must never replace the shell", 0, legacy.sumOf { it.hits })
         } finally {
             legacy.forEach(instrumentation::removeMonitor)
+        }
+    }
+
+    @Test fun sideCardHasNoDailySelectionAndPhoneTabReturnsToPhoneCanvas() {
+        ActivityScenario.launch(StudioHomeActivity::class.java).use { scenario ->
+            scenario.onActivity { activity ->
+                activity.findViewById<View>(R.id.inkpilot_tab_phone).performClick()
+                activity.findViewById<View>(R.id.inkpilot_menu).performClick()
+            }
+            SmokeViews.clickText("Soul & studio memory")
+            scenario.onActivity { activity ->
+                assertEquals(0, tabs.count { (_, id) -> activity.findViewById<View>(id).isSelected })
+                assertEquals("Assistant", activity.findViewById<TextView>(R.id.inkpilot_title).text.toString())
+                activity.findViewById<View>(R.id.inkpilot_tab_phone).performClick()
+                assertTrue(activity.findViewById<View>(R.id.inkpilot_tab_phone).isSelected)
+                assertEquals("Phone", activity.findViewById<TextView>(R.id.inkpilot_title).text.toString())
+            }
+        }
+    }
+
+    @Test fun calendarReminderHintOpensCalendarCanvas() {
+        val context = instrumentation.targetContext
+        ActivityScenario.launch<StudioHomeActivity>(Intent(context, StudioHomeActivity::class.java)
+            .putExtra("inkpilot_panel", "calendar")).use { scenario ->
+            scenario.onActivity { activity ->
+                assertEquals("Calendar", activity.findViewById<TextView>(R.id.inkpilot_title).text.toString())
+                assertTrue(activity.findViewById<View>(R.id.inkpilot_tab_calendar).isSelected)
+                assertNotNull(activity.findViewById<View>(R.id.inkpilot_home))
+            }
         }
     }
 
@@ -103,7 +133,7 @@ class OneShellAcceptanceTest {
                     }
                     if (ready) true else null
                 }
-                scenario.onActivity(::assertFooter)
+                scenario.onActivity { assertFooter(it) }
             }
         } finally {
             if (original == "null") shell("settings delete system font_scale")
@@ -112,7 +142,7 @@ class OneShellAcceptanceTest {
         }
     }
 
-    private fun assertFooter(activity: StudioHomeActivity) {
+    private fun assertFooter(activity: StudioHomeActivity, selectedCount: Int = 1) {
         val footer = requireNotNull(activity.findViewById<View>(R.id.inkpilot_navigation))
         val canvas = requireNotNull(activity.findViewById<View>(R.id.inkpilot_canvas))
         val visible = Rect()
@@ -120,7 +150,7 @@ class OneShellAcceptanceTest {
         assertEquals("Footer must not be clipped by the system bar", footer.height, visible.height())
         assertTrue("Canvas remains usable", canvas.height > 0)
         val paper = (requireNotNull(activity.findViewById<View>(R.id.inkpilot_home)).background as ColorDrawable).color
-        assertEquals("Exactly one daily tab is selected", 1,
+        assertEquals("Daily tab selection matches the current canvas", selectedCount,
             tabs.count { (_, id) -> activity.findViewById<View>(id).isSelected })
         tabs.forEach { (label, id) ->
             val item = requireNotNull(activity.findViewById<View>(id)) as ViewGroup

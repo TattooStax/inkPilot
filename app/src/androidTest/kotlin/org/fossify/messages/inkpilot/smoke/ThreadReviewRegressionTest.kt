@@ -1,6 +1,6 @@
 package org.fossify.messages.inkpilot.smoke
 
-import android.content.Intent
+import android.os.Bundle
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
@@ -117,22 +117,22 @@ class ThreadReviewRegressionTest {
         }
     }
 
-    @Test fun mmsImageBubbleRendersAndAttachmentActionGrantsTheTypedUri() {
+    @Test fun mmsImageBubbleOpensShellAttachmentRoute() {
         ActivityScenario.launch(StudioHomeActivity::class.java).use { scenario ->
             scenario.onActivity { activity ->
                 val image = Attachment(9, 7, "content://mms/part/9", "image/png", 1, 1, "reference.png")
                 val row = message(7, true).copy(attachment = MessageAttachment(7, "caption", arrayListOf(image)))
-                val adapter = StudioThreadAdapter(activity).apply { append(listOf(row)) }
+                var opened: Attachment? = null
+                val adapter = StudioThreadAdapter(activity, viewAttachment = { opened = it }).apply { append(listOf(row)) }
                 val parent = android.widget.FrameLayout(activity)
                 val holder = adapter.onCreateViewHolder(parent, 0)
                 adapter.onBindViewHolder(holder, 0)
                 assertTrue(children(holder.itemView).any { it.contentDescription == "MMS image" })
                 assertTrue(children(holder.itemView).filterIsInstance<TextView>().any { it.text == "reference.png" })
-                val intent = image.viewIntent()
-                assertEquals(Intent.ACTION_VIEW, intent.action)
-                assertEquals(image.getUri(), intent.data)
-                assertEquals("image/png", intent.type)
-                assertTrue(intent.flags and Intent.FLAG_GRANT_READ_URI_PERMISSION != 0)
+                children(holder.itemView).filterIsInstance<TextView>().single { it.text == "reference.png" }.performClick()
+                assertSame(image, opened)
+                val route = StudioRoute.Attachment(image.getUri(), image.mimetype, image.filename)
+                assertEquals(route, Bundle().apply { putAll(route.encode()) }.decodeRoute())
                 assertNotEquals(MessageKey(MessageOrigin.SMS, 7), row.let { MessageKey(MessageOrigin.MMS, it.id) })
             }
         }

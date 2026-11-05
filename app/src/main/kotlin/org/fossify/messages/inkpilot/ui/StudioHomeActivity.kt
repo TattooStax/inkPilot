@@ -79,7 +79,7 @@ class StudioHomeActivity : AppCompatActivity() {
         panels = StudioCanvasState(savedInstanceState?.getBundle("studio.panels") ?: Bundle())
         if (savedInstanceState == null) {
             intent.getBundleExtra(ExternalRouteParser.ROUTE)?.decodeRoute()?.let { navigator.acceptExternalRoute(it) }
-                ?: if (intent.getStringExtra("inkpilot_panel") == "drafts") navigator.open(StudioRoute.Auxiliary("drafts")) else Unit
+                ?: intent.getStringExtra("inkpilot_panel")?.let { navigator.acceptPanelHint(it, panels) }
         }
         repository = StudioRepository(applicationContext)
         work = StudioWork(this, executor)
@@ -132,56 +132,34 @@ class StudioHomeActivity : AppCompatActivity() {
         val messages = MessagePanel(this, work, ::setupSms, { openAgent("drafts") }, ::openRoute,
             threadFooter = ::threadFooter, importImage = ::importMmsImage)
         val auxiliary = AuxiliaryPanel(this, work, ::openRoute, ::refreshPanels, ::exportStudio)
-        val view = panels.view(route) { when (route) {
-            StudioRoute.Auxiliary("drafts") -> DraftPanel(this, repository, work, ::refreshPanels, ::openRoute).view()
-            StudioRoute.Auxiliary("proposals") -> ProposalPanel(this, repository, work, ::refreshPanels).view()
-            is StudioRoute.Thread -> messages.thread(route.threadId)
-            is StudioRoute.Compose -> StudioUi.scroll(this, ThreadComposer(this, work, ::pickAttachment,
-                ::refreshPanels, { sent -> composerRoutes.completeCompose(route, sent) },
-                composerRoutes::acceptedThread)
-                .view(route.composerId, route))
-            is StudioRoute.Draft -> inlineDraft(route.draftId)
-            is StudioRoute.ImageLinks -> studio.linkedImages(route.contactId, route.threadId)
-            is StudioRoute.Settings -> auxiliary.settings()
-            StudioRoute.Auxiliary("archive") -> auxiliary.archive()
-            StudioRoute.Auxiliary("recycle") -> auxiliary.recycle()
-            StudioRoute.Auxiliary("search") -> auxiliary.search()
-            is StudioRoute.Auxiliary -> when {
-                route.key.startsWith("details:") -> auxiliary.details(route.key.substringAfter(':').toLongOrNull() ?: 0)
-                route.key.startsWith("recycle:") -> auxiliary.recycledThread(route.key.substringAfter(':').toLongOrNull() ?: 0)
-                else -> auxiliary.unsupported()
-            }
-            StudioRoute.Soul -> agent.soul()
-            StudioRoute.Model -> agent.model()
-            else -> when (tab) {
-                StudioTab.SMS -> messages.messages()
-                StudioTab.PHONE -> messages.phone()
-                StudioTab.CONTACTS -> ContactPanel(this, repository, work, ::refreshPanels) { contactId ->
-                    navigator.open(StudioRoute.ImageLinks(contactId = contactId)); render()
-                }.view()
-                StudioTab.STUDIO -> studio.albums()
-                StudioTab.CALENDAR -> studio.calendar()
-            }
+        val view = panels.view(route) {
+            supplementalCanvas(this, route, messages, work) { onBackPressedDispatcher.onBackPressed() }
+                ?: when (route) {
+                    is StudioRoute.Thread -> messages.thread(route.threadId)
+                    is StudioRoute.Compose -> StudioUi.scroll(this, ThreadComposer(this, work, ::pickAttachment,
+                        ::refreshPanels, { sent -> composerRoutes.completeCompose(route, sent) },
+                        composerRoutes::acceptedThread).view(route.composerId, route))
+                    is StudioRoute.Draft -> inlineDraft(route.draftId)
+                    else -> auxiliaryCanvas(this, route, repository, work, auxiliary, studio, agent,
+                        ::refreshPanels, ::openRoute)
+                        ?: dailyCanvas(this, tab, messages, repository, work, studio, ::refreshPanels,
+                            ::openRoute, { number ->
+                                navigator.open(StudioRoute.Tab(StudioTab.PHONE))
+                                openRoute(StudioRoute.PhoneDial(number))
+                            })
+                }
         }
-        }
-        heading.text = when (route) {
-            is StudioRoute.Tab -> tab.label
-            is StudioRoute.Thread -> "Conversation"
-            is StudioRoute.Compose -> "New message"
-            is StudioRoute.ImageLinks -> "Client References"
-            is StudioRoute.Settings -> "Settings"
-            is StudioRoute.Auxiliary -> route.key.substringBefore(':').replaceFirstChar { it.uppercase() }
-            else -> "Assistant"
-        }
+        heading.text = routeTitle(route, tab)
         if (canvas.getChildAt(0) !== view) {
             canvas.removeAllViews()
             canvas.addView(view, FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT))
         }
-        if (footer.tag != tab) {
+        val highlightedTab = tab.takeUnless { route.isSideRoute() }
+        if (footer.tag != highlightedTab || footer.childCount == 0) {
             footer.removeAllViews()
-            footer.addView(navigation(this, tab) { chosen -> navigator.open(StudioRoute.Tab(chosen)); render() },
+            footer.addView(navigation(this, highlightedTab) { chosen -> navigator.selectDailyTab(chosen); render() },
                 LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
-            footer.tag = tab
+            footer.tag = highlightedTab
         }
     }
 
@@ -302,7 +280,10 @@ class StudioHomeActivity : AppCompatActivity() {
             navigator.acceptExternalRoute(route)
             render()
         }
-            ?: if (intent.getStringExtra("inkpilot_panel") == "drafts") openAgent("drafts") else Unit
+            ?: intent.getStringExtra("inkpilot_panel")?.let { hint ->
+                navigator.acceptPanelHint(hint, panels)
+                render()
+            }
     }
     override fun onSaveInstanceState(outState: Bundle) {
         outState.putLong("attachment.thread", attachmentThread)
@@ -345,4 +326,17 @@ class StudioHomeActivity : AppCompatActivity() {
         super.onDestroy()
     }
     companion object { private const val SMS_ROLE_REQUEST = 7300 }
+}
+
+private fun StudioNavigator.acceptPanelHint(value: String, panels: StudioCanvasState) {
+    when (value) {
+        "drafts" -> {
+            open(StudioRoute.Tab(StudioTab.SMS))
+            open(StudioRoute.Auxiliary("drafts"))
+        }
+        "calendar" -> {
+            reset(StudioTab.CALENDAR)
+            panels.invalidate(StudioRoute.Tab(StudioTab.CALENDAR))
+        }
+    }
 }

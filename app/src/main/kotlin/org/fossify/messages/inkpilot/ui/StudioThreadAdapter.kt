@@ -9,6 +9,7 @@ import org.fossify.messages.models.Message
 
 internal class StudioThreadAdapter(private val activity: android.app.Activity,
     private val forward: (Message) -> Unit = {},
+    private val viewAttachment: (org.fossify.messages.models.Attachment) -> Unit = {},
     private val importImage: (org.fossify.messages.messaging.MessageKey, Long, org.fossify.messages.models.Attachment) -> Unit = { _, _, _ -> },
 ) : RecyclerView.Adapter<StudioThreadAdapter.Row>(), StudioMessageRows {
     private val rows = mutableListOf<Message>()
@@ -59,8 +60,7 @@ internal class StudioThreadAdapter(private val activity: android.app.Activity,
                 }
             }
             bubble.addView(StudioUi.button(activity, attachment.filename.ifBlank { attachment.mimetype }) {
-                val intent = attachment.viewIntent()
-                runCatching { activity.startActivity(intent) }.onFailure { StudioUi.error(activity, "No app can open this attachment.") }
+                viewAttachment(attachment)
             })
         }
         val state = message.deliveryLabel()

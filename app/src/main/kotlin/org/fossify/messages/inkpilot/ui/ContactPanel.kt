@@ -1,7 +1,6 @@
 package org.fossify.messages.inkpilot.ui
 
 import android.content.Intent
-import android.net.Uri
 import android.text.InputFilter
 import android.text.InputType
 import android.view.View
@@ -20,6 +19,7 @@ internal class ContactPanel(
     private val work: StudioWork,
     private val refresh: () -> Unit,
     private val openImages: (String) -> Unit = {},
+    private val openPhone: (String) -> Unit = {},
 ) {
     fun view(): View {
         val body = StudioUi.column(activity)
@@ -47,6 +47,7 @@ internal class ContactPanel(
     }
 
     private fun edit(contact: StudioContact, entry: MemoryEntry?) {
+        lateinit var dialog: AlertDialog
         val body = StudioUi.column(activity)
         body.addView(StudioUi.text(activity, contact.number, 15f))
         body.addView(StudioUi.text(activity, "Client memory", 18f, true))
@@ -90,11 +91,8 @@ internal class ContactPanel(
         })
         body.addView(memory)
         body.addView(paused)
-        body.addView(StudioUi.button(activity, "Call client") {
-            runCatching { activity.startActivity(Intent(Intent.ACTION_DIAL, Uri.fromParts("tel", contact.number, null))) }
-                .onFailure { StudioUi.error(activity, "No phone dialer is available.") }
-        })
-        AlertDialog.Builder(activity).setTitle(contact.displayName.ifBlank { "Client" })
+        body.addView(StudioUi.button(activity, "Call client") { dialog.dismiss(); openPhone(contact.number) })
+        dialog = AlertDialog.Builder(activity).setTitle(contact.displayName.ifBlank { "Client" })
             .setView(StudioUi.scroll(activity, body)).setNegativeButton("Cancel", null)
             .setNeutralButton("Reference images") { _, _ -> openImages(contact.id) }
             .setPositiveButton("Save") { _, _ ->
@@ -102,7 +100,8 @@ internal class ContactPanel(
                 val pause = paused.isChecked
                 val provenance = source.text.toString()
                 work.load({ repository.saveContactEdit(contact.id, text, pause, provenance) }) { refresh() }
-            }.show()
+            }.create()
+        dialog.show()
     }
 
     private fun reviewIdentity(contact: StudioContact) {
