@@ -245,7 +245,7 @@
     "app/src/main/kotlin/org/fossify/messages/inkpilot/data/StudioDatabase.kt": 159,
     "app/src/main/kotlin/org/fossify/messages/inkpilot/data/StudioDraftAttempts.kt": 21,
     "app/src/main/kotlin/org/fossify/messages/inkpilot/data/StudioDraftPolicySchema.kt": 22,
-    "app/src/main/kotlin/org/fossify/messages/inkpilot/data/StudioDrafts.kt": 102,
+    "app/src/main/kotlin/org/fossify/messages/inkpilot/data/StudioDrafts.kt": 103,
     "app/src/main/kotlin/org/fossify/messages/inkpilot/data/StudioEvidence.kt": 19,
     "app/src/main/kotlin/org/fossify/messages/inkpilot/data/StudioIdentitySchema.kt": 53,
     "app/src/main/kotlin/org/fossify/messages/inkpilot/data/StudioInactiveScope.kt": 12,

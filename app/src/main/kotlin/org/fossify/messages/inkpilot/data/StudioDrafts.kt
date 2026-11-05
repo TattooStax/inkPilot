@@ -12,6 +12,7 @@ import inkpilot.agent.HeldDraftWrite
 import java.util.UUID
 
 private const val MAX_STUDIO_DRAFT_LENGTH = 800
+private const val RECEIPT_POLICY_COLUMN = 6
 private const val STAFF_EDIT_COLUMN = 14
 private const val RENDERER_POLICY_COLUMN = 15
 
@@ -23,7 +24,7 @@ internal fun SQLiteDatabase.studioReceipt(key: DraftKey): HeldDraftReceipt? = ra
 ).use {
     if (!it.moveToFirst()) null else HeldDraftReceipt(
         it.getString(0), key, it.getString(1), it.getString(2), it.getString(3), it.getLong(4), it.getString(5),
-        DraftRendererPolicy.valueOf(it.getString(6)),
+        DraftRendererPolicy.valueOf(it.getString(RECEIPT_POLICY_COLUMN)),
     )
 }
 
