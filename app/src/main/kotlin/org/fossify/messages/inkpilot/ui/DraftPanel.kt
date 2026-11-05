@@ -109,7 +109,8 @@ internal class DraftPanel(
             })
         }
         if (draft.status == "HELD") {
-            if (!canReview && AgentRuntime.BOUNDED_INTENT_QUALIFIED) {
+            if (!canReview && AgentRuntime.BOUNDED_INTENT_QUALIFIED &&
+                draft.rendererPolicy != DraftRendererPolicy.LEGACY_RAW) {
                 list.addView(StudioUi.button(activity, "Regenerate with current memory") {
                     work.load({
                         val source = repository.readSource(draft.eventId)
@@ -135,9 +136,10 @@ internal class DraftPanel(
     }
 
     private fun statusText(draft: ReviewDraft, current: Boolean) = when (draft.status) {
-        "HELD" -> if (!AgentRuntime.BOUNDED_INTENT_QUALIFIED ||
-            draft.rendererPolicy == DraftRendererPolicy.LEGACY_RAW)
-            "Unqualified model text for history. Reply directly in the conversation."
+        "HELD" -> if (draft.rendererPolicy == DraftRendererPolicy.LEGACY_RAW)
+            "Earlier unqualified draft. Reply directly or dismiss; it cannot be regenerated."
+        else if (!AgentRuntime.BOUNDED_INTENT_QUALIFIED)
+            "Model drafting is off. Reply directly in the conversation."
         else if (current) "Ready for staff review" else
             "Out of date or paused — dismiss and review the conversation."
         "SENDING" -> "Sending — awaiting the phone’s result"

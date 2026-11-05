@@ -14,6 +14,9 @@ unstamped row into a sendable draft. A new bounded receipt can replay after
 restart because its policy is durable; a same-key race with a historical RAW
 row stops `INVALID_RECEIPT` without overwriting history. Staff must explicitly
 change the source and regenerate a new revision to create a new held reply.
+The current-revision regeneration action is hidden for legacy RAW rows because
+it would only replay the old receipt. Staff can open the conversation, reply
+directly, or dismiss that historical draft.
 
 This migration does not enable the model. The current
 `BOUNDED_INTENT_QUALIFIED=false` gate still blocks inference and model-draft
