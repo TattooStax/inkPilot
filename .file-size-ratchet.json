@@ -794,7 +794,7 @@
     "scripts/check-file-size-ratchet.py": 141,
     "scripts/check-file-size-ratchet.sh": 4,
     "scripts/check_candidate_run.py": 67,
-    "scripts/inkpilot-calendar-closed-app.sh": 110,
+    "scripts/inkpilot-calendar-closed-app.sh": 120,
     "scripts/inkpilot-device-model.sh": 15,
     "scripts/inkpilot-device-result.py": 13,
     "scripts/inkpilot-device-run.sh": 134,

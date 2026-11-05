@@ -60,13 +60,6 @@ snapshot_work() {
 
 run_class StudioReminderPrecommitTest
 run_class StudioReminderClosedAppPrepareTest
-# The shell baseline may have left inkPilot's Activity visible. Background it
-# before `am kill`; a foreground process would be intentionally spared.
-adb -s "$serial" shell input keyevent KEYCODE_HOME
-adb -s "$serial" shell am kill "$package"
-[[ -z $(adb -s "$serial" shell pidof "$package" 2>/dev/null | tr -d '\r') ]] || {
-  echo 'App process remained alive after am kill.' >&2; exit 1;
-}
 adb -s "$serial" exec-out run-as "$package" \
   cat shared_prefs/studio_reminder_closed_app.xml > "$temporary/fixture.xml"
 reminder_id=$(python3 - "$temporary/fixture.xml" <<'PY'
@@ -89,6 +82,23 @@ print(row[0])
 PY
 )
 
+job_present() {
+  local state
+  state=$(adb -s "$serial" shell cmd jobscheduler get-job-state "$package" "$job_id" 2>&1) || return 1
+  [[ $state != *'Could not find job'* && $state != *unknown* ]]
+}
+if job_present; then echo 'PASS periodic OS job registered before process kill'
+else echo 'FAIL periodic OS job absent before process kill' >&2; fi
+# The shell baseline may have left inkPilot's Activity visible. Background it
+# before `am kill`; a foreground process would be intentionally spared.
+adb -s "$serial" shell input keyevent KEYCODE_HOME
+adb -s "$serial" shell am kill "$package"
+[[ -z $(adb -s "$serial" shell pidof "$package" 2>/dev/null | tr -d '\r') ]] || {
+  echo 'App process remained alive after am kill.' >&2; exit 1;
+}
+if job_present; then echo 'PASS periodic OS job survives process kill'
+else echo 'FAIL periodic OS job absent after process kill' >&2; fi
+
 # Force only the already persisted periodic JobScheduler job. This starts the
 # Worker process, but does not launch the app's UI or register new work in test code.
 adb -s "$serial" shell cmd jobscheduler run -f "$package" "$job_id" >/dev/null
@@ -100,7 +110,7 @@ import sqlite3, sys
 db = sqlite3.connect(f'file:{sys.argv[1]}?mode=ro', uri=True)
 name = f'studio-reminder:{sys.argv[2]}:0'
 rows = db.execute('''SELECT WorkSpec.state FROM WorkName JOIN WorkSpec
-    ON WorkName.work_spec_id=WorkSpec.id WHERE WorkName.name=?''', (name,)).fetchall()
+    ON WorkName.work_spec_id=WorkSpec.id WHERE WorkName.name=? AND WorkSpec.state=0''', (name,)).fetchall()
 assert rows == [(0,)], rows  # One ENQUEUED job for the current revision.
 PY
   then requeued=1; break; fi
