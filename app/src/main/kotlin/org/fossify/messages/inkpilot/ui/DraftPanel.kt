@@ -96,10 +96,12 @@ internal class DraftPanel(
         })
         list.addView(StudioUi.text(activity, draft.sendBody ?: draft.staffEditBody ?: draft.body, DRAFT_SIZE))
         val canReview = draft.canReview && AgentRuntime.BOUNDED_INTENT_QUALIFIED
-        val status = if (!AgentRuntime.BOUNDED_INTENT_QUALIFIED && draft.status == "HELD")
-            "Unqualified model text for history. Reply directly in the conversation."
-        else statusText(draft.status, canReview)
-        list.addView(StudioUi.text(activity, status, DETAIL_SIZE))
+        list.addView(StudioUi.text(activity, statusText(draft.status, canReview), DETAIL_SIZE))
+        renderDraftActions(list, draft, canReview)
+        list.addView(StudioUi.rule(activity))
+    }
+
+    private fun renderDraftActions(list: LinearLayout, draft: ReviewDraft, canReview: Boolean) {
         if (draft.status != "HELD" || !canReview) {
             list.addView(StudioUi.button(activity, "View conversation") {
                 open(StudioRoute.Thread(draft.threadId))
@@ -129,11 +131,12 @@ internal class DraftPanel(
                 work.load({ repository.dismissDraft(draft.draftId) }) { refresh() }
             })
         }
-        list.addView(StudioUi.rule(activity))
     }
 
     private fun statusText(status: String, current: Boolean) = when (status) {
-        "HELD" -> if (current) "Ready for staff review" else
+        "HELD" -> if (!AgentRuntime.BOUNDED_INTENT_QUALIFIED)
+            "Unqualified model text for history. Reply directly in the conversation."
+        else if (current) "Ready for staff review" else
             "Out of date or paused — dismiss and review the conversation."
         "SENDING" -> "Sending — awaiting the phone’s result"
         "SENT" -> "Sent to the carrier"

@@ -6,12 +6,14 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
 import org.fossify.messages.inkpilot.data.ReviewDraft
+import org.fossify.messages.inkpilot.runtime.AgentRuntime
 
 internal const val MAX_STAFF_REPLY_LENGTH = 800
 
 /** Approval remains disabled until the last edit has a durable Studio row. */
 internal fun watchStaffEdit(editor: EditText, approve: Button, status: TextView, draft: ReviewDraft,
                             work: StudioWork, save: (String, String) -> Boolean) {
+    if (!AgentRuntime.BOUNDED_INTENT_QUALIFIED || !draft.canReview) return
     var generation = 0
     editor.addTextChangedListener(object : TextWatcher {
         override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) = Unit
