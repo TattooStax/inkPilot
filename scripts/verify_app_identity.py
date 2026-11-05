@@ -53,11 +53,26 @@ def check_identity():
             value = element.get(ANDROID + attribute)
             if value:
                 class_names.add(value)
+    utility_ingress = {
+        ".inkpilot.ui.SettingsIngressActivity",
+        ".inkpilot.ui.ArchiveIngressActivity",
+        ".inkpilot.ui.RecycleIngressActivity",
+        ".inkpilot.ui.DetailsIngressActivity",
+        ".inkpilot.ui.VCardIngressActivity",
+    }
+    utility_source = ROOT / "app/src/main/kotlin/org/fossify/messages/inkpilot/ui/LegacyUtilityIngressActivities.kt"
+    utility_text = utility_source.read_text() if utility_source.is_file() else ""
     for name in class_names:
         if name.startswith("."):
             qualified = namespace + name
             source = ROOT / "app/src/main/kotlin" / Path(*qualified.split(".")).with_suffix(".kt")
-            require(source.is_file(), f"manifest class does not resolve: {qualified}")
+            if name in utility_ingress:
+                simple = qualified.rsplit(".", 1)[-1]
+                declaration = rf"\bclass\s+{re.escape(simple)}\s*:\s*CompatibilityIngressActivity\s*\("
+                require(bool(re.search(declaration, utility_text)),
+                        f"manifest class does not resolve to secure ingress: {qualified}")
+            else:
+                require(source.is_file(), f"manifest class does not resolve: {qualified}")
 
     aliases = application.findall("activity-alias")
     require(bool(aliases), "launcher aliases are missing")
@@ -65,14 +80,14 @@ def check_identity():
     require(any(alias.get(ANDROID + "name") == alias_prefix for alias in aliases),
             "Commons default launcher component is missing")
     compatibility = {
-        ".activities.MainActivity": "true",
-        ".activities.ThreadActivity": "false",
-        ".activities.NewConversationActivity": "true",
-        ".activities.SettingsActivity": "true",
-        ".activities.ArchivedConversationsActivity": "false",
-        ".activities.RecycleBinConversationsActivity": "false",
-        ".activities.ConversationDetailsActivity": "false",
-        ".activities.VCardViewerActivity": "false",
+        ".activities.MainActivity": ("true", ".inkpilot.ui.CompatibilityIngressActivity"),
+        ".activities.ThreadActivity": ("false", ".inkpilot.ui.CompatibilityIngressActivity"),
+        ".activities.NewConversationActivity": ("true", ".inkpilot.ui.CompatibilityIngressActivity"),
+        ".activities.SettingsActivity": ("true", ".inkpilot.ui.SettingsIngressActivity"),
+        ".activities.ArchivedConversationsActivity": ("false", ".inkpilot.ui.ArchiveIngressActivity"),
+        ".activities.RecycleBinConversationsActivity": ("false", ".inkpilot.ui.RecycleIngressActivity"),
+        ".activities.ConversationDetailsActivity": ("false", ".inkpilot.ui.DetailsIngressActivity"),
+        ".activities.VCardViewerActivity": ("false", ".inkpilot.ui.VCardIngressActivity"),
     }
     launchers = []
     found_compatibility = set()
@@ -80,9 +95,10 @@ def check_identity():
         name = alias.get(ANDROID + "name", "")
         if name in compatibility:
             found_compatibility.add(name)
-            require(alias.get(ANDROID + "targetActivity") == ".inkpilot.ui.CompatibilityIngressActivity",
+            exported, target = compatibility[name]
+            require(alias.get(ANDROID + "targetActivity") == target,
                     f"historical alias does not route through the secure shell ingress: {name}")
-            require(alias.get(ANDROID + "exported") == compatibility[name],
+            require(alias.get(ANDROID + "exported") == exported,
                     f"historical alias export boundary changed: {name}")
             require(alias.find("intent-filter/category[@" + ANDROID + "name='android.intent.category.LAUNCHER']") is None,
                     f"historical alias unexpectedly advertises a launcher: {name}")
@@ -94,6 +110,9 @@ def check_identity():
         if alias.find("intent-filter/category[@" + ANDROID + "name='android.intent.category.LAUNCHER']") is not None:
             if alias.get(ANDROID + "enabled", "true") != "false":
                 launchers.append(alias)
+    ingress = (ROOT / "app/src/main/kotlin/org/fossify/messages/inkpilot/ui/CompatibilityIngressActivity.kt").read_text()
+    require("WindowManager.LayoutParams.FLAG_SECURE" in ingress and "ExternalRouteParser.forward" in ingress,
+            "compatibility ingress must remain secure and forward into the shell")
     require(found_compatibility == set(compatibility), "all historical messenger aliases must remain guarded")
     require(len(launchers) == 1, "exactly one launcher alias must be enabled by default")
     providers = application.findall("provider")

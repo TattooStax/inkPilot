@@ -726,7 +726,7 @@
     "scripts/tests/test_candidate_run.py": 65,
     "scripts/tests/test_check_detekt_debt.py": 102,
     "scripts/tests/test_verify_inkpilot_release.py": 158,
-    "scripts/verify_app_identity.py": 125,
+    "scripts/verify_app_identity.py": 144,
     "scripts/verify_inkpilot_release.py": 274,
     "scripts/verify_sms_role_qualification.py": 311,
     "settings.gradle.kts": 22,
