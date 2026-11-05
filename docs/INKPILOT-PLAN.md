@@ -119,6 +119,14 @@ inkPilot going forward.
 That chain, working end to end and verified at the receiving end,
 is the first proof. Features outside the chain come after it.
 
+## Evidence-driven repairs before beta
+
+1. **Make staff review reliable.** The focused reply route must display the exact selected held draft above the fold without handing the canvas to the ordinary composer. Complete the old notification/alias and 1.5× text-size route matrix on both emulator and OnePlus.
+2. **Ground the local reply.** Production currently makes one RAW generation from the latest inbound text and a reviewed contact note; it does not call the local tool registry or include prior thread turns. Keep the bounded selector disabled until its fixed corpus, blind staff scoring, consecutive offline phone turns and a verified source-backed reply path pass. Block unsupported booking/action claims and retain a visible staff task when generation is rejected.
+3. **Persist staff edits with the record.** Held reply edits currently live in preferences outside the Studio archive and are not cleared on send/dismiss. After the reviewed-intake Studio database v8 migration, add a v9 revisioned held-edit field, migrate existing edits idempotently, clear the field in terminal transactions, and verify reopen, exact approved body and export. Export remains incomplete until a tested restore path exists.
+4. **Finish native transport and device proof.** Verify scheduled edit/alarm ordering, multipart callback reconciliation, optional bridge posture and direct reply lifecycle with zero new static-analysis debt. Then install one identified candidate on the OnePlus and record real SMS/MMS recipient delivery, default-role rollback and process-death behavior.
+5. **Qualify manual calls independently.** Run the real incoming/outgoing, locked screen, denied/revoked alert, SIM and audio-route matrix. The source has no call capture, transcription, speech synthesis or AI answer loop; that remains a later milestone after a device-proven audio path.
+
 ## Known gaps to verify
 
 These are open questions, not solved problems. Each must be verified
