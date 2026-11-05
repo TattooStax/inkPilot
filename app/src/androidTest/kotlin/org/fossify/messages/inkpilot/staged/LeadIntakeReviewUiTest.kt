@@ -56,6 +56,7 @@ class LeadIntakeReviewUiTest : StudioDatabaseTestBase() {
                 clickTarget("Maya · Not reviewed · Can I book a consultation?")
                 SmokeViews.clickText("Next")
                 clickTarget("Size")
+                awaitChoiceChecked("Size", true)
                 recordDiagnostic("SIZE_TAPPED")
                 SmokeViews.clickText("Save review")
                 recordDiagnostic("SAVE_CLICKED")
@@ -77,7 +78,9 @@ class LeadIntakeReviewUiTest : StudioDatabaseTestBase() {
                 clickTarget("Maya · Review saved · Can I book a consultation?")
                 SmokeViews.clickText("Next")
                 clickTarget("Size")
+                awaitChoiceChecked("Size", false)
                 clickTarget("Placement")
+                awaitChoiceChecked("Placement", true)
                 SmokeViews.clickText("Save review")
                 SmokeViews.await("corrected lead question") {
                     repository.leadIntakeTargets().single().reviewed
@@ -148,6 +151,13 @@ class LeadIntakeReviewUiTest : StudioDatabaseTestBase() {
             findVisibleText(node.getChild(index), label)?.let { return it }
         }
         return null
+    }
+
+    private fun awaitChoiceChecked(label: String, checked: Boolean) {
+        SmokeViews.await("dialog selection transition") {
+            findVisibleText(InstrumentationRegistry.getInstrumentation().uiAutomation.rootInActiveWindow, label)
+                ?.takeIf { it.isCheckable && it.isChecked == checked }
+        }
     }
 
     private fun recordDiagnostic(stage: String) {
