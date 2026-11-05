@@ -76,3 +76,7 @@ out of fixed templates until independently verified records and explicit
 host actions exist. Re-review older held drafts manually; this path screens
 only newly generated candidates. No beta percentage should be inferred from
 mechanical zero visible claims after rejecting nearly every candidate.
+
+Current production prompt context is one latest inbound body plus reviewed contact memory;
+prior messages in the thread are not included. Multi-message lead detail selection
+and repeated-question usefulness remain unmeasured.
