@@ -7,6 +7,8 @@ import android.view.View
 import android.widget.EditText
 import org.fossify.messages.inkpilot.ui.StudioUi
 
+private const val PHONE_NOTE_SP = 14f
+
 internal class PhonePanel(
     private val activity: Activity,
     private val actions: ManualDialActions = AndroidDialActions(activity),
@@ -22,7 +24,7 @@ internal class PhonePanel(
 ) {
     fun view(initial: String = ""): View {
         val body = StudioUi.column(activity)
-        body.addView(StudioUi.text(activity, "Calls stay manual.", 14f))
+        body.addView(StudioUi.text(activity, "Calls stay manual.", PHONE_NOTE_SP))
         val held = actions.held()
         body.addView(StudioUi.text(activity,
             if (held) "inkPilot is your Phone app" else "Your existing Phone app handles calls"))
