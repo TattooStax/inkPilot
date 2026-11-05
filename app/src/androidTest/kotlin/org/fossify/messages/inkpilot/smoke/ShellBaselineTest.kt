@@ -89,7 +89,9 @@ class ShellBaselineTest {
                 }
                 home.onActivity { activity ->
                     assertNotNull(activity.findViewById<View>(R.id.inkpilot_home))
-                    assertTrue(requireNotNull(findTextContaining(activity.window.decorView, fixtureBody)).performClick())
+                    var target: View? = requireNotNull(findTextContaining(activity.window.decorView, fixtureBody))
+                    while (target != null && !target.isClickable) target = target.parent as? View
+                    assertTrue("Inbox row must be clickable", requireNotNull(target).performClick())
                 }
                 SmokeViews.assertText("Client reference images")
                 SmokeViews.assertText(fixtureBody)
