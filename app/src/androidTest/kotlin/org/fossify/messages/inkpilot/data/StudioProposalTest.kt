@@ -185,7 +185,10 @@ class StudioProposalTest : StudioDatabaseTestBase() {
 
     @Test fun v5DatabaseUpgradesWithoutLosingInboundOrDrafts() {
         val scope = inbound()
+        // Recreate the v5 table inventory: v6 proposals and v7 attention
+        // cannot already exist when the production migration creates them.
         repository.database.execSQL("DROP TABLE action_proposals")
+        repository.database.execSQL("DROP TABLE staff_attention")
         repository.database.version = 5
         reopen()
         assertEquals(7, repository.database.version)

@@ -62,7 +62,7 @@
     "app/src/androidTest/kotlin/org/fossify/messages/inkpilot/data/StudioDatabaseTestBase.kt": 50,
     "app/src/androidTest/kotlin/org/fossify/messages/inkpilot/data/StudioFreshnessTest.kt": 143,
     "app/src/androidTest/kotlin/org/fossify/messages/inkpilot/data/StudioPersistenceTest.kt": 113,
-    "app/src/androidTest/kotlin/org/fossify/messages/inkpilot/data/StudioProposalTest.kt": 196,
+    "app/src/androidTest/kotlin/org/fossify/messages/inkpilot/data/StudioProposalTest.kt": 199,
     "app/src/androidTest/kotlin/org/fossify/messages/inkpilot/data/StudioRecoveryTest.kt": 68,
     "app/src/androidTest/kotlin/org/fossify/messages/inkpilot/data/StudioRevisionMigrationTest.kt": 60,
     "app/src/androidTest/kotlin/org/fossify/messages/inkpilot/data/StudioSendPartsTest.kt": 66,
