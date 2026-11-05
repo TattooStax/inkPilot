@@ -36,6 +36,11 @@ jobs:
       - uses: gradle/actions/setup-gradle@ed408507eac070d1f99cc633dbcf757c94c7933a # v4
       - name: Test reusable modules and assemble standalone app
         run: ./gradlew :agent-core:test :transport:test :local-inference:testDebugUnitTest :app:assembleFossDebug --console=plain --no-daemon --max-workers=2 -Dorg.gradle.jvmargs=-Xmx3g
+      - name: Check Detekt debt ratchet
+        run: |
+          rm -f app/build/reports/detekt/detekt.sarif
+          ./gradlew :app:detekt --console=plain --no-daemon --max-workers=2 -Dorg.gradle.jvmargs=-Xmx3g
+          python3 scripts/check-detekt-debt.py --sarif app/build/reports/detekt/detekt.sarif
       - name: Verify packaged SMS role qualification
         shell: bash
         run: |

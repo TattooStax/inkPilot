@@ -11,6 +11,8 @@ on:
       - '*gradle*'
       - 'scripts/inkpilot-device-*'
       - 'scripts/run-inkpilot-test-class.sh'
+      - 'scripts/inkpilot-sms-role-preflight.sh'
+      - 'scripts/test-inkpilot-sms-role-preflight.py'
       - 'scripts/inkpilot-shell-baseline.sh'
       - 'scripts/test-run-inkpilot-test-class.py'
       - '.github/workflows/inkpilot-device.yml'
@@ -41,8 +43,10 @@ jobs:
           df -h "$GITHUB_WORKSPACE"
           sudo rm -rf -- /usr/share/dotnet /opt/ghc /usr/local/.ghcup /usr/local/share/boost /opt/hostedtoolcache/CodeQL
           df -h "$GITHUB_WORKSPACE"
-      - name: Verify exact-class runner contract without a device
-        run: python3 scripts/test-run-inkpilot-test-class.py
+      - name: Verify hosted runner contracts without a device
+        run: |
+          python3 scripts/test-run-inkpilot-test-class.py
+          python3 scripts/test-inkpilot-sms-role-preflight.py
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
