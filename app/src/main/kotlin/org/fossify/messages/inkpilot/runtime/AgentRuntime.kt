@@ -96,29 +96,35 @@ object AgentRuntime {
         var needsAttention = false
         for (request in repository.pendingRequests(limit = 3)) {
             if (cancellation() || !repository.isDraftingEnabled()) break
-            if (!BOUNDED_INTENT_QUALIFIED && repository.blockInactiveLeadScope(request)) {
-                settings.recordStatus("Lead review inactive for local drafts. Staff should reply directly.")
-                needsAttention = true
-                continue
-            }
-            val model = LocalDraftModel { prompt, stop ->
-                val instructions = if (BOUNDED_INTENT_QUALIFIED) prompt.instructions
-                    else prompt.instructions + "\nStudio guide:\n" + repository.soul()
-                native.generate(prompt.copy(instructions = instructions), stop)
-            }
-            settings.recordStatus("Drafting locally…")
-            val store = if (workerToken == null) repository else WorkerDraftStore(repository, workerToken)
-            val evidence = if (BOUNDED_INTENT_QUALIFIED) DraftEvidenceReader { repository.readEvidence(it) } else null
-            val renderer = if (BOUNDED_INTENT_QUALIFIED) BoundedIntentReplyRenderer else DraftReplyRenderer.RAW
-            val result = CustomerServiceDrafts(store, repository, model, safetyGate = BookingClaimGate,
-                evidenceReader = evidence, replyRenderer = renderer,
-            ).draft(request, DraftCancellation { cancellation() || !repository.isDraftingEnabled() })
-            val disposition = recordDraftOutcome(result, store, repository, request, settings)
+            val disposition = draftOneRequest(repository, settings, native, workerToken, request, cancellation)
             if (disposition.created) created++
             if (disposition.needsAttention) needsAttention = true
             if (disposition.cancelled) break
         }
         return DraftBatchState(created, needsAttention)
+    }
+
+    private fun draftOneRequest(
+        repository: StudioRepository, settings: AgentSettings, native: LlamaDraftModel,
+        workerToken: String?, request: DraftRequest, cancellation: () -> Boolean,
+    ): RequestDisposition {
+        if (!BOUNDED_INTENT_QUALIFIED && repository.blockInactiveLeadScope(request)) {
+            settings.recordStatus("Lead review inactive for local drafts. Staff should reply directly.")
+            return RequestDisposition(needsAttention = true)
+        }
+        val model = LocalDraftModel { prompt, stop ->
+            val instructions = if (BOUNDED_INTENT_QUALIFIED) prompt.instructions
+                else prompt.instructions + "\nStudio guide:\n" + repository.soul()
+            native.generate(prompt.copy(instructions = instructions), stop)
+        }
+        settings.recordStatus("Drafting locally…")
+        val store = if (workerToken == null) repository else WorkerDraftStore(repository, workerToken)
+        val evidence = if (BOUNDED_INTENT_QUALIFIED) DraftEvidenceReader { repository.readEvidence(it) } else null
+        val renderer = if (BOUNDED_INTENT_QUALIFIED) BoundedIntentReplyRenderer else DraftReplyRenderer.RAW
+        val result = CustomerServiceDrafts(store, repository, model, safetyGate = BookingClaimGate,
+            evidenceReader = evidence, replyRenderer = renderer,
+        ).draft(request, DraftCancellation { cancellation() || !repository.isDraftingEnabled() })
+        return recordDraftOutcome(result, store, repository, request, settings)
     }
 
     private data class RequestDisposition(
