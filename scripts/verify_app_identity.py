@@ -64,10 +64,16 @@ def check_identity():
     alias_prefix = "${launcherAliasPackage}.activities.SplashActivity"
     require(any(alias.get(ANDROID + "name") == alias_prefix for alias in aliases),
             "Commons default launcher component is missing")
-    compatibility = {f".activities.{name}Activity" for name in (
-        "Main", "Thread", "NewConversation", "Settings", "ArchivedConversations",
-        "RecycleBinConversations", "ConversationDetails", "VCardViewer",
-    )}
+    compatibility = {
+        ".activities.MainActivity": "true",
+        ".activities.ThreadActivity": "false",
+        ".activities.NewConversationActivity": "true",
+        ".activities.SettingsActivity": "true",
+        ".activities.ArchivedConversationsActivity": "false",
+        ".activities.RecycleBinConversationsActivity": "false",
+        ".activities.ConversationDetailsActivity": "false",
+        ".activities.VCardViewerActivity": "false",
+    }
     launchers = []
     found_compatibility = set()
     for alias in aliases:
@@ -76,6 +82,8 @@ def check_identity():
             found_compatibility.add(name)
             require(alias.get(ANDROID + "targetActivity") == ".inkpilot.ui.CompatibilityIngressActivity",
                     f"historical alias does not route through the secure shell ingress: {name}")
+            require(alias.get(ANDROID + "exported") == compatibility[name],
+                    f"historical alias export boundary changed: {name}")
             require(alias.find("intent-filter/category[@" + ANDROID + "name='android.intent.category.LAUNCHER']") is None,
                     f"historical alias unexpectedly advertises a launcher: {name}")
             continue
@@ -86,7 +94,7 @@ def check_identity():
         if alias.find("intent-filter/category[@" + ANDROID + "name='android.intent.category.LAUNCHER']") is not None:
             if alias.get(ANDROID + "enabled", "true") != "false":
                 launchers.append(alias)
-    require(found_compatibility == compatibility, "all historical messenger aliases must remain guarded")
+    require(found_compatibility == set(compatibility), "all historical messenger aliases must remain guarded")
     require(len(launchers) == 1, "exactly one launcher alias must be enabled by default")
     providers = application.findall("provider")
     require(bool(providers), "file provider is missing")

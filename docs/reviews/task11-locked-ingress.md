@@ -17,12 +17,12 @@ The shell clears its canvas while locked; the shim sets `FLAG_SECURE` before for
 ## Tests and evidence
 
 - `:app:compileFossDebugKotlin :app:compileFossDebugAndroidTestKotlin :app:testFossDebugUnitTest` passed on the Victus build host in `task11-gate.log` before the final forward action was added.
-- Final focused `:app:compileFossDebugKotlin :app:compileFossDebugAndroidTestKotlin` passed in `task11-final-gate3.log` after the forward action and actual alias-launch test cases. The final parser edit removed arbitrary recipient/media truncation without changing its types.
-- `ShellIngressTest` checks manifest aliases, old explicit PendingIntent, preferences, old Main/Up and archive Back, parser formats, cold share ClipData and durable composer, and locked thread/share with a blank secure canvas. `ShellBaselineTest` checks thread, forward and fresh compose navigation without the inherited Activity. These Android UI tests require a clean disposable hosted emulator with the SMS role; they have not been run in this isolated worktree.
+- Review fixes passed `:app:compileFossDebugKotlin :app:compileFossDebugAndroidTestKotlin :app:testFossDebugUnitTest` in `task11-review-gate.log` on the Victus build host. The prior gate is in `task11-final-gate3.log`. The parser retains every recipient/media URI and decodes SMS URI body exactly once regardless of query order.
+- `ShellIngressTest` checks manifest aliases, old explicit PendingIntent, preferences, old Main/Up and archive Back, parser formats (including reordered and singly decoded SMS URI query parameters), cold cross-package share ClipData/read grant and durable composer, and locked thread/share with a blank secure canvas. `ShellBaselineTest` checks thread, forward and fresh compose navigation without the inherited Activity. These Android UI tests require a clean disposable hosted emulator with the SMS role; they have not been run in this isolated worktree.
 - No phone/SIM mutation or SMS send was performed by Task 11.
 
 ## Review risks
 
 - `APPLICATION_PREFERENCES` now opens a compact shell settings panel with the core messaging toggles and Android permission/notification handoffs. Inherited advanced customization and blocking screens remain declared but have no shell navigation; their full feature parity is outside this route slice.
 - Search uses the cached conversations database, and archive/recycle are cache-backed. Verify behavior with a populated disposable emulator database before declaring full parity.
-- Share grants must be checked across a real cross-package sender on the hosted device gate. The instrumentation test proves the forwarded URI, flag, readable in-app FileProvider URI and persisted draft, but its source provider is in the same package.
+- The test APK declares a private, grantable URI provider and starts its own sender Activity in a separate app UID. Its cold share test requires the target to open that URI after the compatibility Activity has finished. Hosted emulator execution is still required before declaring grant behavior proven.

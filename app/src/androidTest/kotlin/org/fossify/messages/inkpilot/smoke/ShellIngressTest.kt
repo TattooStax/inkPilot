@@ -3,10 +3,7 @@ package org.fossify.messages.inkpilot.smoke
 import android.content.ComponentName
 import android.content.ClipData
 import android.app.PendingIntent
-import android.graphics.Bitmap
-import androidx.core.content.FileProvider
 import org.fossify.messages.messaging.ComposerStore
-import java.io.File
 import java.util.UUID
 import android.content.Intent
 import android.net.Uri
@@ -56,6 +53,16 @@ class ShellIngressTest {
         assertEquals(listOf("+15550101111", "+15550102222"), compose.recipients)
         assertEquals("Tattoo reference", compose.body)
         assertNotEquals(route.composerId, compose.composerId)
+        val reordered = Intent(context, NewConversationActivity::class.java).apply {
+            action = Intent.ACTION_SENDTO
+            data = Uri.parse("smsto:+15550101111?subject=Outline&body=Tattoo%20reference%20%26%20notes")
+        }
+        assertEquals("Tattoo reference & notes", (ExternalRouteParser.parse(reordered) as StudioRoute.Compose).body)
+        val encodedPercent = Intent(context, NewConversationActivity::class.java).apply {
+            action = Intent.ACTION_VIEW
+            data = Uri.parse("smsto:+15550101111?body=100%2520proof&subject=Outline")
+        }
+        assertEquals("100%20proof", (ExternalRouteParser.parse(encodedPercent) as StudioRoute.Compose).body)
         val oldDraft = Intent(context, ThreadActivity::class.java).apply {
             action = Intent.ACTION_VIEW
             putExtra(THREAD_ID, 91L)
@@ -170,20 +177,23 @@ class ShellIngressTest {
 
     @Test fun coldShareForwardsReadableUriAndPrivateBodyIntoOneComposer() {
         assumeTrue(Build.HARDWARE in setOf("ranchu", "goldfish"))
-        val source = File(File(context.cacheDir, "compressed").apply { mkdirs() }, "ingress-${UUID.randomUUID()}.png")
-        Bitmap.createBitmap(8, 8, Bitmap.Config.ARGB_8888).let { bitmap ->
-            source.outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }; bitmap.recycle()
-        }
-        val uri = FileProvider.getUriForFile(context, context.packageName + ".provider", source)
         val instrumentation = InstrumentationRegistry.getInstrumentation()
+        val sender = instrumentation.context
+        assertNotEquals(context.packageName, sender.packageName)
+        val uri = Uri.parse("content://$INGRESS_AUTHORITY/reference?token=${UUID.randomUUID()}")
+        @Suppress("DEPRECATION")
+        val provider = sender.packageManager.getProviderInfo(ComponentName(sender.packageName, CrossPackageShareProvider::class.java.name), 0)
+        assertFalse(provider.exported)
+        assertTrue(provider.grantUriPermissions)
+
         val shell = instrumentation.addMonitor(StudioHomeActivity::class.java.name, null, false)
         var home: StudioHomeActivity? = null
         var composerId = 0L
         try {
-            context.startActivity(Intent(context, NewConversationActivity::class.java).apply {
-                action = Intent.ACTION_SEND; type = "image/png"; putExtra(Intent.EXTRA_TEXT, "Private client outline")
-                putExtra(Intent.EXTRA_STREAM, uri); clipData = ClipData.newRawUri("Reference", uri)
-                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+            sender.startActivity(Intent().setClassName(sender.packageName, CrossPackageShareSender::class.java.name).apply {
+                putExtra("shareUri", uri.toString())
+                putExtra("targetPackage", context.packageName)
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             })
             home = shell.waitForActivityWithTimeout(10_000) as StudioHomeActivity?
             assertNotNull(home)
@@ -201,7 +211,9 @@ class ShellIngressTest {
         } finally {
             instrumentation.runOnMainSync { home?.finish() }
             if (composerId != 0L) ComposerStore(context).clear(composerId)
-            source.delete(); instrumentation.removeMonitor(shell)
+            sender.startActivity(Intent().setClassName(sender.packageName, CrossPackageShareSender::class.java.name)
+                .setAction(CrossPackageShareSender.CLEANUP).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+            instrumentation.removeMonitor(shell)
         }
     }
 
@@ -257,6 +269,10 @@ class ShellIngressTest {
             instrumentation.runOnMainSync {
                 config.isAppPasswordProtectionOn = false; config.appPasswordHash = ""; config.appProtectionType = previousType
                 context.appLockManager.unlock(); config.lastUnlockTimestampMs = previousTimestamp
+                val lifecycle = androidx.test.runner.lifecycle.ActivityLifecycleMonitorRegistry.getInstance()
+                androidx.test.runner.lifecycle.Stage.values().flatMap { lifecycle.getActivitiesInStage(it) }
+                    .filterIsInstance<org.fossify.commons.activities.AppLockActivity>()
+                    .distinct().forEach { it.finish() }
                 gate?.finish(); home?.finish()
             }
             instrumentation.removeMonitor(shell); instrumentation.removeMonitor(unlock)

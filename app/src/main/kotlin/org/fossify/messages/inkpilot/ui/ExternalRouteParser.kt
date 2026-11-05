@@ -31,7 +31,7 @@ internal object ExternalRouteParser {
         val thread = intent.getLongExtra(THREAD_ID, 0L)
         val body = listOfNotNull(intent.getCharSequenceExtra("sms_body")?.toString(),
             intent.getCharSequenceExtra(THREAD_TEXT)?.toString(),
-            intent.data?.schemeSpecificPart?.substringAfter("?body=", "")?.substringBefore('&')?.takeIf(String::isNotEmpty)?.let(Uri::decode),
+            smsUriBody(intent.data),
             intent.getCharSequenceExtra(Intent.EXTRA_TEXT)?.toString()).firstOrNull().orEmpty()
         val media = media(intent)
         val recipients = recipients(intent)
@@ -45,6 +45,17 @@ internal object ExternalRouteParser {
             "ThreadActivity" -> if (thread > 0) StudioRoute.Thread(thread) else StudioRoute.Tab(StudioTab.SMS)
             "MainActivity", "SplashActivity" -> StudioRoute.Tab(StudioTab.SMS)
             else -> null
+        }
+    }
+
+    private fun smsUriBody(uri: Uri?): String? {
+        if (uri?.scheme !in schemes) return null
+        val query = uri?.encodedSchemeSpecificPart?.substringAfter('?', "").orEmpty()
+        return query.split('&').firstNotNullOfOrNull { entry ->
+            val key = entry.substringBefore('=', "")
+            if (Uri.decode(key) == "body" && '=' in entry) {
+                Uri.decode(entry.substringAfter('=')).takeIf(String::isNotEmpty)
+            } else null
         }
     }
 
