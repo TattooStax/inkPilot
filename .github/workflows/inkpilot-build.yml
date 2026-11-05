@@ -56,6 +56,31 @@ jobs:
           name: inkPilot-foss-debug
           path: app/build/outputs/apk/foss/debug/*.apk
           if-no-files-found: error
+      - name: Assemble side-by-side OnePlus preview
+        run: ./gradlew :app:assembleFossDebug -PAPP_ID=app.inkpilot.android.preview --console=plain --no-daemon --max-workers=2 -Dorg.gradle.jvmargs=-Xmx3g
+      - name: Verify preview package and SMS role surface
+        shell: bash
+        run: |
+          shopt -s nullglob
+          manifests=(app/build/intermediates/merged_manifests/fossDebug/*/AndroidManifest.xml)
+          apks=(app/build/outputs/apk/foss/debug/*.apk)
+          test "${#manifests[@]}" -eq 1
+          test "${#apks[@]}" -eq 1
+          python3 - "${manifests[0]}" <<'PY'
+          import sys
+          import xml.etree.ElementTree as ET
+
+          package = ET.parse(sys.argv[1]).getroot().get("package")
+          if package != "app.inkpilot.android.preview.debug":
+              raise SystemExit("Unexpected side-by-side preview package: " + str(package))
+          PY
+          python3 scripts/verify_sms_role_qualification.py "${manifests[0]}" "${apks[0]}"
+      - name: Upload side-by-side preview APK
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: inkPilot-oneplus-preview-${{ github.sha }}
+          path: app/build/outputs/apk/foss/debug/*.apk
+          if-no-files-found: error
       - name: Upload test reports
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
