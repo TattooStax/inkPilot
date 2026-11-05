@@ -114,7 +114,6 @@ class DirectReplyReceiver : BroadcastReceiver() {
             )
         }
         context.markThreadMessagesRead(ready.threadId)
-        context.conversationsDB.markRead(ready.threadId)
     }
 
     companion object { const val SUBSCRIPTION_ID = "inkpilot.reply.subscription_id" }
