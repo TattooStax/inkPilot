@@ -17,7 +17,7 @@ import org.json.JSONObject
 import java.io.File
 
 /** Bounded lifecycle metadata; never persist a URI, message, contact, or view text. */
-internal fun recordColdShareFailure(target: Context, sharedUri: Uri) {
+internal fun recordColdShareFailure(target: Context, sender: Context, sharedUri: Uri) {
     val instrumentation = InstrumentationRegistry.getInstrumentation()
     var stages = JSONArray()
     instrumentation.runOnMainSync {
@@ -53,8 +53,15 @@ internal fun recordColdShareFailure(target: Context, sharedUri: Uri) {
         result
     }.getOrDefault(false)
     val alias = ComponentName(target.packageName, "org.fossify.messages.activities.NewConversationActivity")
+    val senderActivity = ComponentName(sender.packageName, CrossPackageShareSender::class.java.name)
+    val senderMarker = File(sender.cacheDir, "task11-share-stage")
+    val senderRead = runCatching { senderMarker.readText() }.getOrNull()
     val evidence = JSONObject().apply {
         put("shareAliasResolved", runCatching { target.packageManager.getActivityInfo(alias, 0).exported }.getOrDefault(false))
+        put("senderActivityResolved", runCatching { sender.packageManager.getActivityInfo(senderActivity, 0).exported }.getOrDefault(false))
+        put("senderCacheReadable", senderMarker.parentFile?.canRead() == true)
+        put("senderMarkerReadable", senderRead != null)
+        put("senderStage", senderRead?.takeIf { it in setOf("prepared", "forwarded") } ?: "missing")
         put("unlockResumed", unlockResumed)
         put("homes", stages)
     }

@@ -63,9 +63,12 @@ if adb -s "$serial" exec-out run-as "$package" cat files/device-test-evidence/co
 else
   rm -f app/build/test-class-evidence/cold-share-stage.json.partial
 fi
+sender_readable=false
+if adb -s "$serial" exec-out run-as "$package.test" id >/dev/null 2>&1; then sender_readable=true; fi
 sender_stage=$(adb -s "$serial" exec-out run-as "$package.test" cat cache/task11-share-stage 2>/dev/null | tr -d '\r' || true)
 case "$sender_stage" in prepared|forwarded) ;; *) sender_stage=missing ;; esac
-printf '{"senderStage":"%s"}\n' "$sender_stage" > app/build/test-class-evidence/cold-share-sender-stage.json
+printf '{"senderStage":"%s","runAsAvailable":%s}\n' "$sender_stage" "$sender_readable" \
+  > app/build/test-class-evidence/cold-share-sender-stage.json
 adb -s "$serial" exec-out run-as "$package.test" rm -f cache/task11-share-stage >/dev/null 2>&1 || true
 run_class org.fossify.messages.inkpilot.ui.NotificationEntryRouteTest
 run_class org.fossify.messages.inkpilot.runtime.CarrierIngressTest

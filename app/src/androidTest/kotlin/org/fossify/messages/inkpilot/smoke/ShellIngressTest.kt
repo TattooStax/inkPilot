@@ -270,7 +270,7 @@ class ShellIngressTest {
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             })
             home = awaitSharedHome(uri)
-            if (home == null) recordColdShareFailure(context, uri)
+            if (home == null) recordColdShareFailure(context, sender, uri)
             assertNotNull(home)
             val forwarded = home!!.intent
             val route = forwarded.getBundleExtra(ExternalRouteParser.ROUTE)!!.decodeRoute() as StudioRoute.Compose
