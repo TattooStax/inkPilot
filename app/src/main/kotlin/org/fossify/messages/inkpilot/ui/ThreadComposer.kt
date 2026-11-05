@@ -96,6 +96,12 @@ internal class ThreadComposer(private val activity: AppCompatActivity, private v
             }
         }
         root.addView(send)
+        if (threadId > 0) {
+            // Opening a conversation must show its history. Staff can tap the
+            // composer to bring up the keyboard when they are ready to reply.
+            root.isFocusableInTouchMode = true
+            root.requestFocus()
+        }
         return root
     }
 }

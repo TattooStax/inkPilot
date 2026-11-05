@@ -7,10 +7,12 @@ import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.Rect
 import android.net.Uri
 import android.os.Build
 import android.provider.Telephony
 import android.view.View
+import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import androidx.core.content.ContextCompat
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -178,6 +180,20 @@ class LegacyFirstLaunchTest {
                     }
                 }
                 ready.takeIf { it }
+            }
+            SmokeViews.await<Boolean>("native message text bound and visible in the thread viewport") {
+                var visible = false
+                instrumentation.runOnMainSync {
+                    val list = home.findViewById<RecyclerView>(R.id.inkpilot_thread_message_list)
+                    val matches = ArrayList<View>()
+                    list.findViewsWithText(matches, "Synthetic native history", View.FIND_VIEWS_WITH_TEXT)
+                    visible = matches.filterIsInstance<TextView>().any { text ->
+                        val rect = Rect()
+                        text.text.toString() == "Synthetic native history" && text.isShown &&
+                            text.getGlobalVisibleRect(rect) && !rect.isEmpty
+                    }
+                }
+                visible.takeIf { it }
             }
             SmokeViews.assertText("Synthetic native history")
             assertEquals("First shell launch must preserve the human scheduled message",

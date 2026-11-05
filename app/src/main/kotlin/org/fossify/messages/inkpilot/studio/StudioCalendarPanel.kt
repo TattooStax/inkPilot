@@ -183,23 +183,26 @@ internal class StudioCalendarPanel(private val host: StudioPanelHost, private va
                 addView(host.text("${staff.name} · availability", 20f))
                 addView(host.text(explanation, 14f))
             }
+            var childEditor: (() -> Unit)? = null
             return AlertDialog.Builder(host.activity).setCustomTitle(heading)
                 .setItems(rows.toTypedArray()) { _, index ->
                     when {
-                        // AlertDialog dismisses its list after this callback returns. Open
-                        // the child editor on the next UI turn, after that dismissal.
-                        index == 0 -> host.activity.window.decorView.post {
-                            if (!host.activity.isFinishing && !host.activity.isDestroyed) setHours(staff)
-                        }
-                        index == 1 -> host.activity.window.decorView.post {
-                            if (!host.activity.isFinishing && !host.activity.isDestroyed) addTimeOff(staff)
-                        }
+                        // The list dialog queues its own dismissal after this callback.
+                        // Show the editor only once that dismissal has completed.
+                        index == 0 -> childEditor = { setHours(staff) }
+                        index == 1 -> childEditor = { addTimeOff(staff) }
                         index - 2 < hours.size -> host.load({
                             store.clearWeeklyHours(staff.id, hours[index - 2].weekday)
                         }) { availability(staff) }
                         else -> host.load({ store.removeTimeOff(off[index - 2 - hours.size].id) }) { availability(staff) }
                     }
-                }.setNegativeButton("Close", null).create()
+                }.setNegativeButton("Close", null).create().apply {
+                    setOnDismissListener {
+                        val pending = childEditor
+                        childEditor = null
+                        if (pending != null) host.onUi(pending)
+                    }
+                }
     }
 
     private fun setHours(staff: StudioStaff) {

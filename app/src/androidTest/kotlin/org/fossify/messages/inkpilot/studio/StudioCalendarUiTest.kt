@@ -15,6 +15,7 @@ import java.util.ArrayDeque
 import java.util.UUID
 import java.util.concurrent.Executor
 import org.fossify.messages.inkpilot.data.StudioRepository
+import org.fossify.messages.inkpilot.smoke.SmokeViews
 import org.fossify.messages.inkpilot.ui.StudioHomeActivity
 import org.junit.Assert.*
 import org.junit.Assume.assumeTrue
@@ -109,9 +110,7 @@ class StudioCalendarUiTest {
                     availability.listView.performItemClick(availability.listView.getChildAt(0), 0,
                         availability.listView.getItemIdAtPosition(0))
                 }
-                InstrumentationRegistry.getInstrumentation().waitForIdleSync()
-                val active = InstrumentationRegistry.getInstrumentation().uiAutomation.rootInActiveWindow
-                assertTrue(active?.findAccessibilityNodeInfosByText("weekly hours")?.isNotEmpty() == true)
+                SmokeViews.assertText("Synthetic artist · weekly hours")
             }
         } finally { repository.close(); context.deleteDatabase(name) }
     }
