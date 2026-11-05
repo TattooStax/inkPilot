@@ -1,6 +1,8 @@
 package org.fossify.messages.inkpilot.smoke
 
 import android.net.Uri
+import android.graphics.Bitmap
+import androidx.core.content.FileProvider
 import androidx.test.core.app.ApplicationProvider
 import org.fossify.messages.messaging.*
 import org.fossify.messages.extensions.config
@@ -8,9 +10,43 @@ import org.fossify.messages.inkpilot.ui.encode
 import org.fossify.messages.inkpilot.ui.decodeRoute
 import org.junit.Assert.*
 import org.junit.Test
+import java.io.File
+import java.io.ByteArrayOutputStream
+import java.util.UUID
 
 /** Synthetic dispatcher only: this suite never reaches a carrier. */
 class InShellComposerTest {
+    @Test fun corruptPngIsRefusedBeforeSimLookupOrComposerClaim() {
+        val context = ApplicationProvider.getApplicationContext<android.content.Context>()
+        val source = File(context.cacheDir, "attachments/${UUID.randomUUID()}.png")
+        source.parentFile!!.mkdirs()
+        val corrupt = "not a PNG image".toByteArray()
+        source.writeBytes(corrupt)
+        val valid = ByteArrayOutputStream().use { output ->
+            val bitmap = Bitmap.createBitmap(2, 2, Bitmap.Config.ARGB_8888)
+            try { assertTrue(bitmap.compress(Bitmap.CompressFormat.PNG, 100, output)) }
+            finally { bitmap.recycle() }
+            output.toByteArray()
+        }
+        val uri = FileProvider.getUriForFile(context, "${context.packageName}.provider", source)
+        val id = -(UUID.randomUUID().mostSignificantBits and Long.MAX_VALUE).coerceAtLeast(1L)
+        try {
+            androidx.test.core.app.ActivityScenario.launch(org.fossify.messages.inkpilot.ui.StudioHomeActivity::class.java)
+                .use { scenario -> scenario.onActivity { activity ->
+                    val store = ComposerStore(activity)
+                    val request = OutgoingMessage(id, "+15550101012", "Keep caption", listOf(uri), 1)
+                    val result = org.fossify.messages.inkpilot.ui.prepareInShellComposerSend(
+                        activity, store, request, activeSimIds = { error("SIM lookup must not occur") }).getOrThrow()
+                    assertEquals(DispatchOutcome.Rejected("Image cannot be decoded"), result)
+                    assertNull(store.load(id))
+                    assertFalse(store.isUnknown(id))
+                    source.writeBytes(valid)
+                    assertNull(activity.inShellMmsRejection(listOf(uri)))
+                    assertNull(store.load(id))
+                } }
+        } finally { ComposerStore(context).clear(id); source.delete() }
+    }
+
     @Test fun groupSmsIsVisibleRefusalBeforeSimOrComposerClaim() {
         androidx.test.core.app.ActivityScenario.launch(org.fossify.messages.inkpilot.ui.StudioHomeActivity::class.java).use { scenario ->
             scenario.onActivity { activity ->

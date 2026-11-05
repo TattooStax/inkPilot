@@ -13,21 +13,23 @@ private val IMAGE_TYPES = setOf("image/jpeg", "image/png")
 internal fun Context.inShellMmsRejection(uris: List<Uri>): String? {
     if (uris.size > 1) return "Send one image per message"
     val uri = uris.singleOrNull() ?: return null
-    if (contentResolver.getType(uri) !in IMAGE_TYPES) return "Attach a JPEG or PNG image"
+    val mimeType = contentResolver.getType(uri)?.takeIf { it in IMAGE_TYPES }
+        ?: return "Attach a JPEG or PNG image"
     return try {
-        contentResolver.openInputStream(uri)?.use { it.sizeRejection() } ?: "Attachment is unreadable"
+        contentResolver.openInputStream(uri)?.use { it.imageRejection(mimeType) } ?: "Attachment is unreadable"
     } catch (_: Exception) { "Attachment is unreadable" }
 }
 
-private fun InputStream.sizeRejection(): String? {
+private fun InputStream.imageRejection(mimeType: String): String? {
     val buffer = ByteArray(READ_BUFFER_BYTES)
-    var total = 0
+    val output = ByteArrayOutputStream()
     while (true) {
         val count = read(buffer)
-        if (count < 0) return null
-        total += count
-        if (total > MAX_IMAGE_BYTES) return "Image exceeds the 1 MiB MMS limit"
+        if (count < 0) break
+        if (output.size() + count > MAX_IMAGE_BYTES) return "Image exceeds the 1 MiB MMS limit"
+        output.write(buffer, 0, count)
     }
+    return if (output.toByteArray().isDecodableMmsImage(mimeType)) null else "Image cannot be decoded"
 }
 
 /** A changed provider URI must not bypass the preflight's bounded read. */
