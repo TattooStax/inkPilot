@@ -164,7 +164,7 @@ class ThreadReviewRegressionTest {
                 }
                 val footer: (Long) -> View = {
                     StudioUi.scroll(activity, StudioUi.column(activity, 0).apply {
-                        addView(InlineDraftReview(activity, work, {}).view(draft))
+                        addView(InlineDraftReview(activity, work, {}, { _, _ -> false }).view(draft))
                     }).apply { layoutParams = android.widget.LinearLayout.LayoutParams(-1, StudioUi.dp(this, 280)) }
                 }
                 val thread = MessagePanel(activity, work, {}, {}, threadFooter = footer, gateway = source)

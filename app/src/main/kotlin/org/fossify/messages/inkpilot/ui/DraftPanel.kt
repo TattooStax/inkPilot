@@ -5,10 +5,12 @@ import android.widget.LinearLayout
 import androidx.appcompat.app.AppCompatActivity
 import org.fossify.messages.R
 import org.fossify.messages.inkpilot.data.ReviewDraft
+import org.fossify.messages.inkpilot.data.DraftRegenerationOutcome
 import org.fossify.messages.inkpilot.data.StudioRepository
 import org.fossify.messages.inkpilot.data.StudioStaffAttention
 import org.fossify.messages.inkpilot.data.markStaffAttentionHandled
 import org.fossify.messages.inkpilot.data.staffAttention
+import org.fossify.messages.inkpilot.runtime.AgentRuntime
 
 internal class DraftPanel(
     private val activity: AppCompatActivity,
@@ -21,6 +23,11 @@ internal class DraftPanel(
         val body = StudioUi.column(activity)
         body.addView(StudioUi.text(activity, "Drafts and staff replies", TITLE_SIZE, true))
         body.addView(StudioUi.text(activity, "Nothing sends until a staff member reviews and approves it.", NOTE_SIZE))
+        if (AgentRuntime.BOUNDED_INTENT_QUALIFIED) {
+            body.addView(StudioUi.button(activity, "Review lead questions") {
+                LeadIntakeReviewUi(activity, repository, work, refresh).open()
+            })
+        }
         body.addView(StudioUi.button(activity, "Refresh", refresh))
         val list = StudioUi.column(activity, 0).apply { id = R.id.inkpilot_draft_list }
         body.addView(list)
@@ -59,7 +66,8 @@ internal class DraftPanel(
     }
 
     private fun attentionText(task: StudioStaffAttention) = when (task.reason) {
-        "UNSAFE_CONTENT" -> "Local draft blocked an unverified booking claim. Staff should reply directly."
+        "UNSAFE_CONTENT" -> "Local draft blocked an unverified or unsupported reply. Staff should reply directly."
+        "REVIEW_SCOPE_UNAVAILABLE" -> "Lead review is inactive for model drafting. Staff should reply directly."
         "OTHER_THREAD_RECEIVED" -> "Another conversation for this client became active. Review this thread."
         "IDENTITY_REASSIGNED" -> "This number changed clients. Verify this conversation before replying."
         "Model or source read failed" -> "Local draft failed. Staff should reply directly and check model setup."
@@ -77,7 +85,7 @@ internal class DraftPanel(
         list.addView(StudioUi.text(activity, "Client: ${draft.inboundText}", NOTE_SIZE).apply {
             maxLines = MESSAGE_LINES
         })
-        list.addView(StudioUi.text(activity, draft.sendBody ?: draft.body, DRAFT_SIZE))
+        list.addView(StudioUi.text(activity, draft.sendBody ?: draft.staffEditBody ?: draft.body, DRAFT_SIZE))
         list.addView(StudioUi.text(activity, statusText(draft.status, draft.canReview), DETAIL_SIZE))
         if (draft.status != "HELD" || !draft.canReview) {
             list.addView(StudioUi.button(activity, "View conversation") {
@@ -91,7 +99,13 @@ internal class DraftPanel(
                     source?.let {
                         org.fossify.messages.inkpilot.runtime.AgentRuntime.regenerate(activity, it.eventId, it.revision)
                     }
-                }) { refresh() }
+                }) { outcome ->
+                    if (outcome == DraftRegenerationOutcome.ReviewScopeUnavailable) {
+                        StudioUi.error(activity,
+                            "Lead review is inactive for model drafting. Reply directly or dismiss this draft.")
+                    }
+                    refresh()
+                }
             })
             if (draft.canReview) list.addView(StudioUi.button(activity, "Review draft") {
                 open(StudioRoute.Draft(draft.draftId))

@@ -24,12 +24,25 @@ fi
 adb -s "$serial" install -r "${apks[0]}" || { echo 'App installation failed' >&2; exit 2; }
 adb -s "$serial" install -r "${tests[0]}" || { echo 'Test installation failed' >&2; exit 2; }
 scripts/inkpilot-sms-role-preflight.sh "$serial" app.inkpilot.android.debug || { echo 'SMS role preflight failed' >&2; exit 2; }
+if [[ $class == org.fossify.messages.inkpilot.staged.LeadIntakeReviewUiTest ]]; then
+  adb -s "$serial" shell run-as app.inkpilot.android.debug \
+    rm -f files/device-test-evidence/staged-review.json
+fi
 # Keep only a redacted verdict; raw assertions stay in a private temporary file.
 result=$(mktemp)
 trap 'rm -f "$result"' EXIT
 status=0
 timeout 600 adb -s "$serial" shell am instrument -w -e class "$class" \
   app.inkpilot.android.debug.test/androidx.test.runner.AndroidJUnitRunner > "$result" 2>&1 || status=$?
+if [[ $class == org.fossify.messages.inkpilot.staged.LeadIntakeReviewUiTest ]]; then
+  staged_raw=$(mktemp)
+  if adb -s "$serial" exec-out run-as app.inkpilot.android.debug \
+      cat files/device-test-evidence/staged-review.json > "$staged_raw" 2>/dev/null; then
+    python3 scripts/staged-review-evidence.py "$staged_raw" > "$evidence/staged-review.json" ||
+      rm -f "$evidence/staged-review.json"
+  fi
+  rm -f "$staged_raw"
+fi
 if ((status == 124 || status == 137)); then
   printf 'FAIL %s (instrumentation timeout; raw output withheld)\n' "$class" | tee "$evidence/result.txt" >&2
   exit 2

@@ -4,6 +4,8 @@ import android.os.Build
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import org.fossify.messages.inkpilot.studio.StudioAlbumStore
+import inkpilot.agent.LeadQuestion
+import inkpilot.agent.ReplyLanguage
 import org.json.JSONObject
 import org.junit.After
 import org.junit.Assert.*
@@ -38,6 +40,10 @@ class StudioArchiveTest {
         try {
             val contact = repository.upsertContact("+15550001111", "Synthetic Archive Client")
             repository.saveMemory(contact.id, "Synthetic archive memory")
+            val request = repository.recordInbound("archive-intake", 88, contact.number,
+                "I want a small rose", "Synthetic Archive Client", 1000, 3)
+            assertTrue(repository.reviewLeadIntake(request, ReplyLanguage.EN,
+                setOf(LeadQuestion.PLACEMENT)) is LeadIntakeReviewResult.Saved)
             val albums = StudioAlbumStore(repository)
             val albumId = albums.saveAlbum(null, "Synthetic Album", "")
             original.parentFile!!.mkdirs()
@@ -54,11 +60,14 @@ class StudioArchiveTest {
             val manifest = JSONObject(requireNotNull(entries["manifest.json"]).toString(Charsets.UTF_8))
             assertEquals("inkpilot-studio-export-v1", manifest.getString("format"))
             assertTrue(manifest.getBoolean("plaintext"))
-            assertEquals(7, manifest.getInt("studioSchemaVersion"))
+            assertEquals(9, manifest.getInt("studioSchemaVersion"))
             assertArrayEquals(bytes, entries["studio/images/" + originalName])
             val contacts = requireNotNull(entries["studio/tables/studio_contacts.jsonl"]).toString(Charsets.UTF_8)
             assertTrue(contacts.contains("Synthetic Archive Client"))
             assertTrue(contacts.contains("Synthetic archive memory"))
+            val scopeRows = requireNotNull(entries["studio/tables/lead_intake_reviews.jsonl"]).toString(Charsets.UTF_8)
+            assertTrue(scopeRows.contains("archive-intake"))
+            assertTrue(scopeRows.contains("STAFF_UI"))
             val manifestEntries = manifest.getJSONArray("entries")
             for (i in 0 until manifestEntries.length()) {
                 val item = manifestEntries.getJSONObject(i)

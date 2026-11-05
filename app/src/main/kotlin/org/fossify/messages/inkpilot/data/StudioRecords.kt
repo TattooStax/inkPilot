@@ -26,6 +26,7 @@ data class ReviewDraft(
     val canReview: Boolean,
     val status: String = "HELD",
     val sendBody: String? = null,
+    val staffEditBody: String? = null,
 )
 
 enum class SendStatus { SENDING, SENT, FAILED, UNKNOWN }

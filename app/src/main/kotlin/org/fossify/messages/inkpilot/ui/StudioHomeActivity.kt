@@ -25,6 +25,7 @@ import org.fossify.commons.extensions.appLaunched
 import org.fossify.messages.inkpilot.data.StudioArchiveCleanupNotice
 import org.fossify.messages.inkpilot.data.StudioArchiveExporter
 import org.fossify.messages.inkpilot.data.StudioRepository
+import org.fossify.messages.inkpilot.data.saveStaffEdit
 import org.fossify.messages.inkpilot.studio.StudioPanels
 import java.util.concurrent.Executors
 
@@ -241,7 +242,8 @@ class StudioHomeActivity : AppCompatActivity() {
         if (selectedDraftId == null) {
             work.load({ repository.draftsForThread(threadId) }) { drafts ->
                 drafts.forEachIndexed { index, draft ->
-                    root.addView(InlineDraftReview(this, work, ::refreshPanels).view(draft), index)
+                    val review = InlineDraftReview(this, work, ::refreshPanels, repository::saveStaffEdit)
+                    root.addView(review.view(draft), index)
                 }
             }
             root.addView(ThreadComposer(this, work, ::pickAttachment, ::refreshPanels, ::openRoute,
@@ -254,7 +256,7 @@ class StudioHomeActivity : AppCompatActivity() {
                 root.removeAllViews()
                 val selected = drafts.firstOrNull { it.draftId == selectedDraftId }
                 root.addView(if (selected == null) StudioUi.text(this, "Held draft is no longer available.")
-                    else InlineDraftReview(this, work, ::refreshPanels).view(selected))
+                    else InlineDraftReview(this, work, ::refreshPanels, repository::saveStaffEdit).view(selected))
                 scroll.post { scroll.scrollTo(0, 0) }
             }
         }

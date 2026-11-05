@@ -1,19 +1,31 @@
 package org.fossify.messages.inkpilot.data
 
 import android.content.ContentValues
+import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase
+import inkpilot.agent.DraftSource
+
+private const val CLAIM_STATE_COLUMN = 3
+private const val CLAIM_STAFF_EDIT_COLUMN = 7
+
+private fun Cursor.matchesHeldClaim(expectedBody: String, editedBody: String): Boolean =
+    moveToFirst() && getString(CLAIM_STATE_COLUMN) == "HELD" && getString(1) == expectedBody &&
+        (isNull(CLAIM_STAFF_EDIT_COLUMN) || getString(CLAIM_STAFF_EDIT_COLUMN) == editedBody)
+
+private fun Cursor.matchesClaimSource(source: DraftSource): Boolean =
+    !source.staffPaused && source.revision == getLong(2) && source.threadId == getString(4) &&
+        source.contactId == getString(5) && source.recipient == getString(6)
 
 internal fun SQLiteDatabase.claimStudioDraft(
     draftId: String, expectedBody: String, editedBody: String, subscriptionId: Int,
 ): SendClaim? {
     require(editedBody.isNotBlank() && editedBody.length <= 800 && subscriptionId >= 0) { "Invalid send proposal" }
     return transaction {
-        rawQuery("SELECT event_id, body, source_revision, state, thread_id, contact_id, recipient FROM held_drafts WHERE draft_id = ?", arrayOf(draftId)).use {
-            if (!it.moveToFirst() || it.getString(3) != "HELD" || it.getString(1) != expectedBody) return@transaction null
+        rawQuery("""SELECT event_id, body, source_revision, state, thread_id, contact_id, recipient, staff_edit_body
+            FROM held_drafts WHERE draft_id = ?""", arrayOf(draftId)).use {
+            if (!it.matchesHeldClaim(expectedBody, editedBody)) return@transaction null
             val source = studioSource(it.getString(0)) ?: return@transaction null
-            if (source.staffPaused || source.revision != it.getLong(2) || source.threadId != it.getString(4) ||
-                source.contactId != it.getString(5) || source.recipient != it.getString(6)
-            ) return@transaction null
+            if (!it.matchesClaimSource(source)) return@transaction null
             if (rawQuery("""SELECT 1 FROM send_claims s JOIN held_drafts d ON d.draft_id=s.draft_id
                 WHERE d.event_id=? LIMIT 1""", arrayOf(it.getString(0))).use { claim -> claim.moveToFirst() })
                 return@transaction null
@@ -22,7 +34,10 @@ internal fun SQLiteDatabase.claimStudioDraft(
             put("draft_id", draftId); put("body", editedBody); put("subscription_id", subscriptionId)
             put("claimed_at", System.currentTimeMillis())
         })
-        update("held_drafts", ContentValues().apply { put("state", "SENDING") }, "draft_id = ?", arrayOf(draftId))
+        update("held_drafts", ContentValues().apply {
+            put("state", "SENDING")
+            putNull("staff_edit_body")
+        }, "draft_id = ?", arrayOf(draftId))
         checkNotNull(studioSendClaim(draftId))
     }
 }

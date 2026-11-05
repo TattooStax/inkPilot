@@ -25,6 +25,22 @@ not qualify LFM3, enable a live draft route, authorize a tool, or send SMS.
   before persistence in the core orchestration test. These are regression
   checks for output confinement, not a blind estimate of model accuracy.
 
+## Hosted RAW-path finding
+
+An offline hosted QAD smoke run on the integrated RAW route persisted the reply
+“Sure! We can set up a 30-minute consultation. What date and time work best for
+you?” The narrow `BookingClaimGate` missed “we can set up.” This branch adds a
+conservative scheduling-arrangement pattern, and a core regression requires
+that exact reply to stop before persistence. Production records
+`UNSAFE_CONTENT` for staff attention. This only closes that observed phrase
+class; the raw model remains unqualified and other unsupported claims may
+escape a regex screen. The same hosted run also timed out when the staff UI
+tried to find the selected held reply below the viewport. That UI focus defect
+is separate from whether the unsafe body was durably saved. The revised smoke
+records a blocked outcome with durable attention or a held outcome with its
+own UI visibility proof; neither path calls a blocked model reply a successful
+draft. A fresh native run of this code is still pending.
+
 ## Policy staged in this branch
 
 A host-issued `ReviewedLeadIntake` must bind event, revision, contact and
@@ -35,20 +51,30 @@ studio guide, model prose, verified price, calendar data, or image description
 is interpolated into the visible reply. A missing scope stops before model
 execution. Invalid labels stop before persistence. The existing source
 revision check, staff pause, atomic held write and staff send approval still
-apply. The app's current evidence reader issues no intake scope. A feature-flag
-flip would stop new generation attempts without an existing receipt before
-model execution. Previously held raw drafts still return `ALREADY_HELD` and
-remain visible for staff review until staff dismisses them or source revision
-changes; the new renderer does not retroactively certify those bodies.
+apply. Studio DB v8 now stores a staff UI review for one current event, with
+revision, contact, thread, reply language, and reviewed missing fields. Save,
+correction, and clearing bump the contact revision atomically so an in-flight
+old question cannot be held. Reads require every recorded scope field to
+match the current source. The setup and correction dialog is staged but its
+Drafts side card entry is hidden while the selector flag is false. The local UI
+action is recorded as `STAFF_UI` with a timestamp;
+there is no individual staff account identity or external attestation.
 
-The host-issued scope is a code contract only: there is no durable staff
-attestation or issuer yet. The existing `VerifiedDraftFact` types are unused
-by this renderer; their nonblank source IDs are not proof of verified prices
-or appointments. No claims may be derived from them.
+The feature flag remains false. A stored review blocks the RAW worker before
+inference and records a durable staff task, including when there was no prior
+held draft. Explicit regeneration of an event with a stored review returns
+`ReviewScopeUnavailable` from the database transaction; ordinary unscoped
+draft regeneration remains available. Clearing a stale or tampered row for
+the exact current event deletes its metadata without granting it model
+authority. A scope edit bumps the source revision and makes an older held RAW
+draft stale; staff must dismiss it or reply directly. The new renderer does
+not retroactively certify those bodies. The
+existing `VerifiedDraftFact` types remain unused by this renderer; their
+nonblank source IDs are not proof of verified prices or appointments. No
+claims may be derived from them.
 
 The model still needs a dedicated native evaluation with this exact dynamic
-prompt, an implemented durable staff-reviewed scope issuer and Kotlin route
-parity, human adjudication for correctness and usefulness, and at least 20
+prompt, route parity against independently reviewed cases, human adjudication for correctness and usefulness, and at least 20
 on-device offline turns with latency/thermal measurements. Test booking,
 prices, availability, unseen images, medical requests, note/customer
 injection, cross-contact data, and multilingual messages. Keep action claims
@@ -56,3 +82,7 @@ out of fixed templates until independently verified records and explicit
 host actions exist. Re-review older held drafts manually; this path screens
 only newly generated candidates. No beta percentage should be inferred from
 mechanical zero visible claims after rejecting nearly every candidate.
+
+Current production prompt context is one latest inbound body plus reviewed contact memory;
+prior messages in the thread are not included. Multi-message lead detail selection
+and repeated-question usefulness remain unmeasured.

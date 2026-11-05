@@ -97,7 +97,7 @@ class OneShellAcceptanceTest {
                 val draft = ReviewDraft("synthetic-a11y", "synthetic-event", 1L, "synthetic-contact",
                     "+12025550123", "Fixture", "Synthetic incoming text", "Synthetic held reply", 1L,
                     -1, 0L, false)
-                val panel = InlineDraftReview(activity, StudioWork(activity, Executor { }), {}).view(draft) as ViewGroup
+                val panel = InlineDraftReview(activity, StudioWork(activity, Executor { }), {}, { _, _ -> false }).view(draft) as ViewGroup
                 val editor = (0 until panel.childCount).map(panel::getChildAt).filterIsInstance<EditText>().single()
                 val label = (0 until panel.childCount).map(panel::getChildAt).filterIsInstance<TextView>()
                     .single { it.labelFor == editor.id }
