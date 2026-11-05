@@ -10,6 +10,7 @@ import androidx.test.platform.app.InstrumentationRegistry
 import inkpilot.agent.DraftKey
 import inkpilot.agent.DraftStoreResult
 import inkpilot.agent.HeldDraftWrite
+import org.fossify.messages.inkpilot.data.ContactMatch
 import org.fossify.messages.inkpilot.data.StudioRepository
 import org.fossify.messages.inkpilot.ui.ExternalRouteParser
 import org.fossify.messages.inkpilot.ui.StudioHomeActivity
@@ -32,11 +33,15 @@ class FocusedReviewRouteTest {
         val body = "Thanks for the reference. What size and placement are you considering?"
         val repository = StudioRepository(context)
         val wasEnabled = repository.isDraftingEnabled()
+        val number = "+1555${token.filter(Char::isDigit).padEnd(7, '0').take(7)}"
         var draftId: String? = null
         var contactId: String? = null
         try {
+            check(repository.resolveContact(number, "") === ContactMatch.Missing) {
+                "Synthetic fixture number already belongs to a contact"
+            }
             repository.setDraftingEnabled(true)
-            val request = repository.recordInbound(event, thread, "+1555${token.filter(Char::isDigit).padEnd(7, '0').take(7)}",
+            val request = repository.recordInbound(event, thread, number,
                 "Synthetic studio question", "UI fixture", System.currentTimeMillis(), 1)
             contactId = request.contactId
             val recipient = requireNotNull(repository.readSource(event)).recipient
@@ -59,12 +64,24 @@ class FocusedReviewRouteTest {
                 }
             }
         } finally {
-            val db = repository.database
-            draftId?.let { db.delete("held_drafts", "draft_id = ?", arrayOf(it)) }
-            db.delete("inbound_events", "event_id = ?", arrayOf(event))
-            contactId?.let { db.delete("studio_contacts", "id = ?", arrayOf(it)) }
-            repository.setDraftingEnabled(wasEnabled)
-            repository.close()
+            try {
+                val db = repository.database
+                db.beginTransaction()
+                try {
+                    draftId?.let { db.delete("held_drafts", "draft_id = ?", arrayOf(it)) }
+                    db.delete("inbound_events", "event_id = ?", arrayOf(event))
+                    contactId?.let { id ->
+                        db.delete("contact_aliases", "contact_id = ?", arrayOf(id))
+                        db.delete("studio_contacts", "id = ?", arrayOf(id))
+                    }
+                    db.setTransactionSuccessful()
+                } finally {
+                    db.endTransaction()
+                }
+            } finally {
+                try { repository.setDraftingEnabled(wasEnabled) }
+                finally { repository.close() }
+            }
         }
     }
 }

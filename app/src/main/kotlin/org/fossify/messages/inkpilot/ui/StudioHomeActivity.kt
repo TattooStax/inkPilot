@@ -28,6 +28,8 @@ import org.fossify.messages.inkpilot.data.StudioRepository
 import org.fossify.messages.inkpilot.studio.StudioPanels
 import java.util.concurrent.Executors
 
+private const val THREAD_REVIEW_FOOTER_HEIGHT_DP = 280
+
 /** A small native host; panels own their UI and the repository owns all studio data. */
 class StudioHomeActivity : AppCompatActivity() {
     private val executor = Executors.newSingleThreadExecutor()
@@ -234,7 +236,7 @@ class StudioHomeActivity : AppCompatActivity() {
     private fun threadFooter(threadId: Long, selectedDraftId: String? = null): android.view.View {
         val root = StudioUi.column(this, 0)
         val scroll = StudioUi.scroll(this, root).apply {
-            layoutParams = LinearLayout.LayoutParams(-1, StudioUi.dp(root, 280))
+            layoutParams = LinearLayout.LayoutParams(-1, StudioUi.dp(root, THREAD_REVIEW_FOOTER_HEIGHT_DP))
         }
         if (selectedDraftId == null) {
             work.load({ repository.draftsForThread(threadId) }) { drafts ->
