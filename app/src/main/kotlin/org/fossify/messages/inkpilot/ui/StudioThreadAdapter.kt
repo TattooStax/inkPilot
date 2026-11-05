@@ -1,10 +1,15 @@
 package org.fossify.messages.inkpilot.ui
 
+import android.provider.Telephony.Sms
 import android.view.Gravity
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import androidx.recyclerview.widget.RecyclerView
 import org.fossify.messages.messaging.key
+import org.fossify.messages.messaging.SmsPartJournal
+import org.fossify.messages.messaging.SmsPartState
+import org.fossify.messages.messaging.exactSmsRowType
+import org.fossify.messages.messaging.partCount
 import org.fossify.messages.models.Message
 
 internal class StudioThreadAdapter(private val activity: android.app.Activity,
@@ -12,8 +17,14 @@ internal class StudioThreadAdapter(private val activity: android.app.Activity,
     private val viewAttachment: (org.fossify.messages.models.Attachment) -> Unit = {},
     private val importImage: (org.fossify.messages.messaging.MessageKey, Long, org.fossify.messages.models.Attachment) -> Unit = { _, _, _ -> },
 ) : RecyclerView.Adapter<StudioThreadAdapter.Row>(), StudioMessageRows {
+    private data class SmsBubbleVerdict(val state: SmsPartState? = null, val multipart: Boolean = false)
     private val rows = mutableListOf<Message>()
+    private val smsPartJournal = SmsPartJournal(activity)
     init { setHasStableIds(true); stateRestorationPolicy = StateRestorationPolicy.PREVENT_WHEN_EMPTY }
+    override fun onDetachedFromRecyclerView(recyclerView: RecyclerView) {
+        smsPartJournal.close()
+        super.onDetachedFromRecyclerView(recyclerView)
+    }
     class Row(val body: LinearLayout) : RecyclerView.ViewHolder(body)
     override fun messageKey(position: Int) = rows.getOrNull(position)?.key()
     override fun messagePosition(key: org.fossify.messages.messaging.MessageKey) = rows.indexOfFirst { it.key() == key }
@@ -63,10 +74,20 @@ internal class StudioThreadAdapter(private val activity: android.app.Activity,
                 viewAttachment(attachment)
             })
         }
-        val state = message.deliveryLabel()
+        val verdict = smsVerdict(message)
+        val state = message.deliveryLabel(verdict.state, verdict.multipart)
         val direction = if (message.isReceivedMessage()) "Received" else "Outgoing"
         body.addView(StudioUi.text(activity,
             "$direction ${if (message.isMMS) "MMS" else "SMS"} · ${android.text.format.DateFormat.format("MMM d, h:mm a", message.millis())} $state", 12f))
+    }
+    private fun smsVerdict(message: Message): SmsBubbleVerdict {
+        if (message.isMMS || message.isScheduled || message.isReceivedMessage()) return SmsBubbleVerdict()
+        return runCatching {
+            val partState = smsPartJournal.state(message.id, exactNativeType = { activity.exactSmsRowType(message.id) })
+            val multipart = partState == SmsPartState.SENT && message.type == Sms.MESSAGE_TYPE_SENT &&
+                message.status == Sms.STATUS_COMPLETE && smsPartJournal.partCount(message.id) != 1
+            SmsBubbleVerdict(partState ?: staleUntrackedSmsOutcome(message.type, message.millis()), multipart)
+        }.getOrElse { SmsBubbleVerdict(SmsPartState.UNKNOWN) }
     }
     fun append(items: List<Message>) {
         val start = rows.size

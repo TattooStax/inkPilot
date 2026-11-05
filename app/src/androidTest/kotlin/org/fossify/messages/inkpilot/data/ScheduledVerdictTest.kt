@@ -62,6 +62,22 @@ class ScheduledVerdictTest {
             context.scheduledAlarmIntent(it, 99), android.app.PendingIntent.FLAG_UPDATE_CURRENT or android.app.PendingIntent.FLAG_IMMUTABLE) }
         try { assertEquals(3, pending.distinct().size) } finally { pending.forEach { it.cancel() } }
     }
+    @Test fun disputedCallbackAfterConfirmationDemotesScheduledJournal() {
+        val key = MessageKey(MessageOrigin.SCHEDULED_SMS, System.nanoTime())
+        ScheduledVerdicts(context).use { journal ->
+            assertTrue(journal.claim(key, 2))
+            journal.record(key, 0, true)
+            journal.record(key, 1, true)
+            assertEquals("CONFIRMED", journal.state(key))
+            val duplicate = Intent().setData(Uri.parse(key.alarmIdentity() + "/1"))
+            ScheduledCallback(key).attach(duplicate, 1)
+            context.recordScheduledCallback(duplicate, false, nativeRowVerified = false)
+            assertEquals("UNKNOWN", journal.state(key))
+            journal.record(key, 1, true)
+            assertEquals("UNKNOWN", journal.state(key))
+            assertFalse(journal.claim(key, 2))
+        }
+    }
     @Test fun allResultsRequiredForConfirmedOrFailed() {
         val key = MessageKey(MessageOrigin.SCHEDULED_MMS, System.nanoTime())
         ScheduledVerdicts(context).use {

@@ -51,7 +51,8 @@ class ScheduledVerdicts(context: Context) : SQLiteOpenHelper(context, "scheduled
     ).use { if (it.moveToFirst()) it.getString(0) else "QUEUED" }
 
     fun unknown(key: MessageKey) {
-        writableDatabase.execSQL("UPDATE claims SET state = 'UNKNOWN' WHERE identity = ? AND state = 'DISPATCHING'", arrayOf(key.alarmIdentity()))
+        // A disputed late callback can invalidate an earlier CONFIRMED journal result.
+        writableDatabase.execSQL("UPDATE claims SET state = 'UNKNOWN' WHERE identity = ?", arrayOf(key.alarmIdentity()))
     }
 
     fun record(key: MessageKey, part: Int, success: Boolean) {

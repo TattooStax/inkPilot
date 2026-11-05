@@ -90,18 +90,8 @@ class MessagingUtils(val context: Context) {
         messageId: Long? = null,
         scheduledCallback: ScheduledCallback? = null
     ) {
-        if (addresses.size > 1) {
-            // insert a dummy message for this thread if it is a group message
-            val broadCastThreadId = context.getThreadId(addresses.toSet())
-            val mergedAddresses = addresses.joinToString(ADDRESS_SEPARATOR)
-            insertSmsMessage(
-                subId = subId, dest = mergedAddresses, text = text,
-                timestamp = System.currentTimeMillis(), threadId = broadCastThreadId,
-                status = Sms.Sent.STATUS_COMPLETE, type = Sms.Sent.MESSAGE_TYPE_SENT,
-                messageId = messageId
-            )
-        }
-
+        // A merged-address SENT row cannot be truthful until every recipient has a durable verdict.
+        if (addresses.size != 1) throw SmsException(SmsException.ERROR_SENDING_MESSAGE)
         for (address in addresses) {
             val threadId = context.getThreadId(address)
             val messageUri = insertSmsMessage(
@@ -116,6 +106,7 @@ class MessagingUtils(val context: Context) {
                     scheduledCallback = scheduledCallback
                 )
             } catch (e: Exception) {
+                runCatching { SmsPartJournal(context).use { it.unknownRow(messageUri) } }
                 updateSmsMessageSendingStatus(messageUri, Sms.Outbox.MESSAGE_TYPE_FAILED)
                 throw e // propagate error to caller
             }

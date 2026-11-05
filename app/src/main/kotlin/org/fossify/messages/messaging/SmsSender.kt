@@ -57,6 +57,8 @@ class SmsSender(val app: Application) {
     ) {
         val smsManager = getSmsManager(subId)
         val messageCount = messages.size
+        val claim = SmsPartJournal(app).use { it.claim(messageUri, messageCount) }
+            ?: throw SmsException(ERROR_SENDING_MESSAGE)
         val deliveryIntents = ArrayList<PendingIntent?>(messageCount)
         val sentIntents = ArrayList<PendingIntent>(messageCount)
 
@@ -84,8 +86,8 @@ class SmsSender(val app: Application) {
                 PendingIntent.getBroadcast(
                     app,
                     partId,
-                    getSendStatusIntent(messageUri, subId).apply { scheduledCallback?.attach(this, i) },
-                    flags
+                    getSendStatusIntent(claim.callbackUri(i), subId).apply { scheduledCallback?.attach(this, i) },
+                    flags or PendingIntent.FLAG_ONE_SHOT
                 )
             )
         }
@@ -107,6 +109,8 @@ class SmsSender(val app: Application) {
                 )
             }
         } catch (e: Exception) {
+            // SmsManager may have accepted an earlier part before a later handoff throws.
+            SmsPartJournal(app).use { it.unknown(SmsPartCallback(claim.rowId, claim.attempt, 0)) }
             throw SmsException(ERROR_SENDING_MESSAGE, e)
         }
     }

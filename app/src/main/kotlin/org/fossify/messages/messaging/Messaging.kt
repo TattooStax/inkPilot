@@ -17,6 +17,16 @@ import org.fossify.messages.models.Attachment
 import org.fossify.messages.transport.messageTransport
 import org.fossify.messages.transport.showSmsTransportFailure
 
+internal const val SMS_GROUP_REFUSAL = "Send one client at a time. Start a separate SMS for each contact."
+
+/** The composer shows this before saving a send claim or touching the radio. */
+internal fun Context.smsRecipientRejection(text: String, addresses: List<String>, hasAttachments: Boolean): String? {
+    val settings = getSendMessageSettings()
+    val channel = outboundChannel(hasAttachments, !hasAttachments && isLongMmsMessage(text, settings),
+        addresses.size, settings.group)
+    return SMS_GROUP_REFUSAL.takeIf { channel == OutboundChannel.SMS && addresses.distinct().size != 1 }
+}
+
 @Deprecated("TODO: Move/rewrite messaging config code into the app.")
 fun Context.getSendMessageSettings(): Settings {
     val settings = Settings()
@@ -58,6 +68,9 @@ fun Context.sendMessageCompat(
         sendGroupAsMms = settings.group
     )
     val result: DispatchOutcome
+    if (channel == OutboundChannel.SMS && addresses.distinct().size != 1) {
+        return DispatchOutcome.Rejected(SMS_GROUP_REFUSAL)
+    }
     if (channel == OutboundChannel.MMS) {
         // Preflight all URIs before the first MMS handoff.
         for (attachment in attachments) {
@@ -85,26 +98,24 @@ fun Context.sendMessageCompat(
         }
         result = DispatchOutcome.Unknown(java.util.UUID.randomUUID().toString())
     } else {
-        val outcome = messageTransport.sendSms(
-            OutboundSms(
-                text = text,
-                addresses = addresses,
-                subscriptionId = settings.subscriptionId,
-                requireDeliveryReport = settings.deliveryReports,
-                messageId = messageId
-            )
-        )
-        result = if (outcome is TransportOutcome.Sent) DispatchOutcome.Accepted()
-            else DispatchOutcome.Unknown(java.util.UUID.randomUUID().toString())
-        if (outcome is TransportOutcome.Failed) {
-            showSmsTransportFailure(outcome)
-        }
+        result = dispatchSms(text, addresses, settings, messageId)
     }
     ensureBackgroundThread {
         val threadId = getThreadId(addresses.toSet())
         shortcutHelper.reportSendMessageUsage(threadId)
     }
     return result
+}
+
+private fun Context.dispatchSms(text: String, addresses: List<String>, settings: Settings,
+    messageId: Long?): DispatchOutcome {
+    val outcome = messageTransport.sendSms(OutboundSms(
+        text = text, addresses = addresses, subscriptionId = settings.subscriptionId,
+        requireDeliveryReport = settings.deliveryReports, messageId = messageId,
+    ))
+    if (outcome is TransportOutcome.Failed) showSmsTransportFailure(outcome)
+    return if (outcome is TransportOutcome.Sent) DispatchOutcome.Accepted()
+        else DispatchOutcome.Unknown(java.util.UUID.randomUUID().toString())
 }
 
 /**

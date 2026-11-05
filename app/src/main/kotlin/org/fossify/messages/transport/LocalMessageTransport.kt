@@ -37,6 +37,10 @@ class LocalMessageTransport(private val context: Context) : MessageTransport {
     // that total mapping is the seam's contract, so the generic catch is intentional.
     @Suppress("TooGenericExceptionCaught")
     override fun sendSms(message: OutboundSms): TransportOutcome {
+        if (message.addresses.toSet().size != 1) {
+            return TransportOutcome.Failed(TransportOutcome.UNKNOWN_ERROR,
+                org.fossify.messages.messaging.SMS_GROUP_REFUSAL)
+        }
         // The direct path is for a phone where this app is NOT the
         // default SMS app. Posture alone does not decide it: an install
         // that already holds the default role and then answers
@@ -81,14 +85,8 @@ class LocalMessageTransport(private val context: Context) : MessageTransport {
      * mirror the default path's, so callers keep their existing
      * failure handling either way.
      *
-     * One known gap, recorded rather than papered over: a
-     * multi-recipient SMS shows in each recipient's own thread, but
-     * not in the combined group conversation — the persisting path
-     * manufactures that combined copy with a provider insert this
-     * posture cannot make, and the only alternative is a second
-     * message store, which this fork does not grow. How the personal
-     * posture should present group sends is an open design question
-     * on the track queue.
+     * Multi-recipient SMS is refused by [sendSms] before this path is reached.
+     * Group MMS remains on its separate channel.
      */
     @Suppress("TooGenericExceptionCaught")
     private fun sendSmsWithoutProviderRow(message: OutboundSms): TransportOutcome {

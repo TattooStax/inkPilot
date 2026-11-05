@@ -3,11 +3,30 @@ package org.fossify.messages.inkpilot.smoke
 import android.net.Uri
 import androidx.test.core.app.ApplicationProvider
 import org.fossify.messages.messaging.*
+import org.fossify.messages.extensions.config
 import org.junit.Assert.*
 import org.junit.Test
 
 /** Synthetic dispatcher only: this suite never reaches a carrier. */
 class InShellComposerTest {
+    @Test fun groupSmsIsVisibleRefusalBeforeSimOrComposerClaim() {
+        androidx.test.core.app.ActivityScenario.launch(org.fossify.messages.inkpilot.ui.StudioHomeActivity::class.java).use { scenario ->
+            scenario.onActivity { activity ->
+                val previous = activity.config.sendGroupMessageMMS
+                val store = ComposerStore(activity)
+                val id = -81027L
+                store.clear(id)
+                try {
+                    activity.config.sendGroupMessageMMS = false
+                    val request = OutgoingMessage(id, "+15550101012|+15550101013", "Group text", emptyList(), 1)
+                    val outcome = org.fossify.messages.inkpilot.ui.prepareInShellComposerSend(
+                        activity, store, request, activeSimIds = { error("SIM lookup must not occur") }).getOrThrow()
+                    assertEquals(DispatchOutcome.Rejected(SMS_GROUP_REFUSAL), outcome)
+                    assertNull(store.load(id))
+                } finally { activity.config.sendGroupMessageMMS = previous; store.clear(id) }
+            }
+        }
+    }
     @Test fun composeKeepsShellAndOriginalTextOnRotation() {
         val context = ApplicationProvider.getApplicationContext<android.content.Context>()
         val route = org.fossify.messages.inkpilot.ui.StudioRoute.Compose(listOf("+15550101012"), "retained text", listOf(Uri.parse("content://synthetic/retained")))

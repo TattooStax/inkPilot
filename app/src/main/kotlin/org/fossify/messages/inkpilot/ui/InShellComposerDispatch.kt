@@ -15,6 +15,7 @@ import org.fossify.messages.messaging.inShellMmsRejection
 import org.fossify.messages.messaging.isMmsReportedFailed
 import org.fossify.messages.messaging.hasCompletedCompose
 import org.fossify.messages.messaging.sendMessageCompat
+import org.fossify.messages.messaging.smsRecipientRejection
 import org.fossify.messages.models.Attachment
 import android.widget.EditText
 import android.widget.TextView
@@ -41,7 +42,9 @@ internal fun prepareInShellComposerSend(
     if (value.body.length > MAX_IN_SHELL_TEXT_CHARS) {
         return Result.success(DispatchOutcome.Rejected("Message exceeds 2,000 characters"))
     }
+    val recipients = value.recipient.split("|").filter(String::isNotBlank)
     val rejection = activity.inShellMmsRejection(value.attachmentUris)
+        ?: activity.smsRecipientRejection(value.body, recipients, value.attachmentUris.isNotEmpty())
     if (rejection != null) return Result.success(DispatchOutcome.Rejected(rejection))
     val active = try { activeSimIds() } catch (_: SecurityException) { null }
         ?: return Result.success(DispatchOutcome.Rejected("Allow SIM access, then choose a SIM"))
