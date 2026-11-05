@@ -34,8 +34,8 @@ jobs:
           packages: platform-tools
           log-accepted-android-sdk-licenses: false
       - uses: gradle/actions/setup-gradle@ed408507eac070d1f99cc633dbcf757c94c7933a # v4
-      - name: Test reusable modules and assemble standalone app
-        run: ./gradlew :agent-core:test :transport:test :local-inference:testDebugUnitTest :app:assembleFossDebug --console=plain --no-daemon --max-workers=2 -Dorg.gradle.jvmargs=-Xmx3g
+      - name: Test modules and app; assemble standalone app
+        run: ./gradlew :agent-core:test :transport:test :local-inference:testDebugUnitTest :app:testFossDebugUnitTest :app:assembleFossDebug --console=plain --no-daemon --max-workers=2 -Dorg.gradle.jvmargs=-Xmx3g
       - name: Check Detekt debt ratchet
         run: |
           rm -f app/build/reports/detekt/detekt.sarif
@@ -65,4 +65,5 @@ jobs:
             agent-core/build/reports/tests/
             transport/build/reports/tests/
             local-inference/build/reports/tests/
+            app/build/reports/tests/
           if-no-files-found: ignore

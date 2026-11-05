@@ -11,7 +11,7 @@
     ".github/dependabot.yml": 48,
     ".github/workflows/file-size-ratchet.yml": 15,
     ".github/workflows/inkpilot-beta-build.yml": 106,
-    ".github/workflows/inkpilot-build.yml": 68,
+    ".github/workflows/inkpilot-build.yml": 69,
     ".github/workflows/inkpilot-device.yml": 186,
     ".github/workflows/release.yml": 94,
     ".gitignore": 24,
