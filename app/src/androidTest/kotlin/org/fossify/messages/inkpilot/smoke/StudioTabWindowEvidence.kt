@@ -16,7 +16,7 @@ internal fun recordStudioTabMarker(context: Context, requested: String, phase: S
     file.writeText(JSONObject().put("requested", safeRequested).put("capture", safePhase).toString())
 }
 
-internal fun recordStudioTabWindow(context: Context, requested: String) {
+internal fun recordStudioTabWindow(context: Context, requested: String, failure: Throwable) {
     val requestedId = when (requested) {
         "SMS" -> "inkpilot_tab_sms"
         "Phone" -> "inkpilot_tab_phone"
@@ -27,14 +27,25 @@ internal fun recordStudioTabWindow(context: Context, requested: String) {
     }
     val file = File(context.filesDir, "device-test-evidence/studio-tab-window.json")
     file.parentFile!!.mkdirs()
+    val stage = when {
+        failure is AssertionError && failure.message == "Timed out waiting for $requested" -> "awaitTimeout"
+        failure is AssertionError && failure.message.isNullOrBlank() && failure.stackTrace.any {
+            it.className == SmokeViews::class.java.name && it.methodName == "clickDescription"
+        } -> "actionRejected"
+        failure is AssertionError -> "otherAssertion"
+        failure is IllegalStateException -> "illegalState"
+        else -> "otherFailure"
+    }
     file.writeText(JSONObject().put("requested", requested.takeIf { requestedId != "unknown" } ?: "unknown")
-        .put("capture", "entered").toString())
+        .put("capture", "entered").put("failureStage", stage).toString())
     val evidence = runCatching { captureStudioTabWindow(context, requested, requestedId) }.getOrElse { error ->
         JSONObject().put("requested", requested.takeIf { requestedId != "unknown" } ?: "unknown")
             .put("capture", "failed")
+            .put("failureStage", stage)
             .put("errorKind", error.javaClass.simpleName.takeIf { it in setOf("SecurityException",
                 "IllegalStateException", "NullPointerException", "RuntimeException") } ?: "other")
     }
+    evidence.put("failureStage", stage)
     file.writeText(evidence.toString(2))
 }
 

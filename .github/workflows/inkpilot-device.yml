@@ -98,7 +98,7 @@ jobs:
           emulator-options: -no-window -no-snapshot -noaudio -no-boot-anim -gpu swiftshader_indirect -camera-back none
           script: |
             bash scripts/inkpilot-shell-baseline.sh
-            scripts/run-inkpilot-test-class.sh emulator-5554 org.fossify.messages.inkpilot.smoke.OneShellAcceptanceTest
+            bash scripts/run-inkpilot-shell-repeat.sh
       - name: Upload redacted baseline verdicts
         if: always()
         uses: actions/upload-artifact@v4

@@ -153,7 +153,7 @@ class OneShellAcceptanceTest {
             action()
             runCatching { recordStudioTabMarker(instrumentation.targetContext, label, "actionReturned") }
         } catch (failure: Throwable) {
-            runCatching { recordStudioTabWindow(instrumentation.targetContext, label) }
+            runCatching { recordStudioTabWindow(instrumentation.targetContext, label, failure) }
             throw failure
         }
     }
