@@ -319,7 +319,9 @@ class StudioHomeActivity : AppCompatActivity() {
     }
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == 7310 && resultCode == RESULT_OK && data != null) {
+        if (requestCode == 7310) {
+            // A picker return must not attach private content while the shell is locked.
+            if (resultCode != RESULT_OK || data == null || appLockManager.isLocked()) return
             val uri = data.data ?: data.clipData?.takeIf { it.itemCount > 0 }?.getItemAt(0)?.uri
             if (uri != null) {
                 try { contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION) }
