@@ -40,9 +40,11 @@ internal class AgentPanel(
             "Only the pinned LiquidAI/LFM3-1.7B-QAD-Q4_0 GGUF with its exact SHA-256 is accepted " +
                 "for local evaluation. Drafting stays off.", MODEL_NOTE_SIZE))
         body.addView(StudioUi.text(activity,
-            "Model qualification is pending. Automatic drafting is off; staff should reply directly in SMS.", MODEL_NOTE_SIZE))
+            "Model qualification is pending. Automatic drafting is off; " +
+                "staff should reply directly in SMS.", MODEL_NOTE_SIZE))
         body.addView(StudioUi.text(activity,
-            "Incoming SMS and staff attention stay available. Check Drafts for replies that need a person.", MODEL_NOTE_SIZE))
+            "Incoming SMS and staff attention stay available. " +
+                "Check Drafts for replies that need a person.", MODEL_NOTE_SIZE))
         val enabled = SwitchCompat(activity).apply {
             id = R.id.inkpilot_agent_enabled
             text = "Draft replies automatically"

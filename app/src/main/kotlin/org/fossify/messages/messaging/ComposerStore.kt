@@ -34,6 +34,7 @@ class ComposerStore(context: Context) {
         when (outcome) {
             is DispatchOutcome.Accepted -> {
                 markComposeCompleted(request.threadId)
+                check(appContext.markSharedComposerImagesForDiscard(request.attachmentUris))
                 // Keep the saved URI until its private copy is removed. A crash must not
                 // erase the only reference before cleanup after an accepted handoff.
                 appContext.discardSharedComposerImages(request.attachmentUris)
@@ -69,8 +70,9 @@ class ComposerStore(context: Context) {
     fun isUnknown(threadId: Long): Boolean = hasCompletedCompose(threadId) ||
         pendingFile(threadId).exists() || prefs.contains("unknown:$threadId") ||
         load(threadId)?.let(::wasSubmitted) == true
-    fun clear(threadId: Long) {
+    fun clear(threadId: Long) = locked {
         val media = load(threadId)?.attachmentUris.orEmpty()
+        check(appContext.markSharedComposerImagesForDiscard(media))
         pendingFile(threadId).delete()
         check(prefs.edit().remove(threadId.toString()).remove("unknown:$threadId")
             .remove("mms-failed:$threadId").remove("mms-confirmed:$threadId").commit())
