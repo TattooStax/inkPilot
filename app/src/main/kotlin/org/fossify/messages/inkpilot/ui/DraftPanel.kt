@@ -60,7 +60,7 @@ internal class DraftPanel(
 
     private fun attentionText(task: StudioStaffAttention) = when (task.reason) {
         "UNSAFE_CONTENT" -> "Local draft blocked an unverified booking claim. Staff should reply directly."
-        "OTHER_THREAD_RECEIVED" -> "Another client conversation became active. Review this thread."
+        "OTHER_THREAD_RECEIVED" -> "Another conversation for this client became active. Review this thread."
         "IDENTITY_REASSIGNED" -> "This number changed clients. Verify this conversation before replying."
         "Model or source read failed" -> "Local draft failed. Staff should reply directly and check model setup."
         else -> "No safe local draft was saved. Staff should reply directly."
