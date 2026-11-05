@@ -1,48 +1,10 @@
-fastlane documentation
-----
+# inkPilot Fastlane
 
-# Installation
+The only lane is `android verify`. It checks source package, privacy copy and
+release metadata. It does not build, sign, upload or publish an app.
 
-Make sure you have the latest version of the Xcode command line tools installed:
-
-```sh
-xcode-select --install
-```
-
-For _fastlane_ installation instructions, see [Installing _fastlane_](https://docs.fastlane.tools/#installing-fastlane)
-
-# Available Actions
-
-## Android
-
-### android test
-
-```sh
-[bundle exec] fastlane android test
-```
-
-Run unit & instrumentation tests
-
-### android deploy
-
-```sh
-[bundle exec] fastlane android deploy
-```
-
-Build & deploy AAB to Google Play (includes metadata)
-
-### android metadata
-
-```sh
-[bundle exec] fastlane android metadata
-```
-
-Push Play Store metadata
-
-----
-
-This README.md is auto-generated and will be re-generated every time [_fastlane_](https://fastlane.tools) is run.
-
-More information about _fastlane_ can be found on [fastlane.tools](https://fastlane.tools).
-
-The documentation of _fastlane_ can be found on [docs.fastlane.tools](https://docs.fastlane.tools).
+The manual internal beta workflow downloads the exact debug-signed APK from a
+successful manual inkPilot build run. It checks that APK against the physical
+evidence and independently builds an unsigned, minified source-quality APK.
+The latter is never used as physical candidate evidence. There is no store
+deployment lane or public release qualification. See `docs/RELEASE-PRIVACY.md`.

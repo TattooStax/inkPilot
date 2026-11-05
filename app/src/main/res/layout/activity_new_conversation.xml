@@ -41,6 +41,7 @@
 
         <ImageView
             android:id="@+id/new_conversation_confirm"
+            android:contentDescription="@string/inkpilot_confirm_recipients"
             android:layout_width="@dimen/normal_icon_size"
             android:layout_height="@dimen/normal_icon_size"
             android:layout_alignTop="@+id/new_conversation_address"
@@ -53,6 +54,7 @@
 
         <ImageView
             android:id="@+id/add_contact_divider"
+            android:importantForAccessibility="no"
             android:layout_width="match_parent"
             android:layout_height="@dimen/divider_height"
             android:layout_below="@+id/new_conversation_address"

@@ -1,0 +1,8 @@
+{
+  "id": 123,
+  "conclusion": "success",
+  "event": "workflow_dispatch",
+  "head_sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "path": ".github/workflows/inkpilot-build.yml",
+  "head_repository": {"full_name": "TattooStax/inkPilot"}
+}

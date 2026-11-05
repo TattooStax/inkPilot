@@ -28,5 +28,7 @@ scripts/run-inkpilot-test-class.sh "$serial" org.fossify.messages.inkpilot.smoke
 scripts/run-inkpilot-test-class.sh "$serial" org.fossify.messages.inkpilot.runtime.CarrierIngressTest
 scripts/run-inkpilot-test-class.sh "$serial" org.fossify.messages.inkpilot.studio.StudioAvailabilityTest
 scripts/run-inkpilot-test-class.sh "$serial" org.fossify.messages.inkpilot.studio.StudioCalendarUiTest
+scripts/run-inkpilot-test-class.sh "$serial" org.fossify.messages.inkpilot.data.StudioProposalTest
 scripts/run-inkpilot-test-class.sh "$serial" org.fossify.messages.inkpilot.smoke.ModelQualificationTest
+scripts/run-inkpilot-test-class.sh "$serial" org.fossify.messages.inkpilot.smoke.OneShellAcceptanceTest
 scripts/run-inkpilot-test-class.sh "$serial" org.fossify.messages.transport.BridgeHistoryTest

@@ -115,6 +115,7 @@ class StudioHomeActivity : AppCompatActivity() {
         val auxiliary = AuxiliaryPanel(this, work, ::openRoute, ::refreshPanels)
         val view = panels.view(route) { when (route) {
             StudioRoute.Auxiliary("drafts") -> DraftPanel(this, repository, work, ::refreshPanels, ::openRoute).view()
+            StudioRoute.Auxiliary("proposals") -> ProposalPanel(this, repository, work, ::refreshPanels).view()
             is StudioRoute.Thread -> messages.thread(route.threadId)
             is StudioRoute.Compose -> StudioUi.scroll(this, ThreadComposer(this, work, ::pickAttachment, ::refreshPanels, ::openRoute).view(route.composerId, route))
             is StudioRoute.Draft -> inlineDraft(route.draftId)

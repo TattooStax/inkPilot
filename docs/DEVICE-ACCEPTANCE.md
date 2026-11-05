@@ -65,7 +65,28 @@ report generated for the exact model hash.
 
 ## Physical phone checklist
 
-Use the intended studio phone and a separate receiving phone:
+Use the intended studio phone and a separate receiving phone. For internal
+beta, download the `inkPilot-foss-debug` artifact from a successful manual
+`inkPilot build` workflow run and install **those exact APK bytes**. Record its
+run ID, source SHA, APK SHA-256 and signing certificate in
+`RELEASE-EVIDENCE.json`, then retain redacted gate-specific proof tied to that
+hash. The independently built unsigned minified release APK is a code-quality
+check and cannot stand in for the installed candidate.
+
+**Before any install or role change, compare signing certificates read-only.**
+Run `adb shell pm path app.inkpilot.android.debug` on the connected phone. If
+that package is installed, use `adb pull` to copy its `base.apk` into a private
+local test directory; `apksigner verify --print-certs` on that copy and on the
+downloaded candidate must show the same signer certificate SHA-256 digest. If the
+installed APK cannot be read and compared, stop before installation.
+Also check whether `app.inkpilot.android` is installed and holds the SMS/Phone
+roles; the debug package is a separate app and cannot inherit its private data
+or roles. Do not install or change a role if the current signer differs, if
+important records lack a proven backup/restore, or if role rollback has not
+been rehearsed. Never uninstall or clear the existing app to force an upgrade.
+A stable internal signing key is needed for repeatable in-place beta upgrades;
+otherwise qualify migration and rollback on a disposable device first. Record
+the read-only comparison and the decision in redacted physical proof.
 
 - Install the APK, choose inkPilot as default SMS, grant permissions,
   import the tested model, add current guidance, and enable drafting.
@@ -91,7 +112,8 @@ Use the intended studio phone and a separate receiving phone:
 
 ## Current scope limits
 
-Phone opens Android's human dialer; AI cellular audio is not implemented.
+Phone provides staff-initiated manual dialing with Android role and permission
+gates; AI cellular audio is not implemented. Real-call acceptance remains pending.
 The calendar is local and does not know Square/Google bookings unless
 staff enter them. No automatic booking or price promise is authorized by
 a generated reply. Memory is staff-edited, not silently learned.
@@ -102,11 +124,12 @@ app disables Android cloud backup; a supported export/restore workflow
 is still needed before treating this phone as the sole business archive.
 OpenFang integration remains an optional future adapter.
 
-The inherited conversation and settings UI currently replace the inkPilot
-five-tab canvas. This is a text-first beta blocker, not deferred cleanup.
-For every inbox tap, new message, notification, shortcut, supported share or
-deep link, draft review, forwarding, contact detail and settings route,
-verify the five tabs remain visible and Back returns to the correct canvas.
+The app has an in-shell thread and composer, but every ingress still needs
+a five-tab device check. For each inbox tap, new message, notification,
+shortcut, supported share or deep link, draft review, forwarding, contact
+detail and settings route, verify the five tabs remain visible and Back
+returns to the correct canvas. Any remaining inherited activity that
+replaces the shell blocks release.
 Open a thread, receive a message while composing, attach an MMS image,
 rotate/restart and reject a send; the recipient and unsent text/media must
 survive. Staff review must appear inside the relevant customer thread.

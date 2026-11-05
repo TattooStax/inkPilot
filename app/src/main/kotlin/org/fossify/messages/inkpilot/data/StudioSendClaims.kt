@@ -14,6 +14,9 @@ internal fun SQLiteDatabase.claimStudioDraft(
             if (source.staffPaused || source.revision != it.getLong(2) || source.threadId != it.getString(4) ||
                 source.contactId != it.getString(5) || source.recipient != it.getString(6)
             ) return@transaction null
+            if (rawQuery("""SELECT 1 FROM send_claims s JOIN held_drafts d ON d.draft_id=s.draft_id
+                WHERE d.event_id=? LIMIT 1""", arrayOf(it.getString(0))).use { claim -> claim.moveToFirst() })
+                return@transaction null
         }
         insertOrThrow("send_claims", null, ContentValues().apply {
             put("draft_id", draftId); put("body", editedBody); put("subscription_id", subscriptionId)

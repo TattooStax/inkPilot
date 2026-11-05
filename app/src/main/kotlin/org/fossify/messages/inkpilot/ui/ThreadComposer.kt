@@ -24,13 +24,26 @@ internal class ThreadComposer(private val activity: AppCompatActivity, private v
         val saved = store.getOrCreate(OutgoingMessage(threadId, initial?.recipients?.joinToString("|").orEmpty(),
             initial?.body.orEmpty(), initial?.mediaUris.orEmpty(), -1))
         val root = StudioUi.column(activity, 8)
-        val recipient = EditText(activity).apply { hint = "Recipients separated by |"; setText(saved.recipient) }
-        val text = EditText(activity).apply { hint = "Message"; minLines = 2; maxLines = 5; setText(saved.body) }
+        val recipient = EditText(activity).apply {
+            id = android.view.View.generateViewId()
+            hint = "Recipients separated by |"
+            setText(saved.recipient)
+        }
+        val text = EditText(activity).apply {
+            id = android.view.View.generateViewId()
+            hint = "Message"
+            minLines = 2
+            maxLines = 5
+            setText(saved.body)
+        }
         var uris = saved.attachmentUris
         var sim = saved.subscriptionId
         fun request() = OutgoingMessage(threadId, recipient.text.toString(), text.text.toString(), uris, sim, saved.attemptId)
         fun persist() { if (!store.save(request())) StudioUi.error(activity, "Unable to save composer") }
-        root.addView(recipient); root.addView(text)
+        root.addView(StudioUi.text(activity, "Recipients", 14f).apply { labelFor = recipient.id })
+        root.addView(recipient)
+        root.addView(StudioUi.text(activity, "Message", 14f).apply { labelFor = text.id })
+        root.addView(text)
         if (threadId > 0 && saved.recipient.isBlank()) work.load({ activity.getThreadParticipants(threadId, null).getAddresses().filter { it.isNotBlank() }.joinToString("|") }) {
             if (recipient.text.isBlank()) { recipient.setText(it); persist() }
         }

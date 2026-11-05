@@ -25,6 +25,7 @@
 
         <ImageView
             android:id="@+id/scheduled_message_icon"
+            android:importantForAccessibility="no"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignTop="@+id/scheduled_message_button"
@@ -119,6 +120,7 @@
 
     <ImageView
         android:id="@+id/thread_select_sim_icon"
+        android:contentDescription="@string/inkpilot_choose_sim"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:alpha="0.9"
@@ -136,6 +138,7 @@
 
     <TextView
         android:id="@+id/thread_select_sim_number"
+        android:importantForAccessibility="no"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:gravity="center"
@@ -173,7 +176,7 @@
         android:alpha="0.4"
         android:background="?selectableItemBackgroundBorderless"
         android:clickable="false"
-        android:contentDescription="@string/ok"
+        android:contentDescription="@string/send_now"
         android:drawableTop="@drawable/ic_send_vector"
         android:paddingVertical="@dimen/small_margin"
         android:text="@string/sms"

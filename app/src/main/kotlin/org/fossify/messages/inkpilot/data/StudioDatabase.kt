@@ -7,7 +7,7 @@ import android.database.sqlite.SQLiteOpenHelper
 import org.fossify.messages.inkpilot.studio.StudioFeatureSchema
 
 /** Business records are never placed in the inherited, destructively rebuildable SMS cache. */
-internal class StudioDatabase(context: Context, name: String) : SQLiteOpenHelper(context, name, null, 5) {
+internal class StudioDatabase(context: Context, name: String) : SQLiteOpenHelper(context, name, null, 6) {
     init {
         setWriteAheadLoggingEnabled(true)
     }
@@ -101,14 +101,16 @@ internal class StudioDatabase(context: Context, name: String) : SQLiteOpenHelper
         StudioIdentitySchema.create(db)
         org.fossify.messages.inkpilot.studio.StudioImageLinkSchema.create(db)
         org.fossify.messages.inkpilot.studio.StudioCalendarSchema.create(db)
+        StudioProposalSchema.create(db)
     }
 
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
-        if (oldVersion !in 1..4 || newVersion != 5) throw SQLiteException("No studio migration from $oldVersion to $newVersion")
+        if (oldVersion !in 1..5 || newVersion != 6) throw SQLiteException("No studio migration from $oldVersion to $newVersion")
         if (oldVersion == 1) StudioRevisionSchema.upgrade(db)
         if (oldVersion <= 2) StudioIdentitySchema.create(db)
         if (oldVersion <= 3) org.fossify.messages.inkpilot.studio.StudioImageLinkSchema.create(db)
-        org.fossify.messages.inkpilot.studio.StudioCalendarSchema.upgrade(db)
+        if (oldVersion <= 4) org.fossify.messages.inkpilot.studio.StudioCalendarSchema.upgrade(db)
+        StudioProposalSchema.create(db)
     }
 
     companion object { private val openLock = Any() }

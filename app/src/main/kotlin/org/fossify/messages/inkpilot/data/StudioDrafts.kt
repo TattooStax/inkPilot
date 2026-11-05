@@ -32,6 +32,8 @@ internal fun SQLiteDatabase.holdStudioDraft(write: HeldDraftWrite): DraftStoreRe
             } else DraftStoreResult.SourceChanged
         }
         if (rawQuery("SELECT 1 FROM send_claims s JOIN held_drafts d ON d.draft_id = s.draft_id WHERE d.event_id = ?", arrayOf(write.key.eventId)).use { it.moveToFirst() }) return@transaction DraftStoreResult.SourceChanged
+        if (rawQuery("SELECT 1 FROM held_drafts WHERE event_id=? AND kind='PROPOSAL_REPLY' AND state='HELD'",
+                arrayOf(write.key.eventId)).use { it.moveToFirst() }) return@transaction DraftStoreResult.SourceChanged
         val historyNeedsAuthorization = rawQuery(
             "SELECT 1 FROM held_drafts WHERE event_id = ? AND kind = ? AND NOT EXISTS (SELECT 1 FROM draft_regenerations WHERE event_id = ? AND source_revision = ?)",
             arrayOf(write.key.eventId, write.key.kind.name, write.key.eventId, write.expectedRevision.toString()),

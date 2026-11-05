@@ -38,6 +38,11 @@ internal class AndroidDialActions(
             .onFailure { report("No phone dialer is available.") }
     }
     override fun place(number: String) {
+        if (!held()) { unavailable(); return }
+        if (activity.checkSelfPermission(Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED) {
+            requestPermission()
+            return
+        }
         // Includes emergencies: Telecom must route to the preloaded system dialer.
         runCatching { activity.getSystemService(TelecomManager::class.java).placeCall(Uri.fromParts("tel", number, null), Bundle()) }
             .onFailure { StudioUi.error(activity, "Call could not start. Check SIM and Phone permissions.") }

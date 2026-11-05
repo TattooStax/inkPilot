@@ -1,12 +1,6 @@
 default_platform(:android)
 
 platform :android do
-  desc 'Run unit & instrumentation tests'
-  lane(:test) { test_android }
-
-  desc 'Build & deploy AAB to Google Play (includes metadata)'
-  lane(:deploy) { deploy_android }
-
-  desc 'Push Play Store metadata'
-  lane(:metadata) { metadata_android }
+  desc 'Check inkPilot release source; distribution is gated by release evidence'
+  lane(:verify) { sh('python3', File.expand_path('../scripts/verify_inkpilot_release.py', __dir__), '--source') }
 end

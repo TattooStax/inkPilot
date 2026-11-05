@@ -67,7 +67,6 @@
     <string name="group_message_mms">समूह संदेशों को MMS के रूप में भेजें</string>
     <string name="send_long_message_mms">ग्रुप वर्चस्व को MMS के रूप में शेयर में रखा गया</string>
     <string name="import_sms">SMS आयात करें</string>
-    <string name="faq_1_text">अफसोस की बात है कि MMS अनुलग्नक भेजने के लिए इसकी आवश्यकता है। MMS नहीं भेज पाना अन्य ऐप्स की तुलना में वास्तव में एक बड़ा नुकसान होगा, इसलिए हमने इस रास्ते पर जाने का फैसला किया। हालाँकि, जैसा कि आमतौर पर होता है, इसमें कोई विज्ञापन, ट्रैकिंग या विश्लेषण नहीं होता है, इंटरनेट का उपयोग केवल MMS भेजने के लिए किया जाता है।</string>
     <string name="me">मैं</string>
     <string name="sender_only">केवल प्रेषक</string>
     <string name="unable_to_save_message">संदेश को टेलीफ़ोनी डेटाबेस में सहेजने में असमर्थ</string>

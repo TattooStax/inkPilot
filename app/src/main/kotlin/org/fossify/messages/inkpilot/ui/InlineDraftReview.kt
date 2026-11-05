@@ -13,7 +13,14 @@ internal class InlineDraftReview(private val activity: AppCompatActivity, privat
         root.addView(StudioUi.text(activity, "Held assistant reply · ${draft.recipient}", 16f, true))
         root.addView(StudioUi.text(activity, "Client: ${draft.inboundText}", 14f))
         val prefs = activity.getSharedPreferences("held_staff_edits", 0)
-        val editor = EditText(activity).apply { setText(prefs.getString(draft.draftId, draft.body)); minLines = 2; maxLines = 5 }
+        val editor = EditText(activity).apply {
+            id = android.view.View.generateViewId()
+            hint = "Edit held reply"
+            setText(prefs.getString(draft.draftId, draft.body))
+            minLines = 2
+            maxLines = 5
+        }
+        root.addView(StudioUi.text(activity, "Reply to review", 14f).apply { labelFor = editor.id })
         root.addView(editor)
         editor.addTextChangedListener(object : android.text.TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) = Unit

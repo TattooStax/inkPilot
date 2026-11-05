@@ -10,6 +10,7 @@ import inkpilot.agent.DraftStoreResult
 import inkpilot.agent.HeldDraftReceipt
 import inkpilot.agent.HeldDraftStore
 import inkpilot.agent.HeldDraftWrite
+import inkpilot.agent.ScopedProposalRequest
 import java.io.Closeable
 
 /** Synchronous database operations; callers must use a background thread. */
@@ -93,6 +94,15 @@ class StudioRepository(context: Context, databaseName: String = DATABASE_NAME) :
     }.orEmpty()
 
     fun setPaused(contactId: String, paused: Boolean) = db.setStudioPaused(contactId, paused)
+
+    fun proposals(limit: Int = 100): List<StudioProposal> = StudioProposalStore(this).list(limit)
+
+    fun proposeAction(scope: DraftRequest, request: ScopedProposalRequest): ProposalActionResult =
+        StudioProposalStore(this).propose(scope, request)
+
+    fun confirmProposal(id: String, staffId: Long): ProposalActionResult = StudioProposalStore(this).confirm(id, staffId)
+
+    fun dismissProposal(id: String): ProposalActionResult = StudioProposalStore(this).dismiss(id)
 
     fun heldDrafts(): List<ReviewDraft> = db.reviewStudioDrafts()
 

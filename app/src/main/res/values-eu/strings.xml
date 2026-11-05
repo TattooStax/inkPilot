@@ -111,7 +111,6 @@
     <string name="attachment_sized_exceeds_max_limit">Eranskinaren tamainak MMSren gehienekoa gainditzen du</string>
     <string name="couldnt_download_mms">Ezin dira MMSak deskargatu</string>
     <string name="faq_1_title">Zergatik eskatzen du aplikazioak Interneterako sarbidea?</string>
-    <string name="faq_1_text">Zoritxarrez MMS eranskinak bidaltzeko beharrezkoa da. MMS-ak ezin bidalitzea oso desabantaila handia izango litzateke beste aplikazioekin alderatuta, beraz, bide horretatik joatea erabaki genuen. Hala ere, beti bezala, ez dago inolako iragarkirik, jarraipenik edo analisirik, Internet MMS bidaltzeko soilik erabiltzen da.</string>
     <string name="faq_2_title">Beste muturrak ez du nire MMSrik jasotzen, zerbait egin dezaket?</string>
     <string name="faq_2_text">MMSen tamaina operadorek mugatzen dute, aplikazioaren ezarpenetan muga txikiagoa ezartzen saia zaitezke.</string>
     <string name="faq_3_title">Aplikazioak programatutako mezuak onartzen ditu?</string>

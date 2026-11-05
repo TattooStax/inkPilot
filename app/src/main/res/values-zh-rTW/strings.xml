@@ -103,7 +103,6 @@
     <string name="attachment_sized_exceeds_max_limit">附件大小超過最大 MMS 限制</string>
     <string name="couldnt_download_mms">無法下載 MMS</string>
     <string name="faq_1_title">為什麼這個程式需要存取網路？</string>
-    <string name="faq_1_text">傳送 MMS 附件需要這個功能。相較於其他應用程式，不能傳送 MMS 將是一大劣勢，所以我們才會選擇這樣做。不過我們依然不會有任何形式的廣告、追蹤或分析，網路連線僅用於傳送 MMS 。</string>
     <string name="faq_2_title">對方沒有收到我的 MMS，我能做些什麼嗎？</string>
     <string name="faq_2_text">MMS 的大小受到電信業者的限制，您可以嘗試在應用程式設定中設定較小的限制。</string>
     <string name="faq_3_title">應用程式是否支援排程訊息？</string>

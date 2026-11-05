@@ -32,7 +32,7 @@ class StudioRevisionMigrationTest {
                 assertEquals(1, db.version)
             }
             StudioRepository(context, name).use { repository ->
-                assertEquals(5, repository.database.version)
+                assertEquals(6, repository.database.version)
                 assertEquals("Original guide", repository.soul())
                 assertEquals("Edited approved text", repository.getSendClaim("claimed")?.body)
                 assertEquals(SendStatus.UNKNOWN, repository.getSendClaim("claimed")?.status)

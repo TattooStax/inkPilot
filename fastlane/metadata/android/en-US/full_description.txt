@@ -1,32 +1,7 @@
-Fossify Messenger is your trusted messaging companion, designed to enhance your messaging experience in various ways.
+inkPilot combines SMS, MMS, contacts, a studio reference gallery, and a local calendar in one Android app for tattoo studios.
 
-📱 STAY CONNECTED WITH EASE:
-With Fossify Messenger, you can effortlessly send SMS and MMS messages to stay connected with your loved ones. Enjoy SMS/MMS based group messaging and express yourself with photos, emojis, and quick greetings.
+Compatible LFM3 weights are imported by staff. Reply suggestions are generated on the device and held for staff to review, edit, or reject. The model cannot choose a recipient or send a message. Staff explicitly choose a SIM and approve each agent reply. Some model suggestions may be wrong; check every detail before sending or booking.
 
-🚫 BLOCK UNWANTED MESSAGES:
-Take control of your messaging experience with a robust blocking feature, easily preventing unwanted messages, even from unknown contacts. You can also export and import blocked numbers for hassle-free backup. Additionally, customize your experience by preventing messages with specific words or phrases from reaching your inbox.
+SMS and MMS use the phone's carrier. MMS requires mobile data. An optional companion bridge can use a network connection when staff enable it; the standalone local assistant does not require that bridge. The manual Phone screen handles user-controlled calls. AI answering of cellular calls is not supported.
 
-🔒 EFFORTLESS SMS BACKUP:
-Say goodbye to worries about losing important messages. Fossify Messenger offers convenient SMS backup functionality by allowing you to export and import your messages. This feature ensures that you can easily switch devices without losing your valuable conversations.
-
-🚀 LIGHTNING-FAST AND LIGHTWEIGHT:
-Despite its powerful features, Fossify Messenger boasts a remarkably small app size, making it quick and easy to download and install. Experience speed and efficiency while enjoying the peace of mind that comes with SMS backup.
-
-🔐 ENHANCED PRIVACY:
-Customize what appears on your lock screen for added privacy. Choose to display only the sender, message content, or nothing at all. Your messages are in your control.
-
-🔍 EFFICIENT MESSAGE SEARCH:
-Say goodbye to endless scrolling through conversations. Fossify Messenger simplifies message retrieval with a quick and efficient search feature. Find what you need, when you need it.
-
-🌈 MODERN DESIGN & USER-FRIENDLY INTERFACE:
-Enjoy a clean, modern design with a user-friendly interface. The app features a material design and a dark theme option, providing a visually appealing and comfortable user experience.
-
-🌐 OPEN-SOURCE TRANSPARENCY:
-Your privacy is a top priority. Fossify Messenger operates without requiring an internet connection, guaranteeing message security and stability. Our app is completely free of ads and does not request unnecessary permissions. Moreover, it is fully open-source, providing you with peace of mind, as you have access to the source code for security and privacy audits.
-
-Make the switch to Fossify Messenger and experience messaging the way it should be – private, efficient, and user-friendly. Download now and join our community committed to safeguarding your messaging experience.
-
-Explore more Fossify apps: https://www.fossify.org
-Open-Source Code: https://www.github.com/FossifyOrg
-Join the community on Reddit: https://www.reddit.com/r/Fossify
-Connect on Telegram: https://t.me/Fossify
+Studio records remain on the device. A complete studio backup and restore flow is still being qualified; keep a separate business archive before relying on this app. The app is open source at https://github.com/TattooStax/inkPilot.

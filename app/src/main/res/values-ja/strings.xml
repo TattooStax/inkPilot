@@ -76,7 +76,6 @@
     <string name="invalid_short_code">このようなショートコードには返信できません</string>
     <string name="invalid_short_code_desc">「503501」のような数字のみのショートコードには返信できますが、「AB-CD0」のようなアルファベットと数字を含んだショートコードには返信できません。</string>
     <string name="faq_1_title">なぜアプリの使用にインターネットへのアクセスが必要なのですか？</string>
-    <string name="faq_1_text">SSMの添付ファイルを送信するために必要となります。ほかのアプリでは使用できるMMSを使用できないことは非常な不利となるため、そのようになっています。ただし他の場合と同様、広告・追跡・分析は一切行わず、インターネットはMMSのみに使用されます。</string>
     <string name="faq_2_title">メッセージ相手が MMS を受信できません。どうすればいいですか？</string>
     <string name="faq_2_text">MMSのサイズは通信キャリアによって制限されています。アプリの設定で制限を小さくしてみてください。</string>
     <string name="faq_3_title">アプリは予約メッセージをサポートしていますか？</string>

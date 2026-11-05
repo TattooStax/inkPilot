@@ -113,7 +113,6 @@
     <string name="attachment_sized_exceeds_max_limit">Rozmiar załącznika przekracza maksymalny limit MMS-ów</string>
     <string name="couldnt_download_mms">Nie udało się pobrać MMS-a</string>
     <string name="faq_1_title">Dlaczego aplikacja wymaga dostępu do Internetu\?</string>
-    <string name="faq_1_text">Niestety jest to konieczne do wysyłania załączników MMS. Brak możliwości wysyłania MMS-ów byłby naprawdę ogromną wadą w porównaniu z innymi aplikacjami, więc zdecydowaliśmy się pójść tą drogą. Jednak, jak zwykle, nie ma żadnych reklam, śledzenia ani analityki, a Internet służy tylko do wysyłania MMS-ów.</string>
     <string name="faq_2_title">Druga osoba nie otrzymuje moich MMS-ów. Czy mogę coś z tym zrobić\?</string>
     <string name="faq_2_text">Rozmiar MMS-ów jest ograniczany przez operatorów. Możesz spróbować ustawić mniejszy limit w ustawieniach aplikacji.</string>
     <string name="faq_3_title">Czy aplikacja obsługuje planowanie wiadomości?</string>

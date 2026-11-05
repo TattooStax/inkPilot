@@ -88,7 +88,7 @@ class StudioImageLinksTest {
             db.version = 3
         }
         repository = StudioRepository(context, name)
-        assertEquals(5, repository.database.version)
+        assertEquals(6, repository.database.version)
         assertEquals("synthetic-contact", repository.contact("synthetic-contact")?.id)
         val album = StudioAlbumStore(repository).albums().first().id
         assertEquals(35L, StudioAlbumStore(repository).images(album).single().id)
