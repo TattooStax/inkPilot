@@ -21,11 +21,6 @@ public final class CrossPackageShareProvider extends ContentProvider {
     @Override public Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs,
                                   String sortOrder) { return null; }
     @Override public Uri insert(Uri uri, ContentValues values) { return null; }
-    @Override public int delete(Uri uri, String selection, String[] selectionArgs) {
-        File source = new File(getContext().getCacheDir(), "task11-share.png");
-        if (!source.exists()) return 0;
-        if (!source.delete()) throw new IllegalStateException("Test source cleanup failed");
-        return 1;
-    }
+    @Override public int delete(Uri uri, String selection, String[] selectionArgs) { return 0; }
     @Override public int update(Uri uri, ContentValues values, String selection, String[] selectionArgs) { return 0; }
 }
