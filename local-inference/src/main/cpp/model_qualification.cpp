@@ -1,4 +1,5 @@
 #include "inference_engine.h"
+#include "qualification_error_category.h"
 #include <nlohmann/json.hpp>
 #include <chrono>
 #include <iostream>
@@ -31,9 +32,15 @@ int main(int argc, char ** argv) {
                 const auto reply = inkpilot::generate(argv[1], instructions, user.dump(), limits, [] { return false; });
                 result["status"] = "OK";
                 result["reply"] = reply;
-            } catch (const std::exception &) {
+                result["error_category"] = "NONE";
+            } catch (const std::exception & failure) {
                 result["status"] = "ERROR";
                 result["reply"] = "";
+                result["error_category"] = inkpilot::qualification_error_category(failure);
+            } catch (...) {
+                result["status"] = "ERROR";
+                result["reply"] = "";
+                result["error_category"] = "OTHER";
             }
             result["elapsed_ms"] = std::chrono::duration_cast<std::chrono::milliseconds>(
                 std::chrono::steady_clock::now() - started).count();

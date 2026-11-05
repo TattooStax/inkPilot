@@ -90,6 +90,17 @@ class ExactSelectorBenchmarkTest(unittest.TestCase):
         case = cases()[0]
         report = score([case], [native(case, "", "ERROR")], QAD, base)
         self.assertEqual(1, report["generationErrors"])
+        self.assertEqual({"LEGACY_UNCLASSIFIED": 1}, report["nativeErrorCategories"])
+        typed = dict(native(case, "", "ERROR"), error_category="OUTPUT_TOKEN_BUDGET")
+        report = score([case], [typed], QAD, base)
+        self.assertEqual({"OUTPUT_TOKEN_BUDGET": 1}, report["nativeErrorCategories"])
+        self.assertEqual("OUTPUT_TOKEN_BUDGET", report["cases"][0]["nativeErrorCategory"])
+        for bad in (dict(typed, error_category="customer text"),
+                    dict(typed, error_category={"untrusted": "text"}),
+                    dict(typed, reply="unexpected raw model prose"),
+                    dict(native(case, "REVIEW"), error_category="DEADLINE")):
+            with self.assertRaises(ValueError):
+                score([case], [bad], QAD, base)
         for observed in ([native(case, "EN:SIZE"), native(case, "EN:SIZE")],
                          [dict(native(case, "EN:SIZE"), id="wrong")]):
             with self.assertRaises(ValueError):

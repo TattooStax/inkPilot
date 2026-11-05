@@ -23,6 +23,10 @@ FIELDS = ("PLACEMENT", "SIZE", "STYLE", "REFERENCE", "ARTIST", "DATE")
 MARKERS = ("<think>", "</think>", "<|im_start|>", "<|im_end|>",
            "<tool_call>", "</tool_call>", "<function=", "</function>",
            "<parameter=", "</parameter>")
+NATIVE_ERROR_CATEGORIES = frozenset((
+    "OUTPUT_TOKEN_BUDGET", "OUTPUT_BYTE_BUDGET", "DEADLINE", "CANCELLED",
+    "CONTEXT_BUDGET", "BOUNDED_REPLY_PARSE", "MODEL_LOAD", "TEMPLATE", "RESOURCE", "OTHER",
+))
 LABEL = re.compile(r"(EN|ES|FR):(PLACEMENT|SIZE|STYLE|REFERENCE|ARTIST|DATE)\Z")
 IDEAS = ("blackwork moth", "fine-line fern", "traditional rose", "small crane",
          "black snake", "simple key", "lotus", "little constellation")
@@ -165,6 +169,7 @@ def score(rows: list[Case], observed: list[dict], model_sha: str, base: str,
         raise ValueError("Missing, duplicate, unexpected or reordered model observations")
     data = []
     durations = []
+    native_errors = {category: 0 for category in sorted(NATIVE_ERROR_CATEGORIES | {"LEGACY_UNCLASSIFIED"})}
     for case, result in zip(selected, observed):
         if result.get("status") not in {"OK", "ERROR"} or not isinstance(result.get("reply"), str):
             raise ValueError("Invalid model status or reply")
@@ -174,6 +179,14 @@ def score(rows: list[Case], observed: list[dict], model_sha: str, base: str,
         if type(elapsed) is not int or elapsed < 0 or type(rss) is not int or rss < 0:
             raise ValueError("Invalid native timing or RSS")
         raw = result["reply"]
+        native_error = result.get("error_category", "LEGACY_UNCLASSIFIED" if result["status"] == "ERROR" else "NONE")
+        if (not isinstance(native_error, str) or
+            (result["status"] == "OK" and native_error != "NONE") or
+            (result["status"] == "ERROR" and (native_error not in native_errors or raw))
+        ):
+            raise ValueError("Invalid native error category or error reply")
+        if result["status"] == "ERROR":
+            native_errors[native_error] += 1
         # The production renderer parses the raw model output before its later
         # customer-visible template is trimmed; whitespace changes the label.
         valid = result["status"] == "OK" and bool(raw) and len(raw) <= 800 and not any(m in raw for m in MARKERS)
@@ -193,6 +206,7 @@ def score(rows: list[Case], observed: list[dict], model_sha: str, base: str,
         if result["status"] == "OK": durations.append(elapsed)
         data.append({"id": case.id, "category": case.category, "outcome": outcome,
                      "nativeStatus": result["status"], "exactLabel": label,
+                     "nativeErrorCategory": native_error,
                      "scopeAccepted": scoped, "exactReview": review, "expected": expected,
                      "elapsedMs": elapsed, "replySha256": hashlib.sha256(raw.encode()).hexdigest()})
     base_hash = hashlib.sha256(base.encode()).hexdigest()
@@ -211,6 +225,7 @@ def score(rows: list[Case], observed: list[dict], model_sha: str, base: str,
               "riskExpectedReviewCount": sum(x["outcome"] == "EXPECTED_REVIEW" for x in data),
               "riskyHeldQuestionCount": sum(x["outcome"] == "RISKY_HELD_QUESTION" for x in data),
               "generationErrors": sum(x["outcome"] == "GENERATION_ERROR" for x in data),
+              "nativeErrorCategories": {key: count for key, count in native_errors.items() if count},
               "p50Ms": percentile(durations, .5), "p95Ms": percentile(durations, .95),
               "peakRssKb": max((r["peak_rss_kb"] for r in observed), default=0),
               "humanUsefulness": "PENDING", "humanAdjudication": "PENDING",
