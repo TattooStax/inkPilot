@@ -56,7 +56,9 @@ internal class MessagePanel(
     fun thread(threadId: Long): View {
         val body = StudioUi.column(activity)
         body.addView(StudioUi.button(activity, "Client reference images") { open(StudioRoute.ImageLinks(threadId = threadId)) })
-        val adapter = ThreadAdapter(activity, importImage)
+        val adapter = ThreadAdapter(activity, forward = { message ->
+            open(StudioRoute.Compose(emptyList(), message.body, message.attachment?.attachments?.map { it.getUri() }.orEmpty()))
+        }, importImage = importImage)
         val list = recycler().apply {
             this.adapter = adapter
             layoutManager = androidx.recyclerview.widget.LinearLayoutManager(activity).apply { reverseLayout = true }

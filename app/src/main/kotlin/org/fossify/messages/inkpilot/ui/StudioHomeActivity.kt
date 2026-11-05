@@ -54,8 +54,9 @@ class StudioHomeActivity : AppCompatActivity() {
         attachmentThread = savedInstanceState?.getLong("attachment.thread") ?: 0L
         navigator = StudioNavigator(savedInstanceState)
         panels = StudioCanvasState(savedInstanceState?.getBundle("studio.panels") ?: Bundle())
-        if (savedInstanceState == null && intent.getStringExtra("inkpilot_panel") == "drafts") {
-            navigator.open(StudioRoute.Auxiliary("drafts"))
+        if (savedInstanceState == null) {
+            intent.getBundleExtra(ExternalRouteParser.ROUTE)?.decodeRoute()?.let(::acceptExternalRoute)
+                ?: if (intent.getStringExtra("inkpilot_panel") == "drafts") navigator.open(StudioRoute.Auxiliary("drafts")) else Unit
         }
         repository = StudioRepository(applicationContext)
         work = StudioWork(this, executor)
@@ -111,12 +112,22 @@ class StudioHomeActivity : AppCompatActivity() {
         val route = navigator.current
         val messages = MessagePanel(this, work, ::setupSms, { openAgent("drafts") }, ::openRoute,
             threadFooter = ::threadFooter, importImage = ::importMmsImage)
+        val auxiliary = AuxiliaryPanel(this, work, ::openRoute, ::refreshPanels)
         val view = panels.view(route) { when (route) {
             StudioRoute.Auxiliary("drafts") -> DraftPanel(this, repository, work, ::refreshPanels, ::openRoute).view()
             is StudioRoute.Thread -> messages.thread(route.threadId)
             is StudioRoute.Compose -> StudioUi.scroll(this, ThreadComposer(this, work, ::pickAttachment, ::refreshPanels, ::openRoute).view(route.composerId, route))
             is StudioRoute.Draft -> inlineDraft(route.draftId)
             is StudioRoute.ImageLinks -> studio.linkedImages(route.contactId, route.threadId)
+            is StudioRoute.Settings -> auxiliary.settings()
+            StudioRoute.Auxiliary("archive") -> auxiliary.archive()
+            StudioRoute.Auxiliary("recycle") -> auxiliary.recycle()
+            StudioRoute.Auxiliary("search") -> auxiliary.search()
+            is StudioRoute.Auxiliary -> when {
+                route.key.startsWith("details:") -> auxiliary.details(route.key.substringAfter(':').toLongOrNull() ?: 0)
+                route.key.startsWith("recycle:") -> auxiliary.recycledThread(route.key.substringAfter(':').toLongOrNull() ?: 0)
+                else -> auxiliary.unsupported()
+            }
             StudioRoute.Soul -> agent.soul()
             StudioRoute.Model -> agent.model()
             else -> when (tab) {
@@ -135,6 +146,8 @@ class StudioHomeActivity : AppCompatActivity() {
             is StudioRoute.Thread -> "Conversation"
             is StudioRoute.Compose -> "New message"
             is StudioRoute.ImageLinks -> "Client References"
+            is StudioRoute.Settings -> "Settings"
+            is StudioRoute.Auxiliary -> route.key.substringBefore(':').replaceFirstChar { it.uppercase() }
             else -> "Assistant"
         }
         if (canvas.getChildAt(0) !== view) {
@@ -170,10 +183,18 @@ class StudioHomeActivity : AppCompatActivity() {
 
     internal fun openRoute(route: StudioRoute) { navigator.open(route); render() }
 
+    private fun acceptExternalRoute(route: StudioRoute) {
+        if (route is StudioRoute.Tab) { navigator.reset(route.tab); return }
+        if (route is StudioRoute.Thread || route is StudioRoute.Compose || route is StudioRoute.Draft ||
+            route is StudioRoute.Settings || route is StudioRoute.Auxiliary) navigator.open(StudioRoute.Tab(StudioTab.SMS))
+        navigator.open(route)
+    }
+
     private fun openAgent(value: String) {
         navigator.open(when (value) {
             "soul" -> StudioRoute.Soul
             "model" -> StudioRoute.Model
+            "settings" -> StudioRoute.Settings("messaging")
             else -> StudioRoute.Auxiliary(value)
         })
         render()
@@ -234,7 +255,8 @@ class StudioHomeActivity : AppCompatActivity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
-        if (intent.getStringExtra("inkpilot_panel") == "drafts") openAgent("drafts")
+        intent.getBundleExtra(ExternalRouteParser.ROUTE)?.decodeRoute()?.let { acceptExternalRoute(it); render() }
+            ?: if (intent.getStringExtra("inkpilot_panel") == "drafts") openAgent("drafts") else Unit
     }
     override fun onSaveInstanceState(outState: Bundle) {
         outState.putLong("attachment.thread", attachmentThread)

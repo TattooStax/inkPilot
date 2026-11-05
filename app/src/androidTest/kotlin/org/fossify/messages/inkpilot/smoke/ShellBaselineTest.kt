@@ -90,6 +90,21 @@ class ShellBaselineTest {
                 }
                 SmokeViews.assertText("Client reference images")
                 SmokeViews.assertText(fixtureBody)
+                SmokeViews.await<Boolean>("in-shell forward action") {
+                    var opened = false
+                    home.onActivity { activity ->
+                        opened = findTextContaining(activity.window.decorView, fixtureBody)?.performLongClick() == true
+                    }
+                    if (opened) true else null
+                }
+                SmokeViews.clickText("Forward")
+                home.onActivity { activity ->
+                    assertNotNull(activity.findViewById<View>(R.id.inkpilot_home))
+                    assertEquals("New message", activity.findViewById<TextView>(R.id.inkpilot_title).text.toString())
+                    assertTrue(findTextContaining(activity.window.decorView, fixtureBody) is EditText)
+                    activity.onBackPressedDispatcher.onBackPressed()
+                }
+                SmokeViews.assertText("Client reference images")
                 home.onActivity { activity ->
                     assertNotNull(activity.findViewById<View>(R.id.inkpilot_home))
                     activity.onBackPressedDispatcher.onBackPressed()

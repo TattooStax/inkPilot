@@ -8,6 +8,7 @@ import org.fossify.messages.messaging.key
 import org.fossify.messages.models.Message
 
 internal class ThreadAdapter(private val activity: android.app.Activity,
+    private val forward: (Message) -> Unit = {},
     private val importImage: (org.fossify.messages.messaging.MessageKey, Long, org.fossify.messages.models.Attachment) -> Unit = { _, _, _ -> },
 ) : RecyclerView.Adapter<ThreadAdapter.Row>(), StudioMessageRows {
     private val rows = mutableListOf<Message>()
@@ -32,6 +33,12 @@ internal class ThreadAdapter(private val activity: android.app.Activity,
             }
         }
         body.addView(bubble, LinearLayout.LayoutParams(-2, -2))
+        bubble.setOnLongClickListener {
+            androidx.appcompat.app.AlertDialog.Builder(activity).setTitle("Message actions")
+                .setPositiveButton("Forward") { _, _ -> forward(message) }
+                .setNegativeButton("Cancel", null).show()
+            true
+        }
         bubble.addView(StudioUi.text(activity, message.body, 17f).apply { maxWidth = StudioUi.dp(body, 280) })
         message.attachment?.attachments?.forEach { attachment ->
             if (attachment.mimetype.startsWith("image/")) {

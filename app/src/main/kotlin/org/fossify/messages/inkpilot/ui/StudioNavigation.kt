@@ -2,14 +2,12 @@ package org.fossify.messages.inkpilot.ui
 
 import android.app.Activity
 import android.app.Dialog
-import android.content.Intent
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.LinearLayout
 import org.fossify.messages.R
-import org.fossify.messages.activities.SettingsActivity
 
 internal enum class StudioTab(val label: String, val viewId: Int, val icon: Int) {
     SMS("SMS", R.id.inkpilot_tab_sms, R.drawable.inkpilot_nav_sms),
@@ -56,10 +54,9 @@ internal fun showStudioDrawer(activity: Activity, open: (String) -> Unit) {
     listOf("Drafts to review" to "drafts", "Soul & studio memory" to "soul", "Local model" to "model").forEach { (label, key) ->
         body.addView(StudioUi.button(activity, label) { dialog.dismiss(); open(key) })
     }
-    body.addView(StudioUi.button(activity, "Messaging settings") {
-        dialog.dismiss()
-        activity.startActivity(Intent(activity, SettingsActivity::class.java))
-    })
+    listOf("Messaging settings" to "settings", "Search" to "search", "Archived" to "archive", "Recycle bin" to "recycle").forEach { (label, key) ->
+        body.addView(StudioUi.button(activity, label) { dialog.dismiss(); open(key) })
+    }
     body.addView(StudioUi.button(activity, "Close") { dialog.dismiss() })
     dialog.setContentView(body)
     dialog.window?.apply {

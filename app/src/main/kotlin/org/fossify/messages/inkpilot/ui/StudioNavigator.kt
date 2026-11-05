@@ -16,6 +16,10 @@ internal class StudioNavigator(savedState: Bundle? = null) {
         if (route is StudioRoute.Tab) selectedTab = route.tab
         else if (current != route) stacks.getValue(selectedTab).add(route)
     }
+    fun reset(tab: StudioTab) {
+        selectedTab = tab
+        stacks.getValue(tab).apply { clear(); add(StudioRoute.Tab(tab)) }
+    }
     fun pop(): Boolean {
         val stack = stacks.getValue(selectedTab)
         if (stack.size == 1) return false
