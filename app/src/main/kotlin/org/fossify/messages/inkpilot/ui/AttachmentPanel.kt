@@ -5,13 +5,15 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.LinearLayout
 import com.bumptech.glide.Glide
+import org.fossify.messages.inkpilot.data.StudioRepository
 
 private const val ATTACHMENT_TITLE_SP = 22f
 private const val ATTACHMENT_TYPE_SP = 14f
 private const val IMAGE_HEIGHT_DP = 420
 
 /** Message attachments stay in the conversation's shell stack. */
-internal class AttachmentPanel(private val activity: android.app.Activity, private val back: () -> Unit) {
+internal class AttachmentPanel(private val activity: StudioHomeActivity, private val back: () -> Unit,
+                               private val repository: StudioRepository, private val work: StudioWork) {
     fun view(attachment: StudioRoute.Attachment): View {
         val body = StudioUi.column(activity)
         body.addView(StudioUi.button(activity, "‹ Conversation", back))
@@ -26,6 +28,8 @@ internal class AttachmentPanel(private val activity: android.app.Activity, priva
             body.addView(image, LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, StudioUi.dp(body, IMAGE_HEIGHT_DP)))
             Glide.with(activity).load(attachment.uri).into(image)
+        } else if (isVCardAttachment(attachment.mimetype, attachment.filename)) {
+            body.addView(VCardPreviewPanel(activity, repository, work).view(attachment.uri))
         } else {
             body.addView(StudioUi.text(activity,
                 "Preview for this attachment type is unavailable. The file remains in the conversation."))

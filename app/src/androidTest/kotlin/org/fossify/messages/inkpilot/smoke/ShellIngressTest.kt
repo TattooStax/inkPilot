@@ -4,6 +4,7 @@ import android.content.ComponentName
 import android.content.ClipData
 import android.app.PendingIntent
 import org.fossify.messages.messaging.ComposerStore
+import java.io.File
 import java.util.UUID
 import android.content.Intent
 import android.net.Uri
@@ -68,7 +69,9 @@ class ShellIngressTest {
                     .filterIsInstance<StudioHomeActivity>()
                     .firstOrNull { activity ->
                         (activity.intent.getBundleExtra(ExternalRouteParser.ROUTE)?.decodeRoute() as? StudioRoute.Compose)
-                            ?.mediaUris?.contains(uri) == true
+                            ?.let { it.body == "Private client outline" &&
+                                it.mediaUris.singleOrNull()?.authority == "${context.packageName}.provider" &&
+                                uri !in it.mediaUris } == true
                     }
             }
             if (matching != null) return matching
@@ -249,11 +252,12 @@ class ShellIngressTest {
         }
     }
 
-    @Test fun coldShareForwardsReadableUriAndPrivateBodyIntoOneComposer() {
+    @Test fun coldShareRetainsPrivateImageAfterSenderAndTaskClose() {
         assumeTrue(Build.HARDWARE in setOf("ranchu", "goldfish"))
         val instrumentation = InstrumentationRegistry.getInstrumentation()
         val sender = instrumentation.context
         assertNotEquals(context.packageName, sender.packageName)
+        assertNotEquals(context.applicationInfo.uid, sender.applicationInfo.uid)
         val uri = Uri.parse("content://$INGRESS_AUTHORITY/reference?token=${UUID.randomUUID()}")
         @Suppress("DEPRECATION")
         val provider = sender.packageManager.getProviderInfo(ComponentName(sender.packageName, CrossPackageShareProvider::class.java.name), 0)
@@ -273,19 +277,27 @@ class ShellIngressTest {
             val forwarded = home!!.intent
             val route = forwarded.getBundleExtra(ExternalRouteParser.ROUTE)!!.decodeRoute() as StudioRoute.Compose
             composerId = route.composerId
-            assertEquals(listOf(uri), route.mediaUris)
-            assertEquals(uri, forwarded.clipData!!.getItemAt(0).uri)
+            val local = route.mediaUris.single()
+            assertNotEquals(uri, local)
+            assertEquals("${context.packageName}.provider", local.authority)
+            assertEquals("image/png", context.contentResolver.getType(local))
+            assertEquals(local, forwarded.clipData!!.getItemAt(0).uri)
             assertTrue(forwarded.flags and Intent.FLAG_GRANT_READ_URI_PERMISSION != 0)
             instrumentation.runOnMainSync {
-                assertNotNull(home!!.contentResolver.openInputStream(uri)?.use { it.read() })
+                assertNotNull(home!!.contentResolver.openInputStream(local)?.use { it.read() })
                 assertEquals("Private client outline", ComposerStore(home!!).load(composerId)?.body)
                 assertNotNull(home!!.findViewById<android.view.View>(org.fossify.messages.R.id.inkpilot_home))
+                home!!.finish()
             }
+            home = null
+            assertTrue(File(sender.cacheDir, "task11-share.png").delete())
+            val retained = ComposerStore(context).load(composerId)
+            assertEquals(listOf(local), retained?.attachmentUris)
+            assertNotNull(context.contentResolver.openInputStream(local)?.use { it.read() })
         } finally {
             instrumentation.runOnMainSync { home?.finish() }
             if (composerId != 0L) ComposerStore(context).clear(composerId)
-            sender.startActivity(Intent().setClassName(sender.packageName, CrossPackageShareSender::class.java.name)
-                .setAction(CrossPackageShareSender.CLEANUP).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+            File(sender.cacheDir, "task11-share.png").delete()
         }
     }
 

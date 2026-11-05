@@ -9,7 +9,8 @@ internal sealed interface StudioRoute {
     data class ImageLinks(val contactId: String? = null, val threadId: Long? = null) : StudioRoute
     data class Thread(val threadId: Long) : StudioRoute
     data class Compose(val recipients: List<String>, val body: String, val mediaUris: List<Uri>,
-        val composerId: Long = -(java.util.UUID.randomUUID().mostSignificantBits and Long.MAX_VALUE).coerceAtLeast(1L)) : StudioRoute
+        val composerId: Long = -(java.util.UUID.randomUUID().mostSignificantBits and Long.MAX_VALUE).coerceAtLeast(1L),
+        val shareCopyFailed: Boolean = false) : StudioRoute
     data class Draft(val draftId: String) : StudioRoute
     data class PhoneDial(val number: String) : StudioRoute
     data object PhoneHistory : StudioRoute
@@ -56,6 +57,7 @@ private fun Bundle.putRouteFields(route: StudioRoute) {
             putStringArrayList("recipients", ArrayList(route.recipients))
             putString("body", route.body)
             putStringArrayList("media", ArrayList(route.mediaUris.map(Uri::toString)))
+            putBoolean("shareCopyFailed", route.shareCopyFailed)
         }
         is StudioRoute.Draft -> putString("value", route.draftId)
         is StudioRoute.PhoneDial -> putString("number", route.number)
@@ -78,7 +80,8 @@ internal fun Bundle.decodeRoute(): StudioRoute? = when (getString("kind")) {
         "tab" -> StudioTab.entries.find { it.name == getString("value") }?.let(StudioRoute::Tab)
         "thread" -> if (containsKey("thread")) StudioRoute.Thread(getLong("thread")) else null
         "compose" -> StudioRoute.Compose(getStringArrayList("recipients") ?: emptyList(), getString("body").orEmpty(),
-            getStringArrayList("media").orEmpty().map(Uri::parse), getLong("composerId", -1L))
+            getStringArrayList("media").orEmpty().map(Uri::parse), getLong("composerId", -1L),
+            getBoolean("shareCopyFailed"))
         "draft" -> getString("value")?.let(StudioRoute::Draft)
         "settings" -> getString("value")?.let(StudioRoute::Settings)
         "soul" -> StudioRoute.Soul

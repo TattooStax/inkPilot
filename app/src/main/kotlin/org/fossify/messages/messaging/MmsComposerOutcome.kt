@@ -36,6 +36,8 @@ private fun ComposerStore.reconcileConfirmed(threadId: Long, attemptId: String):
     val saved = load(threadId)
     if (saved != null && saved.attemptId != attemptId) return false
     markComposeCompleted(threadId)
+    // Confirmation is journaled already. Delete while the saved URI remains recoverable.
+    if (saved != null) appContext.discardSharedComposerImages(saved.attachmentUris)
     check(prefs.edit().remove(threadId.toString()).remove("unknown:$threadId")
         .remove("mms-failed:$threadId").commit())
     val pending = pendingFile(threadId)

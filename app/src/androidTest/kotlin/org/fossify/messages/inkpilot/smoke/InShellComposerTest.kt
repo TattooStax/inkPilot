@@ -4,6 +4,8 @@ import android.net.Uri
 import androidx.test.core.app.ApplicationProvider
 import org.fossify.messages.messaging.*
 import org.fossify.messages.extensions.config
+import org.fossify.messages.inkpilot.ui.encode
+import org.fossify.messages.inkpilot.ui.decodeRoute
 import org.junit.Assert.*
 import org.junit.Test
 
@@ -48,6 +50,35 @@ class InShellComposerTest {
             }
         }
         ComposerStore(context).clear(route.composerId)
+    }
+
+    @Test fun failedShareStaysVisibleAndCannotSendUntilAttachmentRemoved() {
+        val context = ApplicationProvider.getApplicationContext<android.content.Context>()
+        val failed = Uri.parse("content://synthetic/expired-share")
+        val route = org.fossify.messages.inkpilot.ui.StudioRoute.Compose(
+            emptyList(), "Client caption preserved", listOf(failed), shareCopyFailed = true)
+        assertEquals(route, route.encode().decodeRoute())
+        val store = ComposerStore(context)
+        store.clear(route.composerId)
+        try {
+            androidx.test.core.app.ActivityScenario.launch(org.fossify.messages.inkpilot.ui.StudioHomeActivity::class.java).use { scenario ->
+                scenario.onActivity { activity ->
+                    fun children(view: android.view.View): List<android.view.View> = listOf(view) +
+                        if (view is android.view.ViewGroup) (0 until view.childCount).flatMap { children(view.getChildAt(it)) }
+                        else emptyList()
+                    activity.openRoute(route)
+                    val before = children(activity.window.decorView).filterIsInstance<android.widget.TextView>()
+                    assertTrue(before.any { it.text.toString().contains("Remove it and attach again") })
+                    assertFalse(before.single { it.text.toString() == "Send message" }.isEnabled)
+                    assertEquals(listOf(failed), store.load(route.composerId)?.attachmentUris)
+                    before.single { it.text.toString().startsWith("Remove attachment:") }.performClick()
+                    val after = children(activity.window.decorView).filterIsInstance<android.widget.TextView>()
+                    assertTrue(after.single { it.text.toString() == "Send message" }.isEnabled)
+                    assertEquals("Client caption preserved", store.load(route.composerId)?.body)
+                    assertEquals(emptyList<Uri>(), store.load(route.composerId)?.attachmentUris)
+                }
+            }
+        } finally { store.clear(route.composerId) }
     }
 
     @Test fun failedMmsRetainsOriginalAcrossStoreRecreation() {
