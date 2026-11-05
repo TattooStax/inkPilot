@@ -28,7 +28,13 @@ already-installed debug package. Perform the read-only signer comparison in
 `DEVICE-ACCEPTANCE.md` before any phone install or role change. A mismatch
 blocks in-place upgrade; do not uninstall customer data to bypass it. Repeatable
 internal upgrades need a stable signing key, or a separately proven complete
-backup/restore and SMS/Phone role rollback path.
+backup/restore and SMS/Phone role rollback path. Shell Settings can save a
+plaintext, user-selected Studio ZIP containing database rows and retained
+reference originals with per-entry SHA-256. The manifest is written last and
+unreadable originals or an app lock stop the export; a provider may leave an
+incomplete document if deletion fails. This is an export-only format: it excludes
+native SMS/MMS, app preferences and model weights, and has no tested import.
+It does not clear the physical restore gate.
 
 | Data or action | Current boundary | Claim allowed after device proof |
 | --- | --- | --- |

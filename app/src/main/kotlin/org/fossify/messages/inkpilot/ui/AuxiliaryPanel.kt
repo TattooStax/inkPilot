@@ -16,7 +16,8 @@ import org.fossify.messages.models.Conversation
 
 /** The shell's small message utility surfaces; no inherited Activity is launched. */
 internal class AuxiliaryPanel(private val activity: Activity, private val work: StudioWork,
-                              private val open: (StudioRoute) -> Unit, private val refresh: () -> Unit) {
+                              private val open: (StudioRoute) -> Unit, private val refresh: () -> Unit,
+                              private val exportStudio: () -> Unit) {
     fun settings(): android.view.View = screen("Messaging settings") { body ->
         val config = activity.config
         fun toggle(label: String, get: () -> Boolean, set: (Boolean) -> Unit) {
@@ -38,6 +39,10 @@ internal class AuxiliaryPanel(private val activity: Activity, private val work: 
         body.addView(StudioUi.button(activity, "Search conversations") { open(StudioRoute.Auxiliary("search")) })
         body.addView(StudioUi.button(activity, "Archived conversations") { open(StudioRoute.Auxiliary("archive")) })
         body.addView(StudioUi.button(activity, "Recycle bin") { open(StudioRoute.Auxiliary("recycle")) })
+        body.addView(StudioUi.text(activity,
+            "Studio export contains contacts, memory, appointments and all retained reference originals. " +
+                "The ZIP is plaintext. It excludes SMS/MMS and model files; restore is not available yet.", 14f))
+        body.addView(StudioUi.button(activity, "Export Studio records and images") { exportStudio() })
         body.addView(StudioUi.button(activity, "Android app permissions") {
             activity.startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:${activity.packageName}")))
         })

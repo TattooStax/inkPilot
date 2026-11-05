@@ -6,6 +6,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.provider.DocumentsContract
 import android.provider.Telephony
 import android.view.Gravity
 import android.view.ViewGroup
@@ -13,6 +14,7 @@ import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.activity.OnBackPressedCallback
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
@@ -22,6 +24,7 @@ import org.fossify.messages.R
 import org.fossify.messages.BuildConfig
 import org.fossify.commons.extensions.appLockManager
 import org.fossify.commons.extensions.appLaunched
+import org.fossify.messages.inkpilot.data.StudioArchiveExporter
 import org.fossify.messages.inkpilot.data.StudioRepository
 import org.fossify.messages.inkpilot.studio.StudioPanels
 import java.util.concurrent.Executors
@@ -42,6 +45,23 @@ class StudioHomeActivity : AppCompatActivity() {
     private var smsObserver: SmsRefreshObserver? = null
     private var attachmentThread = 0L
     private val appLock by lazy { StudioAppLock(this) }
+    private val studioArchiveDocument = registerForActivityResult(ActivityResultContracts.CreateDocument("application/zip")) { uri ->
+        when (StudioArchiveHandoff.handle(uri, appLockManager.isLocked(),
+            discard = { DocumentsContract.deleteDocument(contentResolver, it) },
+            start = { selected ->
+                work.load({ StudioArchiveExporter(applicationContext, repository).export(selected) {
+                    !appLockManager.isLocked()
+                } }) { summary ->
+                    StudioUi.error(this, "Studio archive saved: ${summary.tables} tables and ${summary.originals} originals.")
+                }
+            })) {
+            StudioArchiveHandoff.Outcome.LOCKED_DISCARDED ->
+                StudioUi.error(this, "Unlock inkPilot and choose export again.")
+            StudioArchiveHandoff.Outcome.LOCKED_UNDELETED ->
+                StudioUi.error(this, "Unlock inkPilot and remove the incomplete document before retrying.")
+            else -> Unit
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -112,7 +132,7 @@ class StudioHomeActivity : AppCompatActivity() {
         val route = navigator.current
         val messages = MessagePanel(this, work, ::setupSms, { openAgent("drafts") }, ::openRoute,
             threadFooter = ::threadFooter, importImage = ::importMmsImage)
-        val auxiliary = AuxiliaryPanel(this, work, ::openRoute, ::refreshPanels)
+        val auxiliary = AuxiliaryPanel(this, work, ::openRoute, ::refreshPanels, ::exportStudio)
         val view = panels.view(route) { when (route) {
             StudioRoute.Auxiliary("drafts") -> DraftPanel(this, repository, work, ::refreshPanels, ::openRoute).view()
             StudioRoute.Auxiliary("proposals") -> ProposalPanel(this, repository, work, ::refreshPanels).view()
@@ -199,6 +219,10 @@ class StudioHomeActivity : AppCompatActivity() {
             else -> StudioRoute.Auxiliary(value)
         })
         render()
+    }
+
+    private fun exportStudio() {
+        if (!appLockManager.isLocked()) studioArchiveDocument.launch("InkPilot-Studio.zip")
     }
 
     private fun pickAttachment(threadId: Long) {

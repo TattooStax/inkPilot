@@ -120,8 +120,16 @@ a generated reply. Memory is staff-edited, not silently learned.
 
 Model generation can still be incorrect; all replies are held for review.
 Weights are an explicit import, not bundled or silently downloaded. The
-app disables Android cloud backup; a supported export/restore workflow
-is still needed before treating this phone as the sole business archive.
+app disables Android cloud backup. Shell Settings offers a user-initiated,
+plaintext Studio ZIP export with a versioned table/image manifest and SHA-256
+entries; it includes retained originals even without album membership. It does
+not include native SMS/MMS, app settings or model weights, and there is no
+supported import/restore yet. A lock during export stops it; discard any
+incomplete document if its provider cannot delete it. Do not treat this phone
+or the ZIP as a complete business archive or use the export to justify a
+destructive signer change.
+A tested provider plus Studio export/restore and role rollback remains a beta
+acceptance gate.
 OpenFang integration remains an optional future adapter.
 
 The app has an in-shell thread and composer, but every ingress still needs
