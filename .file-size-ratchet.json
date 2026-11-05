@@ -812,7 +812,7 @@
     "scripts/run-inkpilot-test-class.sh": 78,
     "scripts/staged-review-evidence.py": 51,
     "scripts/test-inkpilot-sms-role-preflight.py": 69,
-    "scripts/test-run-inkpilot-test-class.py": 201,
+    "scripts/test-run-inkpilot-test-class.py": 206,
     "scripts/test_file_size_ratchet.py": 117,
     "scripts/test_inkpilot_exact_selector_benchmark.py": 102,
     "scripts/test_inkpilot_model_benchmark.py": 86,

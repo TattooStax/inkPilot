@@ -15,7 +15,8 @@ class RunnerContract(unittest.TestCase):
         self.temp = tempfile.TemporaryDirectory(dir=os.environ.get('TMPDIR'))
         self.root = Path(self.temp.name)
         (self.root / 'scripts').mkdir()
-        for name in ('run-inkpilot-test-class.sh', 'inkpilot-shell-baseline.sh', 'inkpilot-sms-role-preflight.sh', 'inkpilot-device-result.py'):
+        for name in ('run-inkpilot-test-class.sh', 'inkpilot-shell-baseline.sh',
+                     'inkpilot-launcher-cold-start.sh', 'inkpilot-sms-role-preflight.sh', 'inkpilot-device-result.py'):
             shutil.copy2(ROOT / 'scripts' / name, self.root / 'scripts' / name)
         self.app = self.root / 'app/build/outputs/apk/foss/debug/app.apk'
         self.tests = self.root / 'app/build/outputs/apk/androidTest/foss/debug/test.apk'
@@ -36,6 +37,10 @@ if sys.argv[3:] == ['shell', 'cmd', 'role', 'get-role-holders', '--user', '0', '
     print('app.inkpilot.android.debug')
 if sys.argv[3:] == ['shell', 'appops', 'get', 'app.inkpilot.android.debug', 'WRITE_SMS']:
     print('Uid mode: WRITE_SMS: allow')
+if 'query-activities' in sys.argv:
+    print('app.inkpilot.android.debug/app.inkpilot.android.activities.SplashActivity.Green')
+if sys.argv[3:7] == ['shell', 'am', 'start', '-W']:
+    print('Status: ok')
 if 'instrument' in sys.argv:
     if os.environ.get('FAKE_FAILED_CLASS') in sys.argv:
         print('FAILURES!!!')
