@@ -27,6 +27,9 @@ import org.fossify.messages.helpers.SmsRole
 private const val MAX_IN_SHELL_TEXT_CHARS = 2_000
 private const val SMS_ROLE_REQUIRED = "Set inkPilot as the default SMS app before sending."
 
+private fun smsRoleProblem(roleHeld: () -> Boolean): String? =
+    SMS_ROLE_REQUIRED.takeUnless { runCatching { roleHeld() }.getOrDefault(false) }
+
 @SuppressLint("MissingPermission")
 private fun AppCompatActivity.activeComposerSubscriptions(): Set<Int>? {
     if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) !=
@@ -48,10 +51,8 @@ internal fun prepareInShellComposerSend(
     val recipients = value.recipient.split("|").filter(String::isNotBlank)
     val rejection = activity.inShellMmsRejection(value.attachmentUris)
         ?: activity.smsRecipientRejection(value.body, recipients, value.attachmentUris.isNotEmpty())
+        ?: smsRoleProblem(smsRoleHeld)
     if (rejection != null) return Result.success(DispatchOutcome.Rejected(rejection))
-    if (!runCatching { smsRoleHeld() }.getOrDefault(false)) {
-        return Result.success(DispatchOutcome.Rejected(SMS_ROLE_REQUIRED))
-    }
     val active = try { activeSimIds() } catch (_: SecurityException) { null }
         ?: return Result.success(DispatchOutcome.Rejected("Allow SIM access, then choose a SIM"))
     if (value.subscriptionId !in active) {
@@ -60,7 +61,7 @@ internal fun prepareInShellComposerSend(
     return prepareComposerSend(store, value) {
         MessageDispatcher.local(activity) { outgoing ->
             when {
-                !runCatching { smsRoleHeld() }.getOrDefault(false) -> DispatchOutcome.Rejected(SMS_ROLE_REQUIRED)
+                smsRoleProblem(smsRoleHeld) != null -> DispatchOutcome.Rejected(SMS_ROLE_REQUIRED)
                 outgoing.subscriptionId !in active -> DispatchOutcome.Rejected("Choose an active SIM")
                 outgoing.attachmentUris.size > 1 -> DispatchOutcome.Rejected("Send one image per message")
                 else -> activity.sendMessageCompat(
