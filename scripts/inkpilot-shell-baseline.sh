@@ -45,6 +45,8 @@ run_class org.fossify.messages.inkpilot.data.StudioArchiveTest
 run_class org.fossify.messages.inkpilot.data.StudioArchiveCleanupNoticeTest
 run_class org.fossify.messages.inkpilot.ui.StudioStaffAttentionTest
 run_class org.fossify.messages.inkpilot.ui.StudioArchiveHandoffTest
+run_class org.fossify.messages.inkpilot.data.SmsPartJournalTest
+run_class org.fossify.messages.inkpilot.data.GroupSmsRefusalTest
 run_class org.fossify.messages.inkpilot.data.ScheduledVerdictTest
 run_class org.fossify.messages.inkpilot.data.ScheduledQueueTest
 run_class org.fossify.messages.inkpilot.data.ScheduledIdentityLifecycleTest
