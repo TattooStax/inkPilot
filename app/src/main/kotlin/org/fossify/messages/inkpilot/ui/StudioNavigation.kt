@@ -9,14 +9,6 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import org.fossify.messages.R
 
-internal enum class StudioTab(val label: String, val viewId: Int, val icon: Int) {
-    SMS("SMS", R.id.inkpilot_tab_sms, R.drawable.inkpilot_nav_sms),
-    PHONE("Phone", R.id.inkpilot_tab_phone, R.drawable.inkpilot_nav_phone),
-    CONTACTS("Contacts", R.id.inkpilot_tab_contacts, R.drawable.inkpilot_nav_contacts),
-    STUDIO("Studio", R.id.inkpilot_tab_studio, R.drawable.inkpilot_nav_studio),
-    CALENDAR("Calendar", R.id.inkpilot_tab_calendar, R.drawable.inkpilot_nav_calendar),
-}
-
 internal fun navigation(activity: Activity, selected: StudioTab?,
     choose: (StudioTab) -> Unit) = LinearLayout(activity).apply {
     id = R.id.inkpilot_navigation
@@ -44,7 +36,7 @@ internal fun navigation(activity: Activity, selected: StudioTab?,
                 importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
             })
             setOnClickListener { choose(tab) }
-        }, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
+        }, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, tab.widthWeight))
     }
 }
 

@@ -107,7 +107,34 @@ class OneShellAcceptanceTest {
         }
     }
 
-    @Test fun tabsRemainVisibleAtLargeTextAndLandscape() {
+    // Separate methods expose the failing tab in redacted class evidence.
+    @Test fun smsTabAtLargeText() = assertTabAtLargeText("SMS", R.id.inkpilot_tab_sms)
+    @Test fun phoneTabAtLargeText() = assertTabAtLargeText("Phone", R.id.inkpilot_tab_phone)
+    @Test fun contactsTabAtLargeText() = assertTabAtLargeText("Contacts", R.id.inkpilot_tab_contacts)
+    @Test fun studioTabAtLargeText() = assertTabAtLargeText("Studio", R.id.inkpilot_tab_studio)
+    @Test fun calendarTabAtLargeText() = assertTabAtLargeText("Calendar", R.id.inkpilot_tab_calendar)
+
+    private fun assertTabAtLargeText(label: String, id: Int) = atLargeText { scenario ->
+        SmokeViews.clickDescription(label)
+        scenario.onActivity { activity ->
+            assertFooter(activity)
+            assertTrue("$label is selected", activity.findViewById<View>(id).isSelected)
+        }
+    }
+
+    @Test fun landscapeTabsAtLargeText() = atLargeText { scenario ->
+        scenario.onActivity { it.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE }
+        SmokeViews.await<Boolean>("landscape shell") {
+            var ready = false
+            scenario.onActivity {
+                ready = it.resources.configuration.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
+            }
+            if (ready) true else null
+        }
+        scenario.onActivity { assertFooter(it) }
+    }
+
+    private fun atLargeText(check: (ActivityScenario<StudioHomeActivity>) -> Unit) {
         requireDisposableEmulator()
         val original = shell("settings get system font_scale").ifBlank { "null" }
         try {
@@ -118,22 +145,7 @@ class OneShellAcceptanceTest {
                     scenario.onActivity { ready = it.resources.configuration.fontScale >= 1.5f }
                     if (ready) true else null
                 }
-                tabs.forEach { (label, id) ->
-                    SmokeViews.clickDescription(label)
-                    scenario.onActivity { activity ->
-                        assertFooter(activity)
-                        assertTrue("$label is selected", activity.findViewById<View>(id).isSelected)
-                    }
-                }
-                scenario.onActivity { it.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE }
-                SmokeViews.await<Boolean>("landscape shell") {
-                    var ready = false
-                    scenario.onActivity {
-                        ready = it.resources.configuration.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
-                    }
-                    if (ready) true else null
-                }
-                scenario.onActivity { assertFooter(it) }
+                check(scenario)
             }
         } finally {
             if (original == "null") shell("settings delete system font_scale")

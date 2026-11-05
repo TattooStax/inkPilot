@@ -24,7 +24,7 @@ collect() {
   adb shell uiautomator dump /sdcard/inkpilot-test-ui.xml >/dev/null 2>&1 || true
   adb pull /sdcard/inkpilot-test-ui.xml "$evidence/last-ui.xml" >/dev/null 2>&1 || true
   for artifact in local-loop.json intake-failure.json worker-wakeup.json native-send.json batch-failure.json \
-    local-draft-review.png tab-sms.png tab-phone.png tab-contacts.png tab-studio.png tab-calendar.png; do
+    local-draft-review.png local-staff-attention.png tab-sms.png tab-phone.png tab-contacts.png tab-studio.png tab-calendar.png; do
     if adb shell run-as "$package" test -f "files/device-test-evidence/$artifact" && \
       adb exec-out run-as "$package" cat "files/device-test-evidence/$artifact" > "$evidence/$artifact.partial" 2>/dev/null; then
       mv "$evidence/$artifact.partial" "$evidence/$artifact"
@@ -97,8 +97,16 @@ adb shell svc wifi disable
 adb shell svc data disable
 adb shell settings put global stay_on_while_plugged_in 3
 observe_sms local-loop "$smoke#incomingSmsCreatesLocalHeldDraft" local-loop-ready "$fixture_number" "$fixture_message"
-adb exec-out run-as "$package" cat files/device-test-evidence/local-draft-review.png > "$evidence/local-draft-review.png"
 adb exec-out run-as "$package" cat files/device-test-evidence/local-loop.json > "$evidence/local-loop.json"
+if python3 - "$evidence/local-loop.json" <<'PYCODE'
+import json,sys
+raise SystemExit(0 if json.load(open(sys.argv[1]))['outcome'] == 'BLOCKED_UNSAFE_CONTENT' else 1)
+PYCODE
+then
+  adb exec-out run-as "$package" cat files/device-test-evidence/local-staff-attention.png > "$evidence/local-staff-attention.png"
+else
+  adb exec-out run-as "$package" cat files/device-test-evidence/local-draft-review.png > "$evidence/local-draft-review.png"
+fi
 
 # A second instrumentation process proves on-disk replay after process termination.
 adb shell am force-stop "$package"

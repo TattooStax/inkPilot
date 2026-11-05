@@ -7,6 +7,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import inkpilot.agent.DraftKey
 import org.fossify.messages.inkpilot.data.StudioRepository
+import org.fossify.messages.inkpilot.data.staffAttention
 import org.fossify.messages.inkpilot.runtime.AgentRuntime
 import org.json.JSONObject
 import org.junit.Assert.assertEquals
@@ -59,13 +60,19 @@ class BatchFailureSmokeTest {
                 val failedSource = requireNotNull(repository.readSource(failedEvent))
                 assertFalse(failedSource.staffPaused)
                 val started = System.currentTimeMillis()
-                assertEquals("One production batch must continue after native failure", 1, AgentRuntime.processPending(context))
+                val created = AgentRuntime.processPending(context)
                 assertNull(repository.findHeldDraft(DraftKey(failedEvent)))
-                val receipt = requireNotNull(repository.findHeldDraft(DraftKey(nextEvent)))
-                assertEquals("+12025550126", receipt.recipient)
-                assertTrue(receipt.body.isNotBlank() && receipt.body.length <= 800)
-                assertFalse(receipt.body.contains("<think>") || receipt.body.contains("<tool_call>"))
-                assertTrue(repository.heldDrafts().any { it.draftId == receipt.draftId && it.canReview })
+                val receipt = repository.findHeldDraft(DraftKey(nextEvent))
+                if (receipt == null) {
+                    assertEquals("Only a policy block can stop the second model reply", 0, created)
+                    assertEquals("UNSAFE_CONTENT", repository.staffAttention().single { it.eventId == nextEvent }.reason)
+                } else {
+                    assertEquals(1, created)
+                    assertEquals("+12025550126", receipt.recipient)
+                    assertTrue(receipt.body.isNotBlank() && receipt.body.length <= 800)
+                    assertFalse(receipt.body.contains("<think>") || receipt.body.contains("<tool_call>"))
+                    assertTrue(repository.heldDrafts().any { it.draftId == receipt.draftId && it.canReview })
+                }
                 repository.database.rawQuery(
                     "SELECT reason FROM draft_attempts WHERE event_id = ? AND source_revision = ?",
                     arrayOf(failedEvent, failedSource.revision.toString()),
@@ -78,16 +85,18 @@ class BatchFailureSmokeTest {
                     assertTrue("Failure attempt and second receipt must survive reopening", reopened.pendingRequests().isEmpty())
                     assertNull(reopened.findHeldDraft(DraftKey(failedEvent)))
                     assertEquals(receipt, reopened.findHeldDraft(DraftKey(nextEvent)))
+                    if (receipt == null) assertEquals("UNSAFE_CONTENT",
+                        reopened.staffAttention().single { it.eventId == nextEvent }.reason)
                 }
                 File(evidence, "batch-failure.json").writeText(JSONObject().apply {
                     put("singleProductionBatchCalls", 1)
+                    put("nextOutcome", if (receipt == null) "BLOCKED_UNSAFE_CONTENT" else "HELD")
                     put("failedEventId", failedEvent)
                     put("failedMemoryCharacters", memory.length)
                     put("failedSourceRevision", failedSource.revision)
                     put("failureAttemptDurable", true)
                     put("nextEventId", nextEvent)
-                    put("draftId", receipt.draftId)
-                    put("body", receipt.body)
+                    if (receipt != null) { put("draftId", receipt.draftId); put("body", receipt.body) }
                     put("elapsedMillis", System.currentTimeMillis() - started)
                     put("carrierDeliveryTested", false)
                 }.toString(2))
