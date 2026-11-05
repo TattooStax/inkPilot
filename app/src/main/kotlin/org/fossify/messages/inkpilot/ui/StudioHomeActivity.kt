@@ -248,7 +248,7 @@ class StudioHomeActivity : AppCompatActivity() {
             if (draft != null) {
                 val panel = MessagePanel(this, work, ::setupSms, { openAgent("drafts") },
                     ::openRoute, { threadFooter(it, id) })
-                root.addView(panel.thread(draft.threadId, focusedReview = true))
+                root.attachDraftThread(panel.thread(draft.threadId, focusedReview = true))
             } else root.addView(StudioUi.text(this, "Draft is no longer available"))
         }
         return root
@@ -331,6 +331,11 @@ class StudioHomeActivity : AppCompatActivity() {
         super.onDestroy()
     }
     companion object { private const val SMS_ROLE_REQUEST = 7300 }
+}
+
+/** Fill the shell canvas so the thread viewport cannot shrink around its own footer. */
+internal fun LinearLayout.attachDraftThread(thread: android.view.View) {
+    addView(thread, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f))
 }
 
 private fun StudioNavigator.acceptPanelHint(value: String, panels: StudioCanvasState) {

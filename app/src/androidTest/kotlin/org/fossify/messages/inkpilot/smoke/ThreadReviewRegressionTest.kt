@@ -170,13 +170,18 @@ class ThreadReviewRegressionTest {
                 val thread = MessagePanel(activity, work, {}, {}, threadFooter = footer, gateway = source)
                     .thread(42, focusedReview = true)
                 val canvas = activity.findViewById<android.widget.FrameLayout>(org.fossify.messages.R.id.inkpilot_canvas)
+                val focusedCanvas = StudioUi.column(activity, 0)
+                focusedCanvas.attachDraftThread(thread)
                 canvas.removeAllViews()
-                canvas.addView(thread, android.widget.FrameLayout.LayoutParams(
+                canvas.addView(focusedCanvas, android.widget.FrameLayout.LayoutParams(
                     StudioUi.dp(canvas, 320), StudioUi.dp(canvas, 400)))
             }
             InstrumentationRegistry.getInstrumentation().waitForIdleSync()
             scenario.onActivity { activity ->
                 val canvas = activity.findViewById<View>(org.fossify.messages.R.id.inkpilot_canvas)
+                val focusedCanvas = (canvas as ViewGroup).getChildAt(0) as ViewGroup
+                assertEquals("nested review thread fills its parent instead of self-shrinking",
+                    focusedCanvas.height, focusedCanvas.getChildAt(0).height)
                 val editor = children(canvas).filterIsInstance<android.widget.EditText>().single()
                 val editorRect = android.graphics.Rect()
                 assertTrue("held reply editor begins inside the focused thread viewport",
