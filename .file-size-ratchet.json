@@ -328,7 +328,7 @@
     "app/src/main/kotlin/org/fossify/messages/messaging/MmsComposerOutcome.kt": 57,
     "app/src/main/kotlin/org/fossify/messages/messaging/PartVerdict.kt": 9,
     "app/src/main/kotlin/org/fossify/messages/messaging/ScheduledActions.kt": 32,
-    "app/src/main/kotlin/org/fossify/messages/messaging/ScheduledDispatch.kt": 71,
+    "app/src/main/kotlin/org/fossify/messages/messaging/ScheduledDispatch.kt": 75,
     "app/src/main/kotlin/org/fossify/messages/messaging/ScheduledMessage.kt": 46,
     "app/src/main/kotlin/org/fossify/messages/messaging/ScheduledPreflight.kt": 9,
     "app/src/main/kotlin/org/fossify/messages/messaging/ScheduledQueue.kt": 41,

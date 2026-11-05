@@ -27,24 +27,8 @@ fun Context.dispatchScheduled(snapshot: Message, fromAlarm: Boolean = false,
                 else getSmsManager(current.subscriptionId).divideMessage(current.body).size * addresses.size
             current to parts
         } ?: return DispatchOutcome.Rejected(rejection)
-        val attachments = message.attachment?.attachments.orEmpty()
-        val addresses = message.participants.getAddresses().distinct()
-        val settings = getSendMessageSettings().apply { subscriptionId = message.subscriptionId }
         try {
-            if (message.isMMS) {
-                if (attachments.isEmpty()) {
-                    messagingUtils.sendMmsMessage(message.body, addresses, null, settings, scheduledCallback = ScheduledCallback(key))
-                } else attachments.forEachIndexed { index, attachment ->
-                    messagingUtils.sendMmsMessage(if (index == attachments.lastIndex) message.body else "", addresses,
-                        attachment, settings, scheduledCallback = ScheduledCallback(key, index))
-                }
-            } else {
-                val parts = getSmsManager(message.subscriptionId).divideMessage(message.body).size
-                addresses.forEachIndexed { index, address ->
-                    messagingUtils.sendSmsMessage(message.body, setOf(address), message.subscriptionId,
-                        settings.deliveryReports, scheduledCallback = ScheduledCallback(key, index * parts))
-                }
-            }
+            handoffScheduled(message, key)
         } catch (_: Exception) {
             journal.unknown(key)
             return DispatchOutcome.Unknown(key.alarmIdentity())
@@ -52,6 +36,26 @@ fun Context.dispatchScheduled(snapshot: Message, fromAlarm: Boolean = false,
     }
     refreshMessages()
     return DispatchOutcome.Accepted()
+}
+
+private fun Context.handoffScheduled(message: Message, key: MessageKey) {
+    val attachments = message.attachment?.attachments.orEmpty()
+    val addresses = message.participants.getAddresses().distinct()
+    val settings = getSendMessageSettings().apply { subscriptionId = message.subscriptionId }
+    if (message.isMMS) {
+        if (attachments.isEmpty()) {
+            messagingUtils.sendMmsMessage(message.body, addresses, null, settings, scheduledCallback = ScheduledCallback(key))
+        } else attachments.forEachIndexed { index, attachment ->
+            messagingUtils.sendMmsMessage(if (index == attachments.lastIndex) message.body else "", addresses,
+                attachment, settings, scheduledCallback = ScheduledCallback(key, index))
+        }
+    } else {
+        val parts = getSmsManager(message.subscriptionId).divideMessage(message.body).size
+        addresses.forEachIndexed { index, address ->
+            messagingUtils.sendSmsMessage(message.body, setOf(address), message.subscriptionId,
+                settings.deliveryReports, scheduledCallback = ScheduledCallback(key, index * parts))
+        }
+    }
 }
 
 private fun Context.scheduledClaimProblem(current: Message, fromAlarm: Boolean, nowMillis: Long): String? {
