@@ -20,7 +20,8 @@ public final class CrossPackageShareSender extends Activity {
         File source = new File(getCacheDir(), "task11-share.png");
         File stage = new File(getCacheDir(), "task11-share-stage");
         if (CLEANUP.equals(getIntent().getAction())) {
-            source.delete(); // Hosted runner reads the bounded stage marker after the test.
+            if (source.exists() && !source.delete()) throw new IllegalStateException("Test source cleanup failed");
+            writeStage(stage, "cleaned");
         } else {
             stage.delete();
             writeStage(stage, "entered");

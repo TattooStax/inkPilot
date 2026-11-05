@@ -290,7 +290,15 @@ class ShellIngressTest {
                 home!!.finish()
             }
             home = null
-            assertTrue(File(sender.cacheDir, "task11-share.png").delete())
+            sender.startActivity(Intent().setClassName(sender.packageName, CrossPackageShareSender::class.java.name)
+                .setAction(CrossPackageShareSender.CLEANUP).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+            val stage = File(sender.cacheDir, "task11-share-stage")
+            val source = File(sender.cacheDir, "task11-share.png")
+            val cleanupDeadline = SystemClock.uptimeMillis() + 5_000L
+            while (runCatching { stage.readText() }.getOrNull() != "cleaned" &&
+                SystemClock.uptimeMillis() < cleanupDeadline) Thread.sleep(50)
+            assertEquals("cleaned", stage.readText())
+            assertFalse(source.exists())
             val retained = ComposerStore(context).load(composerId)
             assertEquals(listOf(local), retained?.attachmentUris)
             assertNotNull(context.contentResolver.openInputStream(local)?.use { it.read() })
