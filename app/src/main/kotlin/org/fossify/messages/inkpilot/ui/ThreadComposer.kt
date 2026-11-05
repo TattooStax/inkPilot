@@ -96,14 +96,16 @@ internal class ThreadComposer(private val activity: AppCompatActivity, private v
             }
         }
         root.addView(send)
-        if (threadId > 0) {
-            // Opening a conversation must show its history. Staff can tap the
-            // composer to bring up the keyboard when they are ready to reply.
-            root.isFocusableInTouchMode = true
-            root.requestFocus()
-        }
+        root.focusHistoryOnOpen(threadId)
         return root
     }
+}
+
+private fun android.widget.LinearLayout.focusHistoryOnOpen(threadId: Long) {
+    if (threadId <= 0L) return
+    // Opening a conversation must show its history. Staff can tap the composer to reply.
+    isFocusableInTouchMode = true
+    requestFocus()
 }
 
 internal fun chooseComposerSim(activity: AppCompatActivity, work: StudioWork, chosen: (Int, String) -> Unit) {

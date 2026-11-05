@@ -274,7 +274,7 @@
     "app/src/main/kotlin/org/fossify/messages/inkpilot/ui/StudioScrollView.kt": 40,
     "app/src/main/kotlin/org/fossify/messages/inkpilot/ui/StudioThreadAdapter.kt": 76,
     "app/src/main/kotlin/org/fossify/messages/inkpilot/ui/StudioUi.kt": 87,
-    "app/src/main/kotlin/org/fossify/messages/inkpilot/ui/ThreadComposer.kt": 126,
+    "app/src/main/kotlin/org/fossify/messages/inkpilot/ui/ThreadComposer.kt": 128,
     "app/src/main/kotlin/org/fossify/messages/interfaces/AttachmentsDao.kt": 11,
     "app/src/main/kotlin/org/fossify/messages/interfaces/ConversationsDao.kt": 59,
     "app/src/main/kotlin/org/fossify/messages/interfaces/DraftsDao.kt": 22,
