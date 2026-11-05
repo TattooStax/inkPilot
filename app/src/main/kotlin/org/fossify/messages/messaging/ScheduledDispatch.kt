@@ -9,12 +9,17 @@ import org.fossify.messages.helpers.refreshMessages
 import org.fossify.messages.models.Message
 
 /** Reload and commit the claim before handoff. Never dispatch a stale editor/alarm snapshot. */
-fun Context.dispatchScheduled(snapshot: Message): DispatchOutcome {
+fun Context.dispatchScheduled(snapshot: Message, fromAlarm: Boolean = false,
+                              nowMillis: Long = System.currentTimeMillis()): DispatchOutcome {
     val key = snapshot.key()
     ScheduledVerdicts(this).use { journal ->
         var rejection = "This send is already claimed. Check the conversation before sending again."
         val message = journal.claimPrepared(key) {
             val current = messagesDB.get(key) ?: return@claimPrepared null
+            if (fromAlarm && current.millis() > nowMillis) {
+                rejection = "This edited message is scheduled for later."
+                return@claimPrepared null
+            }
             val addresses = current.participants.getAddresses().distinct()
             val attachments = current.attachment?.attachments.orEmpty()
             val problem = if (!current.isMMS && addresses.size != 1) SMS_GROUP_REFUSAL else

@@ -38,6 +38,6 @@ class ScheduledMessageReceiver : BroadcastReceiver() {
 
     private fun handleIntent(context: Context, intent: Intent) {
         val message = context.resolveScheduledAlarm(intent) ?: return
-        context.dispatchScheduled(message)
+        context.dispatchScheduled(message, fromAlarm = true)
     }
 }

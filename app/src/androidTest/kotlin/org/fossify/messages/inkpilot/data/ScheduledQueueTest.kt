@@ -56,4 +56,18 @@ class ScheduledQueueTest {
             }
         } finally { context.messagesDB.delete(row.key()) }
     }
+
+    @Test fun staleAlarmAfterSameKeyEditCannotSendBeforeNewDueTime() {
+        val firstDue = System.currentTimeMillis() / 1000 + 60
+        val row = message().copy(date = firstDue.toInt())
+        val edited = row.copy(body = "edited for later", date = (firstDue + 3600).toInt())
+        try {
+            assertEquals(ScheduledQueueResult.QUEUED, context.queueScheduled(row) { })
+            assertEquals(ScheduledQueueResult.QUEUED, context.queueScheduled(edited, row.key()) { })
+            val outcome = context.dispatchScheduled(row, fromAlarm = true, nowMillis = firstDue * 1000)
+            assertTrue(outcome is DispatchOutcome.Rejected)
+            assertEquals(edited, context.messagesDB.get(row.key()))
+            ScheduledVerdicts(context).use { assertEquals("QUEUED", it.state(row.key())) }
+        } finally { context.messagesDB.delete(row.key()) }
+    }
 }

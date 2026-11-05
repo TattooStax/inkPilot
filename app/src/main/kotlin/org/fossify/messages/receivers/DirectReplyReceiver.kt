@@ -20,21 +20,40 @@ import org.fossify.messages.inkpilot.runtime.CarrierIngressPolicy
 import org.fossify.messages.inkpilot.runtime.DirectReplyPendingStore
 import org.fossify.messages.messaging.DispatchOutcome
 import org.fossify.messages.messaging.sendMessageCompat
+import org.fossify.messages.services.HeadlessReplyAdmission
 
 class DirectReplyReceiver : BroadcastReceiver() {
     @SuppressLint("MissingPermission")
     override fun onReceive(context: Context, intent: Intent) {
         val address = intent.getStringExtra(THREAD_NUMBER)?.takeIf(String::isNotBlank) ?: return
-        val threadId = intent.getLongExtra(THREAD_ID, 0L).takeIf { it > 0 } ?: return
         val raw = RemoteInput.getResultsFromIntent(intent)?.getCharSequence(REPLY)?.toString() ?: return
-        if (!SmsRole.isHeld(context)) return
-        val body = context.removeDiacriticsIfNeeded(raw)
-        if (body.isBlank()) return
+        if (raw.isBlank()) return
         val store = DirectReplyPendingStore(context)
-        val selected = intent.getIntExtra(SUBSCRIPTION_ID, -1).takeIf { it >= 0 }
-            ?: context.config.savedSIMIdAtNumber(address)
-        val held = runCatching { store.hold(threadId, address, body, selected) }
-            .getOrElse { return }
+        val admission = runCatching {
+            HeadlessReplyAdmission.preserve(
+                resolveThread = { intent.getLongExtra(THREAD_ID, 0L) },
+                resolveSubscription = {
+                    intent.getIntExtra(SUBSCRIPTION_ID, -1).takeIf { it >= 0 }
+                        ?: context.config.savedSIMIdAtNumber(address)
+                },
+                persist = { thread, selected -> store.hold(thread, address, raw, selected) },
+            )
+        }.getOrElse {
+            AgentSettings(context).recordStatus("Direct reply could not enter held review. Open SMS.")
+            return
+        }
+        val held = admission.held
+        val threadId = held.threadId
+        if (!SmsRole.isHeld(context) || threadId == null ||
+            admission.savedSim == HeadlessReplyAdmission.SavedSim.LookupFailed) {
+            runCatching { AgentSettings(context).recordStatus(
+                "Direct reply held: SMS role, thread or SIM is unavailable. Review held replies.") }
+            return
+        }
+        val body = runCatching { context.removeDiacriticsIfNeeded(raw) }.getOrElse {
+            runCatching { AgentSettings(context).recordStatus("Direct reply held: text conversion failed. Review held replies.") }
+            return
+        }
         val pending = goAsync()
         ensureBackgroundThread {
             try {
