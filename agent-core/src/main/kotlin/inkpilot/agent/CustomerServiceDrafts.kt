@@ -63,8 +63,11 @@ class CustomerServiceDrafts(
                 DraftStoreResult.SourceChanged -> stopped(DraftStopReason.SOURCE_CHANGED)
                 DraftStoreResult.StaffPaused -> stopped(DraftStopReason.STAFF_PAUSED)
                 is DraftStoreResult.Held -> {
+                    val valid = validReceipt(result.receipt, source, key, policy, evidence)
                     val validBody = result.disposition == DraftDisposition.ALREADY_HELD || result.receipt.body == body
-                    if (validReceipt(result.receipt, source, key, policy, evidence) && validBody) {
+                    if (result.disposition == DraftDisposition.ALREADY_HELD && !valid) {
+                        stopped(DraftStopReason.INVALID_RECEIPT)
+                    } else if (valid && validBody) {
                         DraftOutcome.Held(result.receipt, result.disposition)
                     } else DraftOutcome.PersistenceUnconfirmed(key)
                 }

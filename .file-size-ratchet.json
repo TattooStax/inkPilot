@@ -27,7 +27,7 @@
     "agent-core/README.md": 91,
     "agent-core/build.gradle.kts": 12,
     "agent-core/src/main/kotlin/inkpilot/agent/BoundedIntentReplyRenderer.kt": 84,
-    "agent-core/src/main/kotlin/inkpilot/agent/CustomerServiceDrafts.kt": 111,
+    "agent-core/src/main/kotlin/inkpilot/agent/CustomerServiceDrafts.kt": 114,
     "agent-core/src/main/kotlin/inkpilot/agent/DraftContext.kt": 53,
     "agent-core/src/main/kotlin/inkpilot/agent/DraftEvidence.kt": 79,
     "agent-core/src/main/kotlin/inkpilot/agent/DraftOutcome.kt": 26,
