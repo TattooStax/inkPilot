@@ -1,8 +1,11 @@
 package org.fossify.messages.inkpilot.ui
 
 import android.os.Build
+import android.graphics.Rect
+import android.os.SystemClock
 import android.view.View
 import android.view.ViewGroup
+import android.view.MotionEvent
 import android.view.accessibility.AccessibilityNodeInfo
 import android.widget.Button
 import android.widget.TextView
@@ -96,11 +99,22 @@ class LeadIntakeReviewUiTest : StudioDatabaseTestBase() {
             val node = SmokeViews.await("visible dialog choice: $label") {
                 findVisibleText(instrumentation.uiAutomation.rootInActiveWindow, label)
             }
-            var clickable: AccessibilityNodeInfo? = node
-            while (clickable != null && !clickable.isClickable) clickable = clickable.parent
-            assertTrue("Dialog choice has no clickable ancestor: $label", clickable != null)
-            assertTrue("Dialog choice click was rejected: $label",
-                clickable!!.performAction(AccessibilityNodeInfo.ACTION_CLICK))
+            // AlertDialog's ListView handles the row touch, but its visible text node
+            // does not expose ACTION_CLICK (nor does any accessibility ancestor).
+            val bounds = Rect().also(node::getBoundsInScreen)
+            assertFalse("Dialog choice has empty bounds: $label", bounds.isEmpty)
+            val x = bounds.centerX().toFloat()
+            val y = bounds.centerY().toFloat()
+            val downTime = SystemClock.uptimeMillis()
+            val down = MotionEvent.obtain(downTime, downTime, MotionEvent.ACTION_DOWN, x, y, 0)
+            val up = MotionEvent.obtain(downTime, downTime + 20, MotionEvent.ACTION_UP, x, y, 0)
+            try {
+                assertTrue("Dialog choice touch down rejected: $label", instrumentation.uiAutomation.injectInputEvent(down, true))
+                assertTrue("Dialog choice touch up rejected: $label", instrumentation.uiAutomation.injectInputEvent(up, true))
+            } finally {
+                down.recycle()
+                up.recycle()
+            }
             instrumentation.waitForIdleSync()
         } catch (failure: AssertionError) {
             val targets = repository.leadIntakeTargets().map {
