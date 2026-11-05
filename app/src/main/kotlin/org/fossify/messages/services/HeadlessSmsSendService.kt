@@ -22,7 +22,7 @@ class HeadlessSmsSendService : Service() {
         val uri = intent?.data
         val number = CarrierIngressPolicy.respondRecipient(uri?.scheme, uri?.encodedSchemeSpecificPart?.let { Uri.decode(it) })
         val text = intent?.getStringExtra(Intent.EXTRA_TEXT)?.takeIf { it.isNotBlank() }
-        if (intent?.action != "android.intent.action.RESPOND_VIA_MESSAGE" || number == null || text == null || !SmsRole.isHeld(this)) {
+        if (intent?.action != "android.intent.action.RESPOND_VIA_MESSAGE" || number == null || text == null) {
             stopSelf(startId)
             return START_NOT_STICKY
         }
@@ -40,6 +40,12 @@ class HeadlessSmsSendService : Service() {
             return START_NOT_STICKY
         }
         val held = admission.held
+        if (!SmsRole.isHeld(this)) {
+            runCatching { AgentSettings(this).recordStatus(
+                "Reply held: inkPilot is not the default SMS app. Review held replies in Agent.") }
+            stopSelf(startId)
+            return START_NOT_STICKY
+        }
         if (held.threadId == null) {
             runCatching { AgentSettings(this).recordStatus(
                 "Reply held: native thread is unavailable. Review held replies in Agent."
@@ -66,7 +72,7 @@ class HeadlessSmsSendService : Service() {
                 if (selected == null) {
                     AgentSettings(this).recordStatus("Reply held: select an active SIM in SMS before sending.")
                 } else {
-                    val outcome = sendMessageCompat(text, listOf(number), selected, emptyList())
+                    val outcome = sendMessageCompat(text, listOf(number), selected, emptyList(), smsOnly = true)
                     if (outcome is DispatchOutcome.Accepted) DirectReplyPendingStore(this).complete(held.id)
                     else AgentSettings(this).recordStatus("Reply not confirmed. Review held replies before retrying.")
                 }

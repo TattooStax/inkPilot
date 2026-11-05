@@ -63,6 +63,7 @@ run_class org.fossify.messages.messaging.ComposerSharedMediaTest
 run_class org.fossify.messages.inkpilot.smoke.ComposerShareFailureIngressTest
 run_class org.fossify.messages.inkpilot.runtime.CarrierIngressTest
 run_class org.fossify.messages.inkpilot.runtime.DirectReplyPreservationTest
+run_class org.fossify.messages.inkpilot.runtime.HumanReplySmsOnlyTest
 run_class org.fossify.messages.inkpilot.runtime.SmsAdmissionLedgerTest
 run_class org.fossify.messages.inkpilot.runtime.SmsIntakeRecoveryTest
 run_class org.fossify.messages.inkpilot.smoke.MmsComposerOutcomeTest

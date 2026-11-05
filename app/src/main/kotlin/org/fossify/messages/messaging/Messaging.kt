@@ -51,7 +51,8 @@ fun Context.sendMessageCompat(
     subId: Int?,
     attachments: List<Attachment>,
     messageId: Long? = null,
-    mmsComposerClaim: MmsComposerClaim? = null
+    mmsComposerClaim: MmsComposerClaim? = null,
+    smsOnly: Boolean = false,
 ): DispatchOutcome {
     val settings = getSendMessageSettings()
     if (subId != null) {
@@ -67,6 +68,9 @@ fun Context.sendMessageCompat(
         addressCount = addresses.size,
         sendGroupAsMms = settings.group
     )
+    if (smsOnly && channel != OutboundChannel.SMS) {
+        return DispatchOutcome.Rejected("This reply would become MMS. Open SMS to review it before sending.")
+    }
     val result: DispatchOutcome
     if (channel == OutboundChannel.SMS && addresses.distinct().size != 1) {
         return DispatchOutcome.Rejected(SMS_GROUP_REFUSAL)
