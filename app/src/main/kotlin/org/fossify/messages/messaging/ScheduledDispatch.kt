@@ -58,10 +58,14 @@ private fun Context.scheduledClaimProblem(current: Message, fromAlarm: Boolean, 
     if (fromAlarm && current.millis() > nowMillis) return "This edited message is scheduled for later."
     val addresses = current.participants.getAddresses().distinct()
     if (!current.isMMS && addresses.size != 1) return SMS_GROUP_REFUSAL
-    val attachments = current.attachment?.attachments.orEmpty()
     return scheduledPreflight(current.subscriptionId, addresses.isNotEmpty(), SmsRole.isHeld(this)) {
-        attachments.all { attachment -> runCatching {
-            contentResolver.openInputStream(attachment.getUri())?.use { it.read(); true } == true
-        }.getOrDefault(false) }
+        scheduledMediaReadable(current)
     }
 }
+
+private fun Context.scheduledMediaReadable(message: Message): Boolean =
+    message.attachment?.attachments.orEmpty().all { attachment ->
+        runCatching {
+            contentResolver.openInputStream(attachment.getUri())?.use { it.read(); true } == true
+        }.getOrDefault(false)
+    }

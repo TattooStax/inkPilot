@@ -59,8 +59,7 @@ class DirectReplyReceiver : BroadcastReceiver() {
         }
         val held = admission.held
         val threadId = held.threadId
-        if (!SmsRole.isHeld(context) || threadId == null ||
-            admission.savedSim == HeadlessReplyAdmission.SavedSim.LookupFailed) {
+        if (threadId == null || !admission.canSendFrom(context)) {
             runCatching { AgentSettings(context).recordStatus(
                 "Direct reply held: SMS role, thread or SIM is unavailable. Review held replies.") }
             return null
@@ -75,10 +74,8 @@ class DirectReplyReceiver : BroadcastReceiver() {
 
     private fun dispatch(context: Context, intent: Intent, ready: DirectReplyReady) {
         val binding = CarrierIngressPolicy.replyBinding(intent.dataString)
-        val source = binding?.let { NotificationReplyIdentity.read(context, it) }
-        if (source == null || source.threadId != ready.threadId ||
-            ready.address != source.recipient ||
-            (ready.savedSubscription != null && ready.savedSubscription != source.subscriptionId)) {
+        val source = binding?.let { NotificationReplyIdentity.read(context, it) }?.takeIf(ready::matches)
+        if (source == null) {
             AgentSettings(context).recordStatus("Direct reply held: native recipient or SIM could not be verified.")
             return
         }
@@ -124,4 +121,15 @@ class DirectReplyReceiver : BroadcastReceiver() {
 }
 
 private data class DirectReplyReady(val address: String, val threadId: Long, val body: String,
-    val heldId: String, val savedSubscription: Int?)
+    val heldId: String, val savedSubscription: Int?) {
+    fun matches(source: NotificationReplyIdentity.Source): Boolean {
+        if (source.threadId != threadId) return false
+        if (source.recipient != address) return false
+        return savedSubscription == null || savedSubscription == source.subscriptionId
+    }
+}
+
+private fun HeadlessReplyAdmission.Admission<DirectReplyPendingStore.Held>.canSendFrom(context: Context): Boolean {
+    if (!SmsRole.isHeld(context)) return false
+    return savedSim != HeadlessReplyAdmission.SavedSim.LookupFailed
+}
