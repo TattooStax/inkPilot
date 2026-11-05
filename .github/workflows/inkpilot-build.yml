@@ -56,6 +56,57 @@ jobs:
           name: inkPilot-foss-debug
           path: app/build/outputs/apk/foss/debug/*.apk
           if-no-files-found: error
+      - name: Assemble side-by-side OnePlus combined preview
+        if: github.ref == 'refs/heads/test/onepluscombined-e915-preview'
+        run: ./gradlew :app:assembleFossDebug -PAPP_ID=app.inkpilot.android.onepluscombined --console=plain --no-daemon --max-workers=2 -Dorg.gradle.jvmargs=-Xmx3g
+      - name: Verify side-by-side preview identity and SMS role
+        if: github.ref == 'refs/heads/test/onepluscombined-e915-preview'
+        shell: bash
+        run: |
+          shopt -s nullglob
+          manifests=(app/build/intermediates/merged_manifests/fossDebug/*/AndroidManifest.xml)
+          apks=(app/build/outputs/apk/foss/debug/*.apk)
+          test "${#manifests[@]}" -eq 1
+          test "${#apks[@]}" -eq 1
+          python3 scripts/verify_sms_role_qualification.py "${manifests[0]}" "${apks[0]}"
+          python3 - "${manifests[0]}" "${apks[0]}" <<'PY'
+          import hashlib
+          import json
+          import os
+          from pathlib import Path
+          import re
+          import subprocess
+          import sys
+          import xml.etree.ElementTree as ET
+
+          sys.path.insert(0, "scripts")
+          from verify_sms_role_qualification import find_aapt2
+
+          expected = "app.inkpilot.android.onepluscombined.debug"
+          merged = ET.parse(sys.argv[1]).getroot().get("package")
+          apk = Path(sys.argv[2])
+          badging = subprocess.run([find_aapt2(), "dump", "badging", str(apk)],
+                                   capture_output=True, text=True, check=True).stdout
+          packaged = re.search(r"(?m)^package: name='([^']+)'", badging)
+          if merged != expected or packaged is None or packaged.group(1) != expected:
+              raise SystemExit("Preview package differs from the isolated install identity")
+          digest = hashlib.sha256(apk.read_bytes()).hexdigest()
+          proof = {"source_sha": os.environ["GITHUB_SHA"], "package": expected,
+                   "apk_sha256": digest, "sms_role_manifest_verified": True,
+                   "carrier_delivery_tested": False}
+          Path("app/build/outputs/onepluscombined-preview.json").write_text(
+              json.dumps(proof, indent=2) + "\n", encoding="utf-8")
+          print(f"Preview package {expected}; APK SHA-256 {digest}")
+          PY
+      - name: Upload side-by-side OnePlus combined preview
+        if: github.ref == 'refs/heads/test/onepluscombined-e915-preview'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: inkPilot-onepluscombined-preview-${{ github.sha }}
+          path: |
+            app/build/outputs/apk/foss/debug/*.apk
+            app/build/outputs/onepluscombined-preview.json
+          if-no-files-found: error
       - name: Upload test reports
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
