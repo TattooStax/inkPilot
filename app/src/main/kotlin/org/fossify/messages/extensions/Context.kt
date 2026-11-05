@@ -572,33 +572,6 @@ fun Context.getMMS(messageUri: Uri): Message? {
     return getMMS(uri = messageUri).firstOrNull()
 }
 
-fun Context.getThreadSnippet(threadId: Long): String {
-    val sortOrder = "${Mms.DATE} DESC LIMIT 1"
-    val latestMms = getMMS(threadId, sortOrder).firstOrNull()
-    var snippet = latestMms?.body ?: ""
-
-    val uri = Sms.CONTENT_URI
-    val projection = arrayOf(
-        Sms.BODY
-    )
-
-    val selection = "${Sms.THREAD_ID} = ? AND ${Sms.DATE} > ?"
-    val selectionArgs = arrayOf(
-        threadId.toString(),
-        latestMms?.date?.toString() ?: "0"
-    )
-    try {
-        val cursor = contentResolver.query(uri, projection, selection, selectionArgs, sortOrder)
-        cursor?.use {
-            if (cursor.moveToFirst()) {
-                snippet = cursor.getStringValue(Sms.BODY)
-            }
-        }
-    } catch (_: Exception) {
-    }
-    return snippet
-}
-
 fun Context.getMessageRecipientAddress(messageId: Long): String {
     val uri = Sms.CONTENT_URI
     val projection = arrayOf(
