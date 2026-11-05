@@ -48,6 +48,7 @@ class StudioHomeActivity : AppCompatActivity() {
     internal val composerRoutes by lazy { ComposerRouteCoordinator(this, navigator, panels, ::render) }
     private var attachmentThread = 0L
     private var cleanupDialog: AlertDialog? = null
+    private var studioDrawer: android.app.Dialog? = null
     private var closing = false
     private val appLock by lazy { StudioAppLock(this) }
     private val studioArchiveDocument = registerForActivityResult(
@@ -111,7 +112,9 @@ class StudioHomeActivity : AppCompatActivity() {
             insets
         }
         val header = LinearLayout(this).apply { gravity = Gravity.CENTER_VERTICAL }
-        header.addView(StudioUi.button(this, "☰") { showStudioDrawer(this, ::openAgent) }.apply {
+        header.addView(StudioUi.button(this, "☰") {
+            studioDrawer = showStudioDrawer(this, ::openAgent).apply { setOnDismissListener { studioDrawer = null } }
+        }.apply {
             id = R.id.inkpilot_menu
             contentDescription = "Open agent controls"
         }, LinearLayout.LayoutParams(StudioUi.dp(root, 64), StudioUi.dp(root, 56)))
@@ -345,6 +348,7 @@ class StudioHomeActivity : AppCompatActivity() {
     override fun onDestroy() {
         closing = true
         cleanupDialog?.dismiss()
+        studioDrawer?.dismiss()
         smsObserver?.stop()
         executor.execute { repository.close() }
         executor.shutdown()

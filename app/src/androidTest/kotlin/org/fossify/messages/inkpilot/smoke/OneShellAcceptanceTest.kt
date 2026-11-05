@@ -78,6 +78,58 @@ class OneShellAcceptanceTest {
         }
     }
 
+    @Test fun landscapeSideCardScrollsAndPhysicalSoulTapWorks() = atLargeText { scenario ->
+        scenario.onActivity {
+            it.findViewById<View>(R.id.inkpilot_menu).performClick()
+            it.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+        }
+        SmokeViews.await<Boolean>("landscape side card") {
+            var ready = false
+            scenario.onActivity { ready = it.resources.configuration.orientation ==
+                android.content.res.Configuration.ORIENTATION_LANDSCAPE }
+            if (ready) true else null
+        }
+        SmokeViews.await<Boolean>("old side card dismissed on rotation") {
+            val root = instrumentation.uiAutomation.rootInActiveWindow
+            val stale = root?.findAccessibilityNodeInfosByText("Soul & studio memory")
+                ?.any { it.text?.toString() == "Soul & studio memory" && it.isVisibleToUser } == true
+            if (!stale && root?.packageName?.toString() == instrumentation.targetContext.packageName) true else null
+        }
+        scenario.onActivity { it.findViewById<View>(R.id.inkpilot_menu).performClick() }
+        val soul = SmokeViews.await("visible Soul button") {
+            instrumentation.uiAutomation.rootInActiveWindow?.findAccessibilityNodeInfosByText("Soul & studio memory")
+                ?.firstOrNull { it.text?.toString() == "Soul & studio memory" && it.isVisibleToUser && it.isClickable }
+        }
+        val touch = Rect().also { soul.getBoundsInScreen(it) }
+        assertTrue("Soul has a visible touch target", touch.width() > 0 && touch.height() > 0)
+        shell("input tap ${touch.centerX()} ${touch.centerY()}")
+        SmokeViews.await<Boolean>("Assistant after physical Soul tap") {
+            var opened = false
+            scenario.onActivity { opened = it.findViewById<TextView>(R.id.inkpilot_title)?.text?.toString() == "Assistant" }
+            if (opened) true else null
+        }
+        scenario.onActivity { it.findViewById<View>(R.id.inkpilot_menu).performClick() }
+        val scroll = SmokeViews.await("scrollable side card") {
+            findScroll(instrumentation.uiAutomation.rootInActiveWindow)?.takeIf { it.isScrollable }
+        }
+        repeat(4) {
+            val close = instrumentation.uiAutomation.rootInActiveWindow?.findAccessibilityNodeInfosByText("Close")
+                ?.firstOrNull { it.text?.toString() == "Close" && it.isVisibleToUser }
+            if (close != null) return@repeat
+            assertTrue("Side card scrolls to lower actions", scroll.performAction(AccessibilityNodeInfo.ACTION_SCROLL_FORWARD))
+            instrumentation.waitForIdleSync()
+        }
+        SmokeViews.assertText("Close")
+        SmokeViews.clickText("Close")
+    }
+
+    private fun findScroll(node: AccessibilityNodeInfo?): AccessibilityNodeInfo? {
+        if (node == null) return null
+        if (node.className?.toString() == "android.widget.ScrollView") return node
+        for (index in 0 until node.childCount) findScroll(node.getChild(index))?.let { return it }
+        return null
+    }
+
     @Test fun calendarReminderHintOpensCalendarCanvas() {
         val context = instrumentation.targetContext
         ActivityScenario.launch<StudioHomeActivity>(Intent(context, StudioHomeActivity::class.java)
