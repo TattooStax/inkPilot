@@ -78,6 +78,8 @@
             <!-- Telecom retains ringing responsibility. -->
             <intent-filter><action android:name="android.telecom.InCallService" /></intent-filter>
         </service>
+        <receiver android:name=".inkpilot.phone.CallNotificationActionReceiver"
+            android:exported="false" />
 
         <activity
             android:name=".inkpilot.ui.StudioHomeActivity"

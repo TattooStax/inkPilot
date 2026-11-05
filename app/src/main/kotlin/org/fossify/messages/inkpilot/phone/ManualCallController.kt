@@ -39,8 +39,8 @@ internal class TelecomCallController(private val service: StudioInCallService) :
         if (action == "route") { service.setAudioRoute(argument.toInt()); return }
         val call = service.activeCalls.firstOrNull { id(it) == id } ?: return
         when (action) {
-            "answer" -> call.answer(VideoProfile.STATE_AUDIO_ONLY)
-            "decline" -> call.reject(false, null)
+            "answer" -> { service.revokeNotificationActions(call); call.answer(VideoProfile.STATE_AUDIO_ONLY) }
+            "decline" -> { service.revokeNotificationActions(call); call.reject(false, null) }
             "end" -> call.disconnect()
             "hold" -> if (call.state == Call.STATE_HOLDING) call.unhold() else call.hold()
             "merge" -> call.mergeConference()
