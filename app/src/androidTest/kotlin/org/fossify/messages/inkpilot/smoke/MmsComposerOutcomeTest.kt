@@ -10,6 +10,7 @@ import android.widget.EditText
 import android.widget.Button
 import org.fossify.messages.inkpilot.ui.StudioHomeActivity
 import org.fossify.messages.inkpilot.ui.StudioRoute
+import org.fossify.messages.inkpilot.ui.prepareInShellComposerSend
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import org.fossify.messages.messaging.ComposerStore
 import org.fossify.messages.messaging.confirmMmsSent
@@ -31,6 +32,27 @@ import java.util.UUID
 /** Synthetic callback state only. No radio or native provider mutation. */
 @RunWith(AndroidJUnit4::class)
 class MmsComposerOutcomeTest {
+    @Test fun revokedSimAccessBeforeClaimRetainsEditableDraft() {
+        val context = ApplicationProvider.getApplicationContext<android.content.Context>()
+        val id = -UUID.randomUUID().mostSignificantBits.and(Long.MAX_VALUE)
+        val request = OutgoingMessage(id, "+15550106669", "human draft", emptyList(), 3)
+        val store = ComposerStore(context)
+        try {
+            ActivityScenario.launch(StudioHomeActivity::class.java).use { scenario ->
+                scenario.onActivity { activity ->
+                    val denied = prepareInShellComposerSend(activity, store, request) { null }.getOrThrow()
+                    assertTrue(denied is DispatchOutcome.Rejected)
+                    val revoked = prepareInShellComposerSend(activity, store, request) {
+                        throw SecurityException("SIM access revoked before claim")
+                    }.getOrThrow()
+                    assertTrue(revoked is DispatchOutcome.Rejected)
+                    assertTrue(store.save(request.copy(body = "still editable")))
+                    assertFalse(store.isUnknown(id))
+                }
+            }
+        } finally { store.clear(id) }
+    }
+
     @Test fun acceptsOnlyCanonicalNativeMmsCallbackRows() {
         assertTrue(org.fossify.messages.receivers.isMmsCallbackRow(Uri.parse("content://mms/123")))
         assertTrue(org.fossify.messages.receivers.isMmsCallbackRow(Uri.parse("content://mms/outbox/123")))

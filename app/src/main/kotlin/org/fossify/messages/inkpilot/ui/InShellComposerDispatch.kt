@@ -1,6 +1,10 @@
 package org.fossify.messages.inkpilot.ui
 
+import android.Manifest
+import android.annotation.SuppressLint
+import android.content.pm.PackageManager
 import android.telephony.SubscriptionManager
+import androidx.core.content.ContextCompat
 import androidx.appcompat.app.AppCompatActivity
 import org.fossify.messages.messaging.ComposerStore
 import org.fossify.messages.messaging.DispatchOutcome
@@ -20,20 +24,34 @@ import org.fossify.messages.extensions.getThreadId
 
 private const val MAX_IN_SHELL_TEXT_CHARS = 2_000
 
+@SuppressLint("MissingPermission")
+private fun AppCompatActivity.activeComposerSubscriptions(): Set<Int>? {
+    if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) !=
+        PackageManager.PERMISSION_GRANTED) return null
+    return try {
+        getSystemService(SubscriptionManager::class.java).activeSubscriptionInfoList.orEmpty()
+            .map { it.subscriptionId }.toSet()
+    } catch (_: SecurityException) { null }
+}
+
 internal fun prepareInShellComposerSend(
     activity: AppCompatActivity, store: ComposerStore, value: OutgoingMessage,
+    activeSimIds: () -> Set<Int>? = { activity.activeComposerSubscriptions() },
 ): Result<DispatchOutcome> {
     if (value.body.length > MAX_IN_SHELL_TEXT_CHARS) {
         return Result.success(DispatchOutcome.Rejected("Message exceeds 2,000 characters"))
     }
     val rejection = activity.inShellMmsRejection(value.attachmentUris)
     if (rejection != null) return Result.success(DispatchOutcome.Rejected(rejection))
+    val active = try { activeSimIds() } catch (_: SecurityException) { null }
+        ?: return Result.success(DispatchOutcome.Rejected("Allow SIM access, then choose a SIM"))
+    if (value.subscriptionId !in active) {
+        return Result.success(DispatchOutcome.Rejected("Choose an active SIM"))
+    }
     return prepareComposerSend(store, value) {
-        val active = activity.getSystemService(SubscriptionManager::class.java).activeSubscriptionInfoList.orEmpty()
         MessageDispatcher.local(activity) { outgoing ->
             when {
-                active.none { it.subscriptionId == outgoing.subscriptionId } ->
-                    DispatchOutcome.Rejected("Choose an active SIM")
+                outgoing.subscriptionId !in active -> DispatchOutcome.Rejected("Choose an active SIM")
                 outgoing.attachmentUris.size > 1 -> DispatchOutcome.Rejected("Send one image per message")
                 else -> activity.sendMessageCompat(
                     outgoing.body, outgoing.recipient.split("|").filter(String::isNotBlank),
