@@ -58,6 +58,15 @@
             android:theme="@style/Theme.InkPilot.Studio"
             android:windowSoftInputMode="adjustResize" />
         <receiver
+            android:name=".transport.LocalPickupReceiver"
+            android:exported="true"
+            android:permission="app.inkstax.host.permission.SIGNAL_SMS_PICKUP">
+            <intent-filter>
+                <action android:name="app.inkstax.host.action.OUTBOUND_SMS_READY" />
+            </intent-filter>
+        </receiver>
+
+        <receiver
             android:name=".inkpilot.runtime.StudioSmsResultReceiver"
             android:exported="false" />
 

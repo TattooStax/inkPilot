@@ -50,18 +50,8 @@ data class DeviceCredential(
 )
 
 /**
- * Whether a candidate endpoint base is one a credential may belong
- * to: an HTTPS URL with a host and nothing else — no path, query,
- * fragment, or embedded user info. Endpoint bases in this seam are
- * origins, as Pairing.kt returns them from a scanned offer. Plain
- * HTTP is admitted for a loopback authority only: the local
- * binding pairs a companion and a core on the same device, where
- * the traffic never leaves the device and no TLS endpoint exists
- * to name — an HTTP name for anywhere else would put the
- * credential on a network path unprotected, so it stays refused.
- * The core's endpoint rule admits exactly the same shapes, so a
- * credential's endpoint means the same thing on both sides of
- * the seam.
+ * A credential names an HTTPS origin with no user info, path, query or fragment.
+ * HTTP is valid only for a same-device loopback authority.
  */
 private fun isEndpointBase(candidate: String?): Boolean {
     val value = candidate.orEmpty()
@@ -89,6 +79,10 @@ private fun isEndpointBase(candidate: String?): Boolean {
         false
     }
 }
+
+/** A same-handset bridge remains reachable without an Android default network. */
+fun isLocalCompanionEndpoint(endpoint: String): Boolean =
+    isEndpointBase(endpoint) && isLoopbackAuthority(java.net.URI(endpoint).rawAuthority.orEmpty())
 
 /**
  * Whether an authority names this device itself: a loopback host

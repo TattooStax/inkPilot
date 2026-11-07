@@ -95,10 +95,8 @@ internal fun Context.progressPrefs() = getSharedPreferences(OUTBOUND_SEND_PROGRE
 
 /**
  * Opens a send's progress: [partCount] parts, none reported.
- * Any earlier entry under the same source id is replaced —
- * a source id names one send, and a re-opened progress is the
- * new send's. Returns whether the opened progress read back
- * as stored.
+ * The caller holds the progress guard and checks the durable dispatch marker
+ * before opening a new source. The marker outlives the part-result scratch state.
  */
 internal fun Context.beginOutboundSendProgress(
     endpointBase: String,
@@ -109,6 +107,7 @@ internal fun Context.beginOutboundSendProgress(
     val stem = progressKeyStem(endpointBase, deviceId, sourceId)
     val mask = PART_PENDING.toString().repeat(partCount)
     val committed = progressPrefs().edit()
+        .putBoolean("${stem}_dispatched", true)
         .putInt("${stem}_parts", partCount)
         .putString("${stem}_mask", mask)
         .putString("${stem}_endpoint", endpointBase)

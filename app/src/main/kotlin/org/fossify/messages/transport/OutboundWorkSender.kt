@@ -76,12 +76,7 @@ fun Context.sendOutboundWork(work: OutboundWork): OutboundWorkSendResult {
 }
 
 /**
- * The same send performed with a credential the caller already
- * holds: a caller that acts under a pairing — the pickup run
- * that took this work from that pairing's endpoint — sends
- * with that pairing's credential, never one a disconnect and
- * re-pair may have stored since, so work taken from one
- * pairing is only ever sent and acked under that pairing.
+ * Send under the captured pairing, even if disconnect and re-pair happen during pickup.
  */
 @Suppress("TooGenericExceptionCaught", "SwallowedException")
 internal fun Context.sendOutboundWork(
@@ -90,6 +85,9 @@ internal fun Context.sendOutboundWork(
 ): OutboundWorkSendResult {
     if (!org.fossify.messages.helpers.SmsRole.isHeld(this)) {
         return OutboundWorkSendResult.NotDefaultSmsApp
+    }
+    synchronized(OutboundSendProgressGuard.lock) {
+        if (alreadyDispatched(credential, work.sourceId)) return OutboundWorkSendResult.AlreadySubmitted
     }
     val destination = PhoneNumberUtils.stripSeparators(work.recipient)
     if (destination.isEmpty()) {
@@ -102,6 +100,7 @@ internal fun Context.sendOutboundWork(
             return synchronousFailure(credential, work, TransportOutcome.ERROR_SENDING_MESSAGE)
         }
         val opened = synchronized(OutboundSendProgressGuard.lock) {
+            if (alreadyDispatched(credential, work.sourceId)) return OutboundWorkSendResult.AlreadySubmitted
             beginOutboundSendProgress(credential.endpointBase, credential.deviceId, work.sourceId, parts.size)
         }
         if (!opened) {

@@ -2,6 +2,9 @@ package org.fossify.messages.transport
 
 /** The result of one attempt to send a picked-up work item. */
 sealed interface OutboundWorkSendResult {
+    /** The radio may already have this source. Wait for the original callback/ACK. */
+    data object AlreadySubmitted : OutboundWorkSendResult
+
     /**
      * Nothing was sent: this device holds no usable credential.
      * Outbound work exists only under a pairing — it was picked
@@ -23,13 +26,7 @@ sealed interface OutboundWorkSendResult {
      */
     data object NotDefaultSmsApp : OutboundWorkSendResult
 
-    /**
-     * The platform accepted the submission. That is all this
-     * outcome claims: the message is queued with the radio, not
-     * sent — the phone's verdict arrives asynchronously through
-     * [OutboundSendResultReceiver] and is filed from there,
-     * never from this return value.
-     */
+    /** Submitted to the radio. The asynchronous callback determines the carrier verdict. */
     data object Submitted : OutboundWorkSendResult
 
     /**

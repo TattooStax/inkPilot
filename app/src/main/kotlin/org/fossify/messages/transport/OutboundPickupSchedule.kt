@@ -5,10 +5,12 @@ import androidx.work.Constraints
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.ExistingWorkPolicy
 import androidx.work.NetworkType
+import androidx.work.Operation
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import inkstax.sms.transport.DRAIN_RETRY_INTERVAL_MILLIS
+import inkstax.sms.transport.isLocalCompanionEndpoint
 import java.util.concurrent.TimeUnit
 
 private const val OUTBOUND_PICKUP_WORK_NAME = "outbound_pickup"
@@ -22,37 +24,14 @@ private const val OUTBOUND_PICKUP_PERIODIC_WORK_NAME = "outbound_pickup_periodic
  * boot, or a Settings visit can each ask for a run at once as
  * well.
  *
- * Outbound work is created at the brain, not on the phone, so
- * no phone-side event can trigger a run the way an arrival
- * triggers a drain: the schedule is the trigger, in the same
- * shape as the scheduled drain retry. The interval is the
- * heartbeat interval for the drain retry's own reason, one
- * level up: the brain already judges this link by that pace,
- * picking up faster would spend battery re-asking an endpoint
- * that has nothing new to say at any pace the link's health
- * can distinguish, and the platform's own periodic-work floor
- * sits at the same interval. A wake path that can name the
- * moment work lands — the push provider the design keeps
- * behind its interface — shortens the wait when it arrives;
- * until then the periodic run is the honest pace, and a reply
- * the brain queues is picked up within one interval of being
- * queued.
+ * Same-handset InkStax queues signal the SMS role app. A remote pairing
+ * still uses periodic pickup, and a local pairing can poll its loopback
+ * bridge even when the phone has no default Internet network.
  *
- * Periodic work is kept, not replaced, when the schedule is
- * ensured again: pairing, a boot, and every Settings visit all
- * ensure it, and keeping the existing work preserves its next
- * run time instead of pushing a pickup a full interval later
- * on every Settings visit. The one-time run an ensure can ask
- * for is unique and appended-or-replaced: it runs after a run
- * already pending rather than beside it, but a chain a
- * disconnect cancelled cannot cancel a fresh pairing's first
- * run along with itself - the replacement starts a new chain
- * where the old one was cancelled or failed, and the pickup
- * guard serializes the runs themselves whichever trigger
- * enqueued them. The network constraint is the pickup's own
- * precondition, so a run that falls due while the phone is
- * offline waits for the network instead of burning its attempt
- * against an endpoint it cannot reach.
+ * Updating periodic work preserves its enqueue time while replacing stale
+ * network constraints after an app upgrade. One-time pickup uses the same
+ * named chain on every wake. A cancelled pairing cannot cancel its successor.
+ * The pickup guard serializes periodic and immediate runs.
  *
  * Pairing starts the schedule and disconnect cancels it,
  * together with the heartbeat schedule and the drain retry
@@ -62,33 +41,33 @@ private const val OUTBOUND_PICKUP_PERIODIC_WORK_NAME = "outbound_pickup_periodic
  * empty pickup per interval.
  */
 fun Context.ensureOutboundPickupSchedule() {
-    if (storedDeviceCredential() == null) {
-        return
-    }
-    val constraints = Constraints.Builder()
-        .setRequiredNetworkType(NetworkType.CONNECTED)
-        .build()
+    val credential = storedDeviceCredential() ?: return
+    val constraints = pickupConstraints(credential.endpointBase)
     val periodicRequest = PeriodicWorkRequestBuilder<OutboundPickupWorker>(
         DRAIN_RETRY_INTERVAL_MILLIS, TimeUnit.MILLISECONDS
     ).setConstraints(constraints).build()
     WorkManager.getInstance(this).enqueueUniquePeriodicWork(
-        OUTBOUND_PICKUP_PERIODIC_WORK_NAME, ExistingPeriodicWorkPolicy.KEEP, periodicRequest
+        OUTBOUND_PICKUP_PERIODIC_WORK_NAME, ExistingPeriodicWorkPolicy.UPDATE, periodicRequest
     )
 }
 
 /** Enqueues one outbound pickup run at once, as lifecycle-managed work. */
-fun Context.enqueueOutboundPickup() {
+fun Context.enqueueOutboundPickup(): Operation? {
+    val credential = storedDeviceCredential() ?: return null
     val request = OneTimeWorkRequestBuilder<OutboundPickupWorker>()
-        .setConstraints(
-            Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()
-        )
+        .setConstraints(pickupConstraints(credential.endpointBase))
         .build()
-    WorkManager.getInstance(this).enqueueUniqueWork(
+    return WorkManager.getInstance(this).enqueueUniqueWork(
         OUTBOUND_PICKUP_WORK_NAME,
         ExistingWorkPolicy.APPEND_OR_REPLACE,
         request
     )
 }
+
+private fun pickupConstraints(endpoint: String): Constraints =
+    Constraints.Builder().setRequiredNetworkType(
+        if (isLocalCompanionEndpoint(endpoint)) NetworkType.NOT_REQUIRED else NetworkType.CONNECTED
+    ).build()
 
 /** Cancels any scheduled outbound pickup, as disconnect requires. */
 fun Context.cancelOutboundPickupSchedule() {

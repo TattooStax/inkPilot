@@ -4,6 +4,7 @@ import android.content.Context
 import inkstax.sms.transport.DeviceCredential
 import inkstax.sms.transport.OutboundPickupOutcome
 import inkstax.sms.transport.OutboundWork
+import org.fossify.messages.helpers.SmsRole
 
 /**
  * One outbound pickup run: pick queued work up from the paired
@@ -29,17 +30,9 @@ import inkstax.sms.transport.OutboundWork
  * or local-mode phone behaves exactly as it does without this
  * caller.
  *
- * A pickup hands one item over. The brain hands an item over
- * once — picking up is taking it, not looking at it — and the
- * phone's verdict on the send is reported back through the
- * outbound ack wire under that item's source id, never through
- * the pickup. The run therefore picks up again after each
- * send, and stops at the first answer that hands over no work:
- * an empty queue is the run's natural end, and a failed pickup
- * (an unreachable or refusing endpoint, a rejected credential,
- * a malformed answer) leaves whatever the brain still holds
- * queued there for a later run rather than being retried in a
- * tight loop here.
+ * A pickup names the oldest queued source until its ACK reaches the brain.
+ * Stop on an empty or failed pickup. The durable dispatch receipt prevents
+ * retries and competing scheduled runs from submitting the source twice.
  *
  * A send outcome decides whether continuing can mean anything.
  * A submitted send, and a send that failed at submission — its
@@ -81,7 +74,7 @@ internal fun Context.pickUpAndSendOutboundWork(isStopped: () -> Boolean = { fals
     val seenSourceIds = HashSet<String>()
     var running = true
     while (running) {
-        if (isStopped() || storedDeviceCredential() != credential) {
+        if (isStopped() || !SmsRole.isHeld(this) || storedDeviceCredential() != credential) {
             running = false
             break
         }
@@ -96,6 +89,7 @@ internal fun Context.pickUpAndSendOutboundWork(isStopped: () -> Boolean = { fals
             when (sendPickedUpWork(credential, work, isStopped)) {
                 OutboundWorkSendResult.Submitted -> sentCount++
                 is OutboundWorkSendResult.Failed -> sentCount++
+                OutboundWorkSendResult.AlreadySubmitted,
                 OutboundWorkSendResult.NotPaired,
                 OutboundWorkSendResult.NotDefaultSmsApp,
                 null -> running = false
