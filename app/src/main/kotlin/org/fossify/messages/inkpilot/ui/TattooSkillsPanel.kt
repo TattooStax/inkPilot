@@ -19,7 +19,9 @@ internal class TattooSkillsPanel(private val activity: Activity, state: Bundle?)
     private val names = linkedMapOf("tattoo-design-workflow" to "Tattoo Reference Design", "tattoo-sleeve-layout" to "Sleeve Layout", "tattoo-stencil-production" to "Stencil Production", "tattoo-studio-routing" to "Studio Handoffs")
     private fun read(name: String): String {
         require(name in names)
-        return activity.assets.open("tattoo_skills/$name/SKILL.md").bufferedReader().use { it.readText() }.substringAfter("---").substringAfter("---").trim()
+        val body = activity.assets.open("tattoo_skills/$name/SKILL.md").bufferedReader().use { it.readText() }.substringAfter("---").substringAfter("---").trim()
+        val reference = mapOf("tattoo-design-workflow" to "artist-style-lessons.md", "tattoo-sleeve-layout" to "sources.md", "tattoo-stencil-production" to "production-sources.md")[name]
+        return if (reference == null) body else body + "\n\n" + activity.assets.open("tattoo_skills/$name/references/$reference").bufferedReader().use { it.readText() }
     }
     private fun field(hint: String, initial: String, limit: Int, changed: (String) -> Unit) = EditText(activity).apply {
         this.hint = hint; minLines = 3; setTextColor(StudioUi.ink); setHintTextColor(StudioUi.muted)
