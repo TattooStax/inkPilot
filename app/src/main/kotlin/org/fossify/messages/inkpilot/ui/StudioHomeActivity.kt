@@ -36,6 +36,7 @@ class StudioHomeActivity : AppCompatActivity() {
     private lateinit var heading: TextView
     private lateinit var agent: AgentPanel
     private lateinit var studio: StudioPanels
+    private lateinit var designSkills: TattooSkillsPanel
     private var tab = StudioTab.SMS
     private var screen = "tab"
     private var smsObserver: SmsRefreshObserver? = null
@@ -56,6 +57,7 @@ class StudioHomeActivity : AppCompatActivity() {
         work = StudioWork(this, executor)
         agent = AgentPanel(this, work, ::render, savedInstanceState?.getString("soul_draft"))
         studio = StudioPanels(this, executor, { StudioUi.error(this, it) }, repository)
+        designSkills = TattooSkillsPanel(this, savedInstanceState)
         buildFrame()
         appLaunched(BuildConfig.APPLICATION_ID)
         smsObserver = SmsRefreshObserver(this) { if (screen == "tab" && tab == StudioTab.SMS) render() }
@@ -104,6 +106,7 @@ class StudioHomeActivity : AppCompatActivity() {
             "drafts" -> DraftPanel(this, repository, work, ::render).view()
             "soul" -> agent.soul()
             "model" -> agent.model()
+            "skills" -> designSkills.view()
             else -> when (tab) {
                 StudioTab.SMS -> messages.messages()
                 StudioTab.PHONE -> messages.phone()
@@ -156,6 +159,7 @@ class StudioHomeActivity : AppCompatActivity() {
     override fun onSaveInstanceState(outState: Bundle) {
         outState.putString("tab", tab.name); outState.putString("screen", screen)
         agent.soulDraft?.let { outState.putString("soul_draft", it) }
+        designSkills.save(outState)
         super.onSaveInstanceState(outState)
     }
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
